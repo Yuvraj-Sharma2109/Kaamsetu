@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Language } from '../types';
-import { getTranslation } from '../utils/i18n';
 import { 
   Radio, 
   Search, 
   Briefcase, 
   Wallet, 
   UserCheck,
+  Menu,
+  X,
 } from 'lucide-react';
 
 export type TabType = 'radar' | 'feed' | 'active' | 'passbook' | 'profile';
@@ -29,7 +30,16 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   hasActiveJob,
   availableJobsCount,
 }) => {
-  const t = getTranslation(language);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [menuOpen]);
 
   const navItems: { id: TabType; label: string; icon: React.ReactNode; badge?: React.ReactNode }[] = [
     {
@@ -79,14 +89,18 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="h-[65px] w-[calc(100%-32px)] max-w-[361px] md:max-w-xl shrink-0 rounded-[20px] bg-white px-1.5 select-none shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
-      <div className="grid grid-cols-4 items-center h-full">
-        {navItems.filter((item) => item.id !== 'profile').map((item) => {
+    <>
+      <nav aria-label={language === 'hi' ? 'मुख्य नेविगेशन' : 'Main navigation'} className="h-[65px] w-[calc(100%-32px)] max-w-[361px] md:max-w-xl shrink-0 rounded-[20px] bg-white px-1.5 select-none shadow-[0px_2px_20px_rgba(0,0,0,0.11)] lg:hidden">
+        <div className="grid grid-cols-4 items-center h-full">
+          {navItems.filter((item) => item.id !== 'profile').map((item) => {
           const isActive = currentTab === item.id;
           return (
             <motion.button
               key={item.id}
+              type="button"
               onClick={() => onSelectTab(item.id)}
+              aria-label={item.label}
+              aria-current={isActive ? 'page' : undefined}
               whileTap={{ scale: 0.94 }}
               transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}
               className={`min-h-[55px] flex items-center justify-center rounded-[15px] transition-all relative ${
@@ -107,8 +121,61 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
             </motion.button>
           );
-        })}
+          })}
+        </div>
+      </nav>
+
+      <div className="hidden lg:block">
+        <button
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-label={menuOpen ? (language === 'hi' ? 'मेनू बंद करें' : 'Close menu') : (language === 'hi' ? 'मेनू खोलें' : 'Open menu')}
+          aria-expanded={menuOpen}
+          aria-haspopup="menu"
+          className="fixed right-6 top-6 z-[70] flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-neutral-900 shadow-lg transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+        >
+          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+
+        {menuOpen && (
+          <>
+            <button
+              type="button"
+              aria-label={language === 'hi' ? 'मेनू बंद करें' : 'Close menu'}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 z-[60] cursor-default"
+            />
+            <nav
+              aria-label={language === 'hi' ? 'मुख्य नेविगेशन' : 'Main navigation'}
+              role="menu"
+              className="fixed right-6 top-[5rem] z-[70] w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
+            >
+              {navItems.map((item) => {
+                const isActive = currentTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="menuitem"
+                    aria-current={isActive ? 'page' : undefined}
+                    onClick={() => {
+                      onSelectTab(item.id);
+                      setMenuOpen(false);
+                    }}
+                    className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition-colors ${isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
+                  >
+                    <span className="relative flex h-5 w-5 items-center justify-center">{item.icon}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {item.id === 'feed' && availableJobsCount > 0 && (
+                      <span className="rounded-full bg-neutral-900 px-2 py-0.5 text-[10px] font-black text-white">{availableJobsCount}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </>
+        )}
       </div>
-    </nav>
+    </>
   );
 };

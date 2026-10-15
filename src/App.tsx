@@ -421,6 +421,7 @@ export default function App() {
         <BottomNav
           currentTab={currentTab}
           onSelectTab={(tab) => {
+            if (tab === 'profile') setProfileReturnTab(currentTab);
             setCurrentTab(tab);
             setIsWorkListExpanded(false);
             workListProgress.set(0);
