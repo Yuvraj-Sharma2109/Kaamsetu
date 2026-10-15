@@ -140,9 +140,22 @@ export default function App() {
     setWorker((prev) => ({ ...prev, isEShramVerified: true }));
   };
 
+  const openNextRequiredVerification = () => {
+    if (!worker.isKycVerified) {
+      setShowAadhaarModal(true);
+      return false;
+    }
+    if (!worker.isEShramVerified) {
+      setShowEShramModal(true);
+      return false;
+    }
+    return true;
+  };
+
   // Handle Online / Offline toggle
   const handleToggleOnline = () => {
     const nextState = !isOnline;
+    if (nextState && !openNextRequiredVerification()) return;
     setIsOnline(nextState);
 
     if (audioActive) {
@@ -175,6 +188,7 @@ export default function App() {
   // If worker has no active job -> activates shift
   // If worker already has active job -> queues for next!
   const handleAcceptJob = (acceptedJob: Job) => {
+    if (!openNextRequiredVerification()) return;
     if (!shift.isActive && !isOnline) return;
 
     setIncomingJob(null);
@@ -211,6 +225,7 @@ export default function App() {
 
   // Handle Queueing next work (Back-to-Back Work Queue)
   const handleQueueJob = (jobToQueue: Job) => {
+    if (!openNextRequiredVerification()) return;
     setIncomingJob(null);
     setInspectingJob(null);
 
@@ -613,6 +628,7 @@ export default function App() {
             onAcceptJob={handleAcceptJob}
             onQueueJob={handleQueueJob}
             onOpenAadhaarModal={() => setShowAadhaarModal(true)}
+            onOpenEShramModal={() => setShowEShramModal(true)}
           />
           </motion.div>
         )}
