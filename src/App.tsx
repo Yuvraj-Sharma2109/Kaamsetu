@@ -383,7 +383,21 @@ export default function App() {
         );
       }
     } else {
-      setWorker({ ...INITIAL_WORKER, id: `WRK-${Math.floor(1000 + Math.random() * 9000)}`, phone: resolvedContact });
+      setWorker({
+        ...INITIAL_WORKER,
+        id: `WRK-${Math.floor(1000 + Math.random() * 9000)}`,
+        phone: resolvedContact,
+        secondaryTrades: [],
+        rating: 0,
+        totalJobsCompleted: 0,
+        isKycVerified: false,
+        isEShramVerified: false,
+      });
+      setWalletBalance(0);
+      setTransactions([]);
+      setTodayEarnings(0);
+      setIsOnline(false);
+      setShift({ isActive: false, job: null, status: 'assigned', punchInTime: null, punchInPhotoUrl: null, punchOutTime: null, queuedJob: null });
       setHasCompletedOnboarding(false);
       if (audioActive) {
         speakText(
