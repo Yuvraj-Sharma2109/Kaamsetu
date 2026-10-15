@@ -30,7 +30,6 @@ interface JobsFeedScreenProps {
   onAcceptJob: (job: Job) => void;
   onQueueJob?: (job: Job) => void;
   onOpenAadhaarModal?: () => void;
-  onOpenEShramModal?: () => void;
 }
 
 export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
@@ -44,7 +43,6 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
   onAcceptJob,
   onQueueJob,
   onOpenAadhaarModal,
-  onOpenEShramModal,
 }) => {
   const t = getTranslation(language);
   const [maxDistance, setMaxDistance] = useState<number>(5);
@@ -180,16 +178,6 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
               {language === 'hi' ? 'सत्यापित करें' : 'Verify'}
             </button>
           )}
-        </div>
-      )}
-
-      {!worker.isEShramVerified && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-rose-50/90 p-3.5 shadow-xs">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-700"><AlertTriangle className="h-4 w-4" /></div>
-            <div className="min-w-0"><span className="block text-xs font-black leading-tight text-rose-950">{language === 'hi' ? 'ई-श्रम सत्यापन बाकी है' : 'e-Shram Pending'}</span><span className="block truncate text-[11px] font-medium text-rose-800">{language === 'hi' ? 'काम के लिए आवेदन करने हेतु सत्यापित करें' : 'Verify e-Shram to apply for jobs'}</span></div>
-          </div>
-          {onOpenEShramModal && <button onClick={onOpenEShramModal} className="shrink-0 rounded-xl bg-rose-600 px-3.5 py-2 text-xs font-black text-white shadow-xs transition-colors hover:bg-rose-700">{language === 'hi' ? 'सत्यापित करें' : 'Verify'}</button>}
         </div>
       )}
 

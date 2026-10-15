@@ -69,7 +69,6 @@ export interface WorkerProfile {
   rating: number;
   totalJobsCompleted: number;
   isKycVerified: boolean;
-  isEShramVerified: boolean;
   currentLocation: string;
   toolsOwned: string[];
   preferredRadiusKm: number;

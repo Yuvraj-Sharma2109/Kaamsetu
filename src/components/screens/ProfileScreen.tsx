@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { WorkerProfile, Language, TradeCategory } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { LanguageDropdown } from '../LanguageDropdown';
-import { ShieldCheck, Star, LogOut, Languages, Phone, IdCard, CheckCircle2, History, Hammer, AlertCircle } from 'lucide-react';
+import { Star, LogOut, Languages, Phone, IdCard, CheckCircle2, History, Hammer, AlertCircle } from 'lucide-react';
 
 interface ProfileScreenProps {
   worker: WorkerProfile;
@@ -12,7 +12,6 @@ interface ProfileScreenProps {
   onLogout?: () => void;
   onClearDemoData?: () => void;
   onOpenAadhaarModal?: () => void;
-  onOpenEShramModal?: () => void;
   settingsOpenRequest?: number;
 }
 
@@ -24,7 +23,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onLogout,
   onClearDemoData,
   onOpenAadhaarModal,
-  onOpenEShramModal,
   settingsOpenRequest = 0,
 }) => {
   const [showTradePicker, setShowTradePicker] = useState(false);
@@ -43,7 +41,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
           <div className="space-y-1 border-t border-[#b5b5b5] p-1">
             <button type="button" onClick={onOpenAadhaarModal} className="flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 text-left hover:bg-white/70"><IdCard className="h-4 w-4 shrink-0 text-slate-700" /><span className="flex-1 text-xs font-bold text-slate-900">Aadhaar</span>{worker.isKycVerified ? <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700"><CheckCircle2 className="h-3 w-3" />Verified</span> : <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700"><AlertCircle className="h-3 w-3" />Not verified · Verify</span>}</button>
-            <button type="button" onClick={onOpenEShramModal} className="flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 text-left hover:bg-white/70"><ShieldCheck className="h-4 w-4 shrink-0 text-slate-700" /><span className="flex-1 text-xs font-bold text-slate-900">e-Shram</span>{worker.isEShramVerified ? <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700"><CheckCircle2 className="h-3 w-3" />Verified</span> : <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700"><AlertCircle className="h-3 w-3" />Not verified · Verify</span>}</button>
           </div>
         </div>
       </section>

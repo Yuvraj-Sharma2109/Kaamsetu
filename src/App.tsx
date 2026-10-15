@@ -20,7 +20,6 @@ import { IncomingJobModal } from './components/IncomingJobModal';
 import { JobDetailsModal } from './components/JobDetailsModal';
 import { SosModal } from './components/SosModal';
 import { AadhaarVerifyModal } from './components/AadhaarVerifyModal';
-import { EShramVerifyModal } from './components/EShramVerifyModal';
 
 import { 
   Job, 
@@ -119,7 +118,6 @@ export default function App() {
   const [showSosModal, setShowSosModal] = useState<boolean>(false);
   const [audioActive, setAudioActive] = useState<boolean>(() => localStorage.getItem('kaamsetu_audio_enabled') !== 'false');
   const [showAadhaarModal, setShowAadhaarModal] = useState<boolean>(false);
-  const [showEShramModal, setShowEShramModal] = useState(false);
   const [profileSettingsOpenRequest, setProfileSettingsOpenRequest] = useState(0);
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
 
@@ -135,21 +133,10 @@ export default function App() {
     setWorker((prev) => ({ ...prev, isKycVerified: true }));
   };
 
-  const handleVerifyEShramSuccess = () => {
-    setShowEShramModal(false);
-    setWorker((prev) => ({ ...prev, isEShramVerified: true }));
-  };
-
   const openNextRequiredVerification = () => {
-    if (!worker.isKycVerified) {
-      setShowAadhaarModal(true);
-      return false;
-    }
-    if (!worker.isEShramVerified) {
-      setShowEShramModal(true);
-      return false;
-    }
-    return true;
+    if (worker.isKycVerified) return true;
+    setShowAadhaarModal(true);
+    return false;
   };
 
   // Handle Online / Offline toggle
@@ -426,7 +413,6 @@ export default function App() {
         rating: 0,
         totalJobsCompleted: 0,
         isKycVerified: false,
-        isEShramVerified: false,
       });
       setWalletBalance(0);
       setTransactions([]);
@@ -628,7 +614,6 @@ export default function App() {
             onAcceptJob={handleAcceptJob}
             onQueueJob={handleQueueJob}
             onOpenAadhaarModal={() => setShowAadhaarModal(true)}
-            onOpenEShramModal={() => setShowEShramModal(true)}
           />
           </motion.div>
         )}
@@ -698,7 +683,6 @@ export default function App() {
               stopSpeech();
             }}
             onOpenAadhaarModal={() => setShowAadhaarModal(true)}
-            onOpenEShramModal={() => setShowEShramModal(true)}
             settingsOpenRequest={profileSettingsOpenRequest}
           />
           </motion.div>
@@ -760,7 +744,6 @@ export default function App() {
         onToggleAudio={handleToggleAudio}
       />
 
-      <EShramVerifyModal isOpen={showEShramModal} onClose={() => setShowEShramModal(false)} onVerifySuccess={handleVerifyEShramSuccess} audioActive={audioActive} onToggleAudio={handleToggleAudio} />
     </MobileFrame>
   );
 }

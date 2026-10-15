@@ -7,7 +7,6 @@ import { speakText } from '../../utils/speech';
 import { 
   Wrench, 
   Check, 
-  ShieldCheck, 
   MapPin, 
   Volume2, 
   VolumeX,
@@ -37,7 +36,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onToggleAudio,
 }) => {
   const t = getTranslation(language);
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // Form fields
   const [selectedTrades, setSelectedTrades] = useState<TradeCategory[]>(['mason']);
@@ -54,12 +53,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [isAadhaarVerified, setIsAadhaarVerified] = useState<boolean>(false);
   const [hasFrontPhoto, setHasFrontPhoto] = useState<boolean>(false);
   const [hasBackPhoto, setHasBackPhoto] = useState<boolean>(false);
-  const [uan, setUan] = useState('123456789012');
-  const [uanOtp, setUanOtp] = useState('6184');
-  const [isEShramVerified, setIsEShramVerified] = useState(false);
-  const [esharamOtpSent, setEsharamOtpSent] = useState(false);
-  const [esharamMode, setEsharamMode] = useState<'otp' | 'photo'>('otp');
-  const [esharamError, setEsharamError] = useState('');
 
   const selectedTrade = selectedTrades[0] || 'mason';
   const selectedTradeInfo = TRADES.find((t) => t.id === selectedTrade) || TRADES[0];
@@ -87,8 +80,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       text = language === 'hi'
         ? 'कदम 4: आधार कार्ड सत्यापन। 12 अंकों का नंबर डालें या फोटो लें।'
         : 'Step 4: Aadhaar card verification. Enter 12-digit number or take photo.';
-    } else if (currentStep === 5) {
-      text = language === 'hi' ? 'कदम 5: ई-श्रम कार्ड सत्यापित करें।' : 'Step 5: Verify your e-Shram card before reviewing your profile.';
     } else {
       text = language === 'hi'
         ? 'कदम 5: प्रोफाइल तैयार है। काम शुरू करने के लिए बटन दबाएं।'
@@ -107,19 +98,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         speakText(`आपने ${trade.nameHi} चुना।`, language);
       }
     }
-  };
-
-  const handleVerifyEShram = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (uan.replace(/\D/g, '').length !== 12) return setEsharamError('Enter the 12-digit UAN from your e-Shram card.');
-    if (!esharamOtpSent) {
-      setEsharamOtpSent(true);
-      setEsharamError('Demo OTP sent. Enter 6184 to verify.');
-      return;
-    }
-    if (uanOtp !== '6184') return setEsharamError('For this demo, enter OTP 6184.');
-    setIsEShramVerified(true);
-    setEsharamError('');
   };
 
   const handleFormatAadhaar = (val: string) => {
@@ -161,13 +139,12 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       experienceYears: experienceYears,
       currentLocation: location,
       isKycVerified: isAadhaarVerified,
-      isEShramVerified,
     });
   };
 
   const handleGoBack = () => {
     if (currentStep > 1) {
-      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5 | 6);
+      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5);
     } else if (onBackToLogin) {
       onBackToLogin();
     }
@@ -202,14 +179,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         </div>
 
         <span className="text-xs font-black text-neutral-900 bg-white px-3 py-1 rounded-xl shadow-xs">
-          {language === 'hi' ? `कदम ${currentStep} / 6` : `Step ${currentStep} of 6`}
+          {language === 'hi' ? `कदम ${currentStep} / 5` : `Step ${currentStep} of 5`}
         </span>
       </div>
 
       {/* Progress Bar (Pastel Blue & Slate) */}
       <div className="space-y-1 shrink-0">
-        <div className="grid grid-cols-6 gap-1.5 h-1.5">
-          {[1, 2, 3, 4, 5, 6].map((step) => (
+        <div className="grid grid-cols-5 gap-1.5 h-1.5">
+          {[1, 2, 3, 4, 5].map((step) => (
             <div
               key={step}
               className={`rounded-full transition-all duration-300 ${
@@ -547,37 +524,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           </div>
         )}
 
-        {/* ================= STEP 5: E-SHRAM VERIFICATION ================= */}
+        {/* ================= STEP 5: FINAL SUMMARY & START ================= */}
         {currentStep === 5 && (
-          <div className="space-y-3 animate-in fade-in">
-            <div><h2 className="text-base font-black text-neutral-900">{language === 'hi' ? 'ई-श्रम कार्ड सत्यापन' : 'e-Shram Verification'}</h2><p className="text-xs text-slate-500">{language === 'hi' ? 'काम शुरू करने के लिए अपना ई-श्रम कार्ड सत्यापित करें' : 'Verify your e-Shram card to continue to profile review.'}</p></div>
-
-            <div className="space-y-2.5 rounded-3xl bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between pb-1.5">
-                <div className="flex items-center gap-2"><span className="text-lg">🇮🇳</span><div><span className="block text-[10px] font-black uppercase tracking-wider text-neutral-900">GOVT OF INDIA · e-SHRAM</span><span className="text-[9px] text-slate-400"> श्रमेव जयते</span></div></div>
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${isEShramVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{isEShramVerified ? '✓ VERIFIED' : 'PENDING'}</span>
-              </div>
-              <div className="flex items-center gap-3 py-1"><div className="flex h-14 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-slate-100 text-slate-400"><User className="h-6 w-6 text-slate-500"/><span className="mt-0.5 text-[7px] uppercase">PHOTO</span></div><div className="min-w-0 flex-1 space-y-0.5"><span className="block truncate text-xs font-black text-neutral-900">{name}</span><span className="block font-mono text-sm font-black tracking-widest text-blue-900">UAN: {uan || 'XXXX XXXX XXXX'}</span></div></div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-1.5 rounded-2xl bg-slate-100 p-1 shadow-xs">
-              <button type="button" onClick={() => setEsharamMode('otp')} className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold ${esharamMode === 'otp' ? 'bg-neutral-900 text-white shadow-xs' : 'text-slate-600'}`}><KeyRound className="h-3.5 w-3.5"/>UAN + OTP</button>
-              <button type="button" onClick={() => setEsharamMode('photo')} className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold ${esharamMode === 'photo' ? 'bg-neutral-900 text-white shadow-xs' : 'text-slate-600'}`}><Camera className="h-3.5 w-3.5"/>Card Photo</button>
-            </div>
-
-            {esharamMode === 'otp' ? <form onSubmit={handleVerifyEShram} className="space-y-2.5 rounded-3xl bg-white p-4 shadow-sm">
-              <label className="block"><span className="mb-1 block text-xs font-bold text-slate-600">Enter 12-Digit UAN</span><input inputMode="numeric" maxLength={12} value={uan} onChange={(event) => { setUan(event.target.value.replace(/\D/g, '').slice(0, 12)); setEsharamError(''); }} className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-center font-mono text-base font-black tracking-widest text-neutral-900 outline-none" /></label>
-              {esharamOtpSent && <label className="block"><span className="mb-1 block text-xs font-bold text-slate-600">Enter 4-Digit OTP</span><input inputMode="numeric" maxLength={4} value={uanOtp} onChange={(event) => { setUanOtp(event.target.value.replace(/\D/g, '').slice(0, 4)); setEsharamError(''); }} className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-center font-mono text-xl font-black tracking-widest text-neutral-900 outline-none"/><span className="mt-1 block text-center text-[11px] text-slate-400">Demo Code: <strong className="text-neutral-700">6184</strong></span></label>}
-              {esharamError && <p role="alert" className="text-xs font-semibold text-rose-700">{esharamError}</p>}
-              <button type="submit" disabled={isEShramVerified} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-neutral-900 text-xs font-black text-white disabled:bg-emerald-700">{isEShramVerified ? 'e-Shram Verified' : esharamOtpSent ? 'Verify e-Shram OTP' : 'Get e-Shram OTP'}</button>
-            </form> : <div className="space-y-2 rounded-3xl bg-white p-4 shadow-sm"><span className="block text-xs font-bold text-slate-600">Capture e-Shram card photos:</span><div className="grid grid-cols-2 gap-2">{(['Front', 'Back'] as const).map((side) => <button key={side} type="button" onClick={() => setIsEShramVerified(true)} className="flex h-20 flex-col items-center justify-center rounded-xl bg-slate-100 text-xs font-bold text-slate-700"><Camera className="mb-1 h-4 w-4 text-slate-500"/>{side} of card</button>)}</div><p className="text-center text-[10px] text-slate-400">Demo: capture either side to mark verified</p></div>}
-            {isEShramVerified && <p className="rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">e-Shram card verified. Select Next to review your profile.</p>}
-            {!isEShramVerified && <button type="button" onClick={() => { setIsEShramVerified(false); setCurrentStep(6); }} className="w-full py-2 text-center text-xs font-semibold text-slate-500 underline underline-offset-2 hover:text-neutral-900">{language === 'hi' ? 'मेरे पास अभी ई-श्रम कार्ड नहीं है (बाद में सत्यापित करें)' : 'I don’t have an e-Shram card right now (Verify later)'}</button>}
-          </div>
-        )}
-
-        {/* ================= STEP 6: FINAL SUMMARY & START ================= */}
-        {currentStep === 6 && (
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
@@ -630,10 +578,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                   {isAadhaarVerified ? '✓ Verified' : 'Not verified'}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-100/70 rounded-xl text-xs shadow-xs">
-                <span className="text-slate-600 font-bold">e-Shram Status</span>
-                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${isEShramVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>{isEShramVerified ? '✓ Verified' : 'Not verified'}</span>
-              </div>
             </div>
           </div>
         )}
@@ -642,19 +586,18 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       {/* 3. BOTTOM STEP NAVIGATION BUTTONS (Borderless) */}
       <div className="pt-2 flex items-center gap-2 shrink-0">
         {/* Next / Finish Button */}
-        {currentStep < 6 ? (
+        {currentStep < 5 ? (
           <button
             type="button"
-            disabled={(currentStep === 4 && !isAadhaarVerified) || (currentStep === 5 && !isEShramVerified)}
-            onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5 | 6)}
+            disabled={currentStep === 4 && !isAadhaarVerified}
+            onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5)}
             className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
           >
             <span>
               {currentStep === 1 && (language === 'hi' ? 'आगे: नाम दर्ज करें' : 'Next: Name & City')}
               {currentStep === 2 && (language === 'hi' ? 'आगे: काम का तजुर्बा' : 'Next: Work Experience')}
               {currentStep === 3 && (language === 'hi' ? 'आगे: आधार सत्यापन' : 'Next: Aadhaar KYC')}
-              {currentStep === 4 && (isAadhaarVerified ? (language === 'hi' ? 'आगे: ई-श्रम सत्यापन' : 'Next: e-Shram Verification') : (language === 'hi' ? 'आगे बढ़ने के लिए आधार सत्यापित करें' : 'Verify Aadhaar to continue'))}
-              {currentStep === 5 && (isEShramVerified ? (language === 'hi' ? 'आगे: प्रोफाइल समीक्षा' : 'Next: Review Profile') : 'Verify e-Shram to continue')}
+              {currentStep === 4 && (isAadhaarVerified ? (language === 'hi' ? 'आगे: प्रोफाइल समीक्षा' : 'Next: Review Profile') : (language === 'hi' ? 'आगे बढ़ने के लिए आधार सत्यापित करें' : 'Verify Aadhaar to continue'))}
             </span>
             <ArrowRight className="w-4 h-4" />
           </button>

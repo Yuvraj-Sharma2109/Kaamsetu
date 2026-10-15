@@ -21,7 +21,6 @@ export const INITIAL_WORKER: WorkerProfile = {
   rating: 4.85,
   totalJobsCompleted: 142,
   isKycVerified: true,
-  isEShramVerified: false,
   currentLocation: 'Indiranagar Sector 4, Bangalore',
   preferredRadiusKm: 5,
   toolsOwned: ['Trowel (करंडी)', 'Spirit Level', 'Plumb Line (साहुल)', 'Safety Boots'],
