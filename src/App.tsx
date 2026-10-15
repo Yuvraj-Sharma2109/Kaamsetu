@@ -358,11 +358,6 @@ export default function App() {
   if (!isLoggedIn) {
     return (
       <MobileFrame
-        isLoggedIn={false}
-        onToggleLoginDemo={() => {
-          setIsLoggedIn(true);
-          setHasCompletedOnboarding(true);
-        }}
       >
         <LoginScreen
           language={language}
@@ -377,11 +372,6 @@ export default function App() {
   if (!hasCompletedOnboarding) {
     return (
       <MobileFrame
-        isLoggedIn={false}
-        onToggleLoginDemo={() => {
-          setIsLoggedIn(true);
-          setHasCompletedOnboarding(true);
-        }}
       >
         <OnboardingScreen
           language={language}
@@ -427,8 +417,6 @@ export default function App() {
 
   return (
     <MobileFrame
-      isLoggedIn={true}
-      fullScreenCanvas={currentTab === 'radar' || currentTab === 'profile'}
       bottomOverlay={(
         <BottomNav
           currentTab={currentTab}
@@ -443,15 +431,10 @@ export default function App() {
           availableJobsCount={jobs.filter((j) => j.trade === worker.primaryTrade).length}
         />
       )}
-      onToggleLoginDemo={() => {
-        setIsLoggedIn(false);
-        setIsOnline(false);
-        stopSpeech();
-      }}
     >
       {/* Top Application Bar */}
       {currentTab === 'profile' ? (
-        <div className="absolute inset-x-0 top-3 lg:top-[63px] z-30 mx-auto flex w-[calc(100%-32px)] lg:w-[calc(100%-52px)] max-w-[360px] md:max-w-2xl items-center justify-between">
+        <div className="absolute inset-x-0 top-3 z-30 mx-auto flex w-[calc(100%-32px)] max-w-[360px] md:max-w-2xl items-center justify-between">
           <button type="button" onClick={() => setCurrentTab(profileReturnTab)} aria-label="Back" className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
             <ArrowLeft className="h-6 w-6" />
           </button>
@@ -465,7 +448,7 @@ export default function App() {
       ) : <motion.div
         aria-hidden={currentTab === 'radar' && isWorkListExpanded}
         style={{ y: currentTab === 'radar' ? headerY : 0, opacity: currentTab === 'radar' ? headerOpacity : 1, pointerEvents: currentTab === 'radar' && isWorkListExpanded ? 'none' : 'auto' }}
-        className={currentTab === 'radar' ? 'absolute inset-x-0 top-3 lg:top-[49px] z-30' : 'relative z-30'}
+        className={currentTab === 'radar' ? 'absolute inset-x-0 top-3 z-30' : 'relative z-30'}
       >
       <TopHeader
         worker={worker}
@@ -484,7 +467,7 @@ export default function App() {
       </motion.div>}
 
       {/* Screen Body Viewport */}
-      <main className={`${currentTab === 'radar' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : currentTab === 'profile' ? 'absolute inset-x-0 top-[90px] lg:top-[133px] bottom-0 z-10 overflow-hidden' : currentTab === 'active' ? 'absolute inset-x-0 top-[90px] lg:top-[133px] bottom-0 z-10 overflow-x-hidden overflow-y-auto overscroll-contain' : 'relative flex-1 overflow-y-auto'} flex min-h-0 flex-col select-none bg-[#f1f1f1]`}>
+      <main className={`${currentTab === 'radar' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : currentTab === 'profile' ? 'absolute inset-x-0 top-[90px] bottom-0 z-10 overflow-hidden' : currentTab === 'active' ? 'absolute inset-x-0 top-[90px] bottom-0 z-10 overflow-x-hidden overflow-y-auto overscroll-contain' : 'relative flex-1 overflow-y-auto'} flex min-h-0 flex-col select-none bg-[#f1f1f1]`}>
         <AnimatePresence mode="wait" initial={false}>
         {currentTab === 'radar' && (
           <motion.div key="radar" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
