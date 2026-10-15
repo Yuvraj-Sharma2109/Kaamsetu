@@ -1,0 +1,6 @@
+{
+  "name": "KaamSetu - Worker First Duty & Job App",
+  "description": "Direct mobile platform for blue-collar workers to go online, get instant nearby jobs with guaranteed wages, eliminate middlemen, and track daily earnings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

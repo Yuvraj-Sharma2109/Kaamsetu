@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaamSetu — Complete App Screens & UI Walkthrough</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563EB;
+      --emerald: #10B981;
+      --slate-900: #0F172A;
+      --slate-500: #64748B;
+      --bg: #F8FAFC;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--slate-900);
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    h1 { font-size: 24px; font-weight: 900; }
+    p.sub { font-size: 13px; color: var(--slate-500); }
+    .badge {
+      background: #EFF6FF;
+      color: #1E40AF;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .screens-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 32px;
+    }
+    .screen-card {
+      background: #FFFFFF;
+      border-radius: 40px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.06);
+      overflow: hidden;
+      border: 1px solid #E2E8F0;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-header {
+      padding: 16px 24px;
+      background: #FFFFFF;
+      border-bottom: 1px solid #F1F5F9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .screen-num {
+      font-size: 11px;
+      font-weight: 900;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .screen-name {
+      font-size: 15px;
+      font-weight: 900;
+      color: #0F172A;
+    }
+    .screen-viewport {
+      padding: 24px;
+      background: #F1F5F9;
+      display: flex;
+      justify-content: center;
+    }
+    .phone-mock {
+      width: 100%;
+      max-width: 360px;
+      background: #FFFFFF;
+      border-radius: 36px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+      border: 1px solid #E2E8F0;
+    }
+    .status-bar {
+      height: 38px;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .app-header {
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #F8FAFC;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      background: #0F172A;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 13px;
+    }
+    .wage-pill {
+      background: #EFF6FF;
+      color: #1E40AF;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .screen-content {
+      padding: 16px;
+      min-height: 480px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .map-preview {
+      height: 240px;
+      background: #EFF6FF;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #DBEAFE;
+    }
+    .map-road {
+      position: absolute;
+      background: #FFFFFF;
+    }
+    .moving-worker {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #10B981;
+      border-radius: 50%;
+      border: 3px solid white;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 10px rgba(16,185,129,0.25);
+    }
+    .floating-chip {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .go-btn {
+      width: 80px;
+      height: 80px;
+      background: #10B981;
+      color: white;
+      border-radius: 50%;
+      margin: 16px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 900;
+      box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+    }
+    .card-footer-info {
+      padding: 16px 24px;
+      background: #FFFFFF;
+      border-top: 1px solid #F1F5F9;
+      font-size: 12px;
+      color: #64748B;
+    }
+    .card-footer-info strong {
+      color: #0F172A;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>KaamSetu — Full App Visual Screen Gallery</h1>
+        <p class="sub">Direct view of all working screens without cookie walls or Google OAuth barriers</p>
+      </div>
+      <div>
+        <span class="badge">9 Live Mobile Screens</span>
+      </div>
+    </header>
+
+    <div class="screens-grid">
+      <!-- Screen 1: Duty Radar -->
+      <div class="screen-card">
+        <div class="card-header">
+          <div>
+            <div class="screen-num">Screen 01</div>
+            <div class="screen-name">Duty Radar & Moving Worker Map</div>
+          </div>
+          <span style="font-size: 10px; font-weight:800; background:#ECFDF5; color:#065F46; padding: 4px 8px; border-radius: 6px;">ONLINE</span>
+        </div>
+        <div class="screen-viewport">
+          <div class="phone-mock">
+            <div class="status-bar">
+              <span>09:41</span>
+              <span>5G 100%</span>
+            </div>
+            <div class="app-header">
+              <div style="display:flex; align-items:center; gap: 8px;">
+                <div class="avatar">R</div>
+                <div>
+                  <div style="font-size:12px; font-weight:900;">Ramesh Kumar</div>
+                  <div style="font-size:10px; font-weight:700; color:#10B981;">● On Duty (राजमिस्त्री)</div>
+                </div>
+              </div>
+              <div class="wage-pill">Today: ₹950</div>
+            </div>
+            <div class="screen-content">
+              <div class="map-preview">
+                <div class="floating-chip">📍 Indiranagar Sector 4</div>
+                <div class="moving-worker"></div>
+              </div>
+              <div>
+                <div class="go-btn">GO</div>
+                <div style="text-align:center; font-size:12px; font-weight:900; color:#0F172A;">ONLINE · SEARCHING JOBS</div>
+                <div style="text-align:center; font-size:10px; color:#64748B;">Auto-matching nearby construction sites</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-info">
+          <strong>Key Elements:</strong> Worker online status, animated vector map, moving worker location dot, guaranteed daily wage counter, Aadhaar KYC alert banner.
+        </div>
+      </div>
+
+      <!-- Screen 2: 30s Dispatch Modal -->
+      <div class="screen-card">
+        <div class="card-header">
+          <div>
+            <div class="screen-num">Screen 02</div>
+            <div class="screen-name">30s Job Dispatch Alert</div>
+          </div>
+          <span style="font-size: 10px; font-weight:800; background:#EFF6FF; color:#1E40AF; padding: 4px 8px; border-radius: 6px;">DISPATCH</span>
+        </div>
+        <div class="screen-viewport">
+          <div class="phone-mock">
+            <div class="status-bar">
+              <span>09:41</span>
+              <span>5G 100%</span>
+            </div>
+            <div class="screen-content" style="padding: 20px;">
+              <div style="width: 50px; height: 50px; border-radius: 50%; border: 3px solid #2563EB; margin: 0 auto; display:flex; align-items:center; justify-content:center; font-weight:900; color:#1E40AF; font-size:16px;">28s</div>
+              <div style="text-align:center; font-size:14px; font-weight:900; margin-top:8px;">NEW JOB DISPATCH</div>
+              <div style="background:#2563EB; color:white; padding:16px; border-radius:20px; margin-top:12px;">
+                <div style="font-size:10px; opacity:0.8;">GUARANTEED ESCROW PAY</div>
+                <div style="font-size:32px; font-weight:900; font-family:'JetBrains Mono';">₹950</div>
+              </div>
+              <div style="background:#F8FAFC; padding:14px; border-radius:16px; margin-top:12px; border:1px solid #E2E8F0;">
+                <div style="font-size:10px; color:#2563EB; font-weight:800;">CATEGORY: MASON</div>
+                <div style="font-size:14px; font-weight:900; margin-top:4px;">Brick Mason Required</div>
+                <div style="font-size:11px; color:#64748B; margin-top:4px;">📍 Sai Shanti Nilaya Villa Project · 1.8 km</div>
+              </div>
+              <div style="background:#2563EB; color:white; text-align:center; padding:14px; border-radius:16px; font-weight:900; font-size:13px; margin-top:16px;">
+                ACCEPT JOB (काम स्वीकार करें)
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-info">
+          <strong>Key Elements:</strong> 30-second countdown circle, ₹950 guaranteed escrow banner, contractor rating (4.9★), voice listen audio button.
+        </div>
+      </div>
+
+      <!-- Screen 3: Active Shift En-Route -->
+      <div class="screen-card">
+        <div class="card-header">
+          <div>
+            <div class="screen-num">Screen 03</div>
+            <div class="screen-name">Active Trip (En Route to Site)</div>
+          </div>
+          <span style="font-size: 10px; font-weight:800; background:#EFF6FF; color:#1E40AF; padding: 4px 8px; border-radius: 6px;">EN ROUTE</span>
+        </div>
+        <div class="screen-viewport">
+          <div class="phone-mock">
+            <div class="status-bar">
+              <span>09:41</span>
+              <span>5G 100%</span>
+            </div>
+            <div style="background:#2563EB; color:white; padding:12px 16px;">
+              <div style="font-size:12px; font-weight:900;">Head to Work Site / साइट की तरफ जाएं</div>
+              <div style="font-size:10px; opacity:0.8;">Behind Metro Pillar 142 (~12 min)</div>
+            </div>
+            <div class="screen-content">
+              <div class="map-preview">
+                <div class="floating-chip">🚗 CMH Road Junction</div>
+                <div class="moving-worker"></div>
+                <div style="position:absolute; right: 20px; top: 30px; font-size:10px; font-weight:900; color:#1E40AF; background:white; padding:2px 8px; border-radius:10px;">Work Site Pin</div>
+              </div>
+              <div style="margin-top:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div>
+                    <div style="font-size:14px; font-weight:900;">Sai Shanti Nilaya Villa</div>
+                    <div style="font-size:11px; color:#64748B;">Contractor: Suresh</div>
+                  </div>
+                  <div class="wage-pill">₹950 / day</div>
+                </div>
+                <div style="background:#2563EB; color:white; text-align:center; padding:14px; border-radius:16px; font-weight:900; font-size:12px; margin-top:14px;">
+                  📷 1. REACH SITE & TAKE PHOTO
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-info">
+          <strong>Key Elements:</strong> Turn-by-turn navigation header, moving worker dot gliding to work site pin, contractor call button, arrival photo CTA.
+        </div>
+      </div>
+
+      <!-- Screen 4: Working & Live Pay Meter -->
+      <div class="screen-card">
+        <div class="card-header">
+          <div>
+            <div class="screen-num">Screen 04</div>
+            <div class="screen-name">On-Site Shift & Live Wage Meter</div>
+          </div>
+          <span style="font-size: 10px; font-weight:800; background:#ECFDF5; color:#065F46; padding: 4px 8px; border-radius: 6px;">WORKING</span>
+        </div>
+        <div class="screen-viewport">
+          <div class="phone-mock">
+            <div class="status-bar">
+              <span>09:41</span>
+              <span>5G 100%</span>
+            </div>
+            <div style="background:#059669; color:white; padding:12px 16px;">
+              <div style="font-size:12px; font-weight:900;">✓ Shift In Progress (हाजिरी दर्ज)</div>
+              <div style="font-size:10px; opacity:0.8;">Sai Shanti Nilaya Villa Project · On Site</div>
+            </div>
+            <div class="screen-content">
+              <div style="background:#F1F5F9; border-radius:20px; padding:16px; display:flex; justify-content:space-between;">
+                <div>
+                  <div style="font-size:9px; font-weight:800; color:#059669;">● LIVE TIMER</div>
+                  <div style="font-size:24px; font-weight:900; font-family:'JetBrains Mono'; margin-top:4px;">00:42:15</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:9px; font-weight:800; color:#64748B;">EARNED SO FAR</div>
+                  <div style="font-size:24px; font-weight:900; font-family:'JetBrains Mono'; color:#1E40AF; margin-top:4px;">₹237</div>
+                </div>
+              </div>
+              <div style="background:#EFF6FF; padding:12px; border-radius:16px; margin-top:16px; border:1px solid #DBEAFE;">
+                <div style="font-size:10px; font-weight:800; color:#1E40AF;">FINISHING SOON? QUEUE NEXT SHIFT</div>
+                <div style="font-size:12px; font-weight:900; margin-top:2px;">Brick Wall Plastering · 3.2 km away</div>
+              </div>
+              <div style="background:#0F172A; color:white; text-align:center; padding:14px; border-radius:16px; font-weight:900; font-size:13px; margin-top:20px;">
+                ✓ COMPLETE SHIFT & GET ₹950
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer-info">
+          <strong>Key Elements:</strong> Digital live shift clock, live progressive wage meter (₹237), lunch break toggle, back-to-back shift queue card, instant escrow release.
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
