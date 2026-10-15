@@ -3,7 +3,7 @@ import { animate, motion, useMotionValue } from 'motion/react';
 import { Job, Language, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
-import { uiText } from '../../utils/uiText';
+import { localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { speakText } from '../../utils/speech';
 import { UberMapView } from '../UberMapView';
 import { MapPin, Clock3, CircleCheck } from 'lucide-react';
@@ -50,7 +50,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   const searchHeight = Math.min(226, Math.max(150, screenHeight * 0.28));
   const expandedHeight = Math.max(previewHeight, screenHeight - 124);
   const trade = TRADES.find((item) => item.id === worker.primaryTrade) || TRADES[0];
-  const tradeName = language === 'hi' ? trade.nameHi : trade.nameEn;
+  const tradeName = localizeTradeName(trade.id, language);
   const availableJobs = jobs.filter((job) =>
     job.trade === worker.primaryTrade || worker.secondaryTrades.includes(job.trade),
   );
@@ -208,8 +208,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           <motion.div key="available-work-list" aria-label={uiText(language, 'availableWork')} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }} className="pb-[82px]">
           <div className="mx-auto flex w-full max-w-[390px] md:max-w-xl flex-col gap-[10px]">
             {availableJobs.length > 0 ? availableJobs.map((job) => {
-              const jobTrade = TRADES.find((item) => item.id === job.trade);
-              const jobTradeName = language === 'hi' ? jobTrade?.nameHi : jobTrade?.nameEn;
+              const jobTradeName = localizeTradeName(job.trade, language);
               const title = language === 'hi' ? job.titleHi : job.title;
               const rateUnit = uiText(language, job.wageType === 'hourly' ? 'hourlyRate' : job.wageType === 'daily' ? 'dailyRate' : 'totalRate');
               return (
@@ -224,7 +223,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                   <h3 className="mt-[10px] min-h-[38px] w-full pr-1 text-[16px] font-bold leading-[19px] text-black line-clamp-2">{title}</h3>
                   <div className="mt-[9px] flex min-w-0 items-center gap-1 text-[10px] leading-[14px] text-[#b5b5b5]">
                     <MapPin className="h-[13px] w-[13px] shrink-0 fill-[#b5b5b5] text-[#b5b5b5]" />
-                    <span className="truncate">{job.siteName}</span>
+                    <span className="truncate">{localizePlaceText(job.siteName, language)}</span>
                   </div>
                   <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5] sm:gap-[10px]">
                     <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[#f1f1f1] px-1.5">

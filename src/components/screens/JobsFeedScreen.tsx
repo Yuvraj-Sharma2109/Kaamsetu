@@ -4,7 +4,7 @@ import { Job, Language, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
 import { speakText } from '../../utils/speech';
-import { uiText } from '../../utils/uiText';
+import { localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { 
   Search, 
   MapPin, 
@@ -53,7 +53,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
 
   // Look up worker's registered trade info
   const workerTrade = TRADES.find((t) => t.id === worker.primaryTrade) || TRADES[0];
-  const tradeDisplayName = language === 'hi' ? workerTrade.nameHi : workerTrade.nameEn;
+  const tradeDisplayName = localizeTradeName(workerTrade.id, language);
 
   // Filter jobs according to worker's chosen trade as primary
   const filteredJobs = jobs.filter((job) => {
@@ -90,10 +90,10 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
           <div className="flex items-center justify-between text-xs">
             <span className="font-black text-blue-950 flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
-              <span>{language === 'hi' ? '1 काम चालू है' : '1 Active Shift in Progress'}</span>
+              <span>{uiText(language, 'activeShiftProgress')}</span>
             </span>
             <span className="text-[11px] font-bold text-blue-800">
-              {queuedJob ? (language === 'hi' ? 'कतार भरी है (1/1)' : 'Queue Booked (1/1)') : (language === 'hi' ? 'अगला काम जोड़ सकते हैं' : 'Can Queue 1 Next Job')}
+              {queuedJob ? uiText(language, 'queueBooked') : uiText(language, 'canQueue')}
             </span>
           </div>
           <p className="text-[11px] text-blue-900 leading-tight">
@@ -150,7 +150,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                 : 'text-slate-600 hover:text-neutral-900'
             }`}
           >
-            <span>{language === 'hi' ? 'सभी काम देखें' : 'All Trade Jobs'}</span>
+            <span>{uiText(language, 'allTradeJobs')}</span>
           </button>
         </div>
       </div>
@@ -245,7 +245,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                     {isExactMatch && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md shadow-xs">
                         <Check className="w-3 h-3 text-emerald-600 stroke-[3]" />
-                        <span>{language === 'hi' ? `आपका पेशा: ${tradeDisplayName}` : `Matches: ${tradeDisplayName}`}</span>
+                        <span>{uiText(language, 'matchPrefix')} {tradeDisplayName}</span>
                       </span>
                     )}
 
@@ -257,7 +257,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                     )}
                     <div className="flex items-center gap-1.5 text-xs text-slate-500">
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="truncate">{job.siteName}</span>
+                      <span className="truncate">{localizePlaceText(job.siteName, language)}</span>
                     </div>
                   </div>
 
@@ -282,7 +282,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                   {job.perks.lunchProvided && (
                     <span className="bg-teal-50 text-teal-800 font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 shadow-xs">
                       <Utensils className="w-3 h-3 text-teal-600" />
-                      <span>{language === 'hi' ? 'भोजन मुफ्त' : 'Lunch'}</span>
+                      <span>{uiText(language, 'lunch')}</span>
                     </span>
                   )}
                 </div>
@@ -300,7 +300,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                     aria-label="Listen"
                   >
                     <Volume2 className="w-4 h-4" />
-                    <span>{playingJobId === job.id ? (language === 'hi' ? 'बोल रहे...' : 'Speaking...') : (language === 'hi' ? 'सुनें' : 'Listen')}</span>
+                    <span>{playingJobId === job.id ? uiText(language, 'speaking') : uiText(language, 'listen')}</span>
                   </button>
 
                   {/* SMART WORK STATE BUTTON */}
@@ -308,13 +308,13 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                     /* 1. Already Active */
                     <div className="flex-1 h-11 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 bg-blue-50 text-blue-900 shadow-xs">
                       <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
-                      <span>{language === 'hi' ? 'चालू काम (Active)' : 'CURRENT ACTIVE JOB'}</span>
+                      <span>{uiText(language, 'activeJob')}</span>
                     </div>
                   ) : isCurrentlyQueued ? (
                     /* 2. Currently Queued for Next */
                     <div className="flex-1 h-11 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 bg-emerald-50 text-emerald-800 shadow-xs">
                       <Check className="w-4 h-4 text-emerald-600 stroke-[3]" />
-                      <span>{language === 'hi' ? 'कतार में बुक है (अगला काम)' : 'QUEUED AS NEXT WORK'}</span>
+                      <span>{uiText(language, 'queuedAsNext')}</span>
                     </div>
                   ) : activeJob && hasQueuedJob ? (
                     /* 3. Both Active & Queued slots full -> Disabled */
@@ -324,7 +324,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                       className="flex-1 h-11 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 bg-slate-100 text-slate-400 cursor-not-allowed"
                       title="You already have an active job and a queued next job"
                     >
-                      <span>{language === 'hi' ? 'कतार पूरी है (1 काम पूरा करें)' : 'QUEUE FULL (FINISH CURRENT)'}</span>
+                      <span>{uiText(language, 'queueFullFinish')}</span>
                     </button>
                   ) : activeJob && !hasQueuedJob ? (
                     /* 4. Active job in progress, but queue slot is free -> "QUEUE FOR NEXT WORK" */
@@ -345,7 +345,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                       className="flex-1 h-11 px-4 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm active:scale-95 transition-transform"
                     >
                       <ListPlus className="w-4 h-4" />
-                      <span>{language === 'hi' ? 'कतार में जोड़ें (अगला काम)' : 'QUEUE AS NEXT WORK'}</span>
+                      <span>{uiText(language, 'queueNext')}</span>
                     </button>
                   ) : (
                     /* 5. No active job -> standard Accept Job CTA */
@@ -363,7 +363,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                       className={`flex-1 h-11 px-4 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-sm transition-transform ${isOnline ? 'bg-blue-600 hover:bg-blue-500 text-white active:scale-95' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>{language === 'hi' ? 'काम स्वीकार करें' : 'ACCEPT JOB'}</span>
+                      <span>{uiText(language, 'acceptJob')}</span>
                     </button>
                   )}
                 </div>

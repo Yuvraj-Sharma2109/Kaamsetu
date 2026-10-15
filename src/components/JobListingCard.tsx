@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { MapPin, Clock3, CircleCheck } from 'lucide-react';
 import { Job, Language } from '../types';
 import { TRADES } from '../data/mockData';
-import { uiText } from '../utils/uiText';
+import { localizePlaceText, localizeTradeName, uiText } from '../utils/uiText';
 
 interface JobListingCardProps {
   job: Job;
@@ -13,8 +13,7 @@ interface JobListingCardProps {
 
 /** Shared job summary surface for listed work and the accepted-job arrival flow. */
 export const JobListingCard: React.FC<JobListingCardProps> = ({ job, language, children, className = '' }) => {
-  const trade = TRADES.find((item) => item.id === job.trade);
-  const tradeName = language === 'hi' ? trade?.nameHi : trade?.nameEn;
+  const tradeName = localizeTradeName(job.trade, language);
   const title = language === 'hi' ? job.titleHi : job.title;
   const rateUnit = uiText(language, job.wageType === 'hourly' ? 'hourlyRate' : job.wageType === 'daily' ? 'dailyRate' : 'totalRate');
 
@@ -30,7 +29,7 @@ export const JobListingCard: React.FC<JobListingCardProps> = ({ job, language, c
       <h3 className="mt-[10px] min-h-[38px] w-full pr-1 text-[16px] font-bold leading-[19px] text-black line-clamp-2">{title}</h3>
       <div className="mt-[9px] flex min-w-0 items-center gap-1 text-[10px] leading-[14px] text-[#b5b5b5]">
         <MapPin className="h-[13px] w-[13px] shrink-0 fill-[#b5b5b5] text-[#b5b5b5]" />
-        <span className="truncate">{job.siteName}</span>
+        <span className="truncate">{localizePlaceText(job.siteName, language)}</span>
       </div>
       <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5] sm:gap-[10px]">
         <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[#f1f1f1] px-1.5">

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Job, Language } from '../types';
 import { getTranslation } from '../utils/i18n';
 import { speakText, stopSpeech } from '../utils/speech';
+import { localizePlaceText, uiText } from '../utils/uiText';
 import { 
   MapPin, 
   Clock, 
@@ -69,7 +70,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               {language === 'hi' ? job.categoryNameHi : job.categoryName}
             </span>
             <span className="text-slate-400">·</span>
-            <span className="text-xs text-slate-600 font-semibold">{job.durationDays} {language === 'hi' ? 'दिन' : 'days'}</span>
+            <span className="text-xs text-slate-600 font-semibold">{job.durationDays} {uiText(language, 'days')}</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -79,7 +80,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               title="Voice readout"
             >
               <Volume2 className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-bold">{isPlayingAudio ? '...' : (language === 'hi' ? 'सुनें' : 'Listen')}</span>
+              <span className="text-xs font-bold">{isPlayingAudio ? '...' : uiText(language, 'listen')}</span>
             </button>
             <button
               onClick={() => {
@@ -100,7 +101,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               {language === 'hi' ? job.titleHi : job.title}
             </h3>
             <span className="text-xs text-blue-900 font-bold mt-0.5 block">
-              {job.spotsAvailable} {language === 'hi' ? 'मजदूरों की तुरंत जरूरत' : 'vacancies open now'}
+              {job.spotsAvailable} {uiText(language, 'vacancies')}
             </span>
           </div>
 
@@ -114,10 +115,10 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <div className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
               <div>
-                <span className="font-black text-neutral-900 block">{job.siteName}</span>
-                <span className="text-slate-500 block">{job.locationAddress}</span>
+                <span className="font-black text-neutral-900 block">{localizePlaceText(job.siteName, language)}</span>
+                <span className="text-slate-500 block">{localizePlaceText(job.locationAddress, language)}</span>
                 <div className="mt-1 text-neutral-800 font-bold bg-white px-2.5 py-1 rounded-lg inline-block shadow-xs">
-                  📍 Landmark: {job.landmark}
+                  📍 {uiText(language, 'landmark')}: {localizePlaceText(job.landmark, language)}
                 </div>
               </div>
             </div>
@@ -170,18 +171,18 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
 
           {isCurrentActive ? (
             <div className="flex-1 min-h-[48px] rounded-xl font-black text-xs flex items-center justify-center bg-blue-100 text-blue-900 shadow-xs">
-              <span>{language === 'hi' ? 'वर्तमान में यह काम चालू है' : 'CURRENT ACTIVE JOB'}</span>
+              <span>{uiText(language, 'currentJob')}</span>
             </div>
           ) : isCurrentQueued ? (
             <div className="flex-1 min-h-[48px] rounded-xl font-black text-xs flex items-center justify-center bg-emerald-50 text-emerald-800 shadow-xs">
-              <span>{language === 'hi' ? 'कतार में बुक है' : 'ALREADY IN QUEUE'}</span>
+              <span>{uiText(language, 'alreadyQueued')}</span>
             </div>
           ) : hasActiveJob && hasQueuedJob ? (
             <button
               disabled
               className="flex-1 min-h-[48px] rounded-xl font-bold text-xs bg-slate-200 text-slate-500 cursor-not-allowed"
             >
-              <span>{language === 'hi' ? 'कतार भरी है' : 'QUEUE FULL'}</span>
+              <span>{uiText(language, 'queueFull')}</span>
             </button>
           ) : hasActiveJob && !hasQueuedJob ? (
             <button
@@ -205,7 +206,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               className="flex-1 min-h-[48px] rounded-xl font-black text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform"
             >
               <ListPlus className="w-4 h-4" />
-              <span>{language === 'hi' ? 'कतार में जोड़ें (अगला काम)' : 'QUEUE AS NEXT WORK'}</span>
+              <span>{uiText(language, 'queueAsNext')}</span>
             </button>
           ) : (
             <button
@@ -232,7 +233,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{language === 'hi' ? 'काम स्वीकार करें' : 'ACCEPT JOB OFFER'}</span>
+              <span>{uiText(language, 'acceptJob')}</span>
             </button>
           )}
         </div>

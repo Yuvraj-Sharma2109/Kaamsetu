@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { WorkerProfile, Language, TradeCategory } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { LanguageDropdown } from '../LanguageDropdown';
+import { localizeTradeName } from '../../utils/uiText';
 import { Star, LogOut, Languages, Phone, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Volume2, VolumeX } from 'lucide-react';
 
 const PROFILE_COPY: Record<Language, { settings: string; appLanguage: string; audio: string; on: string; off: string; aadhaar: string; verified: string; verify: string; experience: string; jobs: string; rating: string; workType: string; logout: string; clearDemo: string }> = {
@@ -87,11 +88,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           {registeredTrades.map((tradeId) => {
             const trade = TRADES.find((item) => item.id === tradeId);
             if (!trade) return null;
-            return <span key={tradeId} className="inline-flex h-10 items-center justify-center rounded-[7px] border-[1.5px] border-black px-[10px] text-[16px] font-semibold text-black">{language === 'hi' ? trade.nameHi : trade.nameEn}</span>;
+            return <span key={tradeId} className="inline-flex h-10 items-center justify-center rounded-[7px] border-[1.5px] border-black px-[10px] text-[16px] font-semibold text-black">{localizeTradeName(trade.id, language)}</span>;
           })}
           <button type="button" onClick={() => setShowTradePicker((open) => !open)} aria-label="Add registered trade" className="inline-flex h-10 w-10 items-center justify-center rounded-[7px] border-[1.5px] border-dashed border-blue-600 text-2xl leading-none text-blue-700">+</button>
         </div>
-        {showTradePicker && <div className="mt-3 flex flex-wrap gap-2">{TRADES.filter((trade) => !registeredTrades.includes(trade.id)).map((trade) => <button type="button" key={trade.id} onClick={() => onAddTrade(trade.id)} className="rounded-[7px] border border-slate-300 bg-white px-2.5 py-2 text-left text-xs font-bold text-slate-800">{language === 'hi' ? trade.nameHi : trade.nameEn}<span className="ml-2 text-blue-700">+</span></button>)}</div>}
+        {showTradePicker && <div className="mt-3 flex flex-wrap gap-2">{TRADES.filter((trade) => !registeredTrades.includes(trade.id)).map((trade) => <button type="button" key={trade.id} onClick={() => onAddTrade(trade.id)} className="rounded-[7px] border border-slate-300 bg-white px-2.5 py-2 text-left text-xs font-bold text-slate-800">{localizeTradeName(trade.id, language)}<span className="ml-2 text-blue-700">+</span></button>)}</div>}
       </section>
 
       {(onLogout || onClearDemoData) && <section aria-label="Account actions" className="mb-2 flex w-full flex-col gap-3 rounded-[20px] bg-white p-[15px]">

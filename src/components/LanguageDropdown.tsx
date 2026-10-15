@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, Languages } from 'lucide-react';
 import { Language } from '../types';
+import { uiText } from '../utils/uiText';
 
 interface LanguageDropdownProps {
   currentLanguage: Language;
@@ -67,8 +68,8 @@ export const LanguageDropdown: React.FC<LanguageDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className={`absolute z-50 max-h-[min(320px,calc(100dvh-32px))] overflow-y-auto rounded-2xl border border-neutral-700 bg-neutral-900 py-1.5 shadow-2xl animate-in fade-in zoom-in-95 ${variant === 'full' ? 'bottom-full left-0 mb-1.5 w-full' : 'right-0 mt-1.5 w-48'}`} role="listbox" aria-label="Select app language">
-          <div className="border-b border-neutral-800 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">भाषा चुनें / Select language</div>
+        <div className={`absolute z-50 max-h-[min(320px,calc(100dvh-32px))] overflow-y-auto rounded-2xl border border-neutral-700 bg-neutral-900 py-1.5 shadow-2xl animate-in fade-in zoom-in-95 ${variant === 'full' ? 'bottom-full left-0 mb-1.5 w-full' : 'right-0 mt-1.5 w-48'}`} role="listbox" aria-label={uiText(currentLanguage, 'selectLanguage')}>
+          <div className="border-b border-neutral-800 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-400">{uiText(currentLanguage, 'selectLanguage')}</div>
           {LANGUAGES.map((language) => {
             const isSelected = currentLanguage === language.code;
             return (

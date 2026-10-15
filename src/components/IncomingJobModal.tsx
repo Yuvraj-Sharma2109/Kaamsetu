@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Job, Language } from '../types';
 import { getTranslation } from '../utils/i18n';
 import { speakText, stopSpeech } from '../utils/speech';
+import { localizePlaceText, uiText } from '../utils/uiText';
 import { 
   MapPin, 
   Clock, 
@@ -94,8 +95,8 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
             <span className={`w-2.5 h-2.5 rounded-full animate-ping ${hasActiveJob ? 'bg-emerald-600' : 'bg-blue-600'}`} />
             <span className="text-xs uppercase tracking-widest font-black text-neutral-900">
               {hasActiveJob
-                ? (language === 'hi' ? '⚡ कतार में अगला काम' : '⚡ NEXT WORK FOR YOUR QUEUE')
-                : (language === 'hi' ? '🚨 नया काम आया है' : '🚨 NEW JOB OFFER')}
+                ? uiText(language, 'nextWorkOffer')
+                : uiText(language, 'newJobOffer')}
             </span>
           </div>
 
@@ -105,7 +106,7 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
               className="px-2.5 py-1 bg-slate-100 text-neutral-800 font-bold text-xs rounded-xl flex items-center gap-1 shadow-xs active:scale-95"
             >
               <Volume2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>{isPlayingAudio ? '...' : (language === 'hi' ? 'सुनें' : 'Listen')}</span>
+              <span>{isPlayingAudio ? '...' : uiText(language, 'listen')}</span>
             </button>
 
             <button
@@ -132,9 +133,9 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
           <div className="flex items-start gap-2">
             <MapPin className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
             <div>
-              <span className="font-black text-neutral-900 text-sm block">{job.siteName}</span>
+              <span className="font-black text-neutral-900 text-sm block">{localizePlaceText(job.siteName, language)}</span>
               <div className="mt-1 text-neutral-800 font-bold bg-white px-2 py-0.5 rounded-lg inline-block shadow-xs">
-                📍 {job.landmark}
+                📍 {localizePlaceText(job.landmark, language)}
               </div>
             </div>
           </div>
@@ -144,7 +145,7 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
         {job.perks.lunchProvided && (
           <div className="mx-4 text-xs font-bold text-slate-700 flex items-center gap-1.5 px-1">
             <Utensils className="w-3.5 h-3.5 text-teal-600" />
-            <span>{language === 'hi' ? 'दोपहर का भोजन मुफ्त' : 'Free Lunch Included'}</span>
+            <span>{uiText(language, 'lunch')}</span>
           </div>
         )}
 
@@ -180,7 +181,7 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
             >
               <ListPlus className="w-5 h-5" />
               <span>
-                {language === 'hi' ? 'कतार में जोड़ें (अगला काम)' : 'QUEUE AS NEXT WORK'}
+                {uiText(language, 'queueAsNext')}
               </span>
             </button>
           ) : (
@@ -209,8 +210,8 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
               <CheckCircle2 className="w-5 h-5" />
               <span>
                 {isAadhaarVerified
-                  ? (language === 'hi' ? 'काम स्वीकार करें (स्वीकार)' : 'TAP TO ACCEPT JOB')
-                  : (language === 'hi' ? 'आधार सत्यापित कर स्वीकारें' : 'VERIFY AADHAAR TO ACCEPT')}
+                  ? uiText(language, 'acceptOffer')
+                  : uiText(language, 'verifyAadhaarToAccept')}
               </span>
             </button>
           )}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { JobListingCard } from '../JobListingCard';
 import { ShiftState, Language, Job } from '../../types';
 import { speakText } from '../../utils/speech';
-import { uiText } from '../../utils/uiText';
+import { localizePlaceText, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
 import { 
   Navigation, 
@@ -146,8 +146,8 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             </span>
             <span className="text-[11px] opacity-90 block truncate">
               {isArrivedAtSite
-                ? `${job.siteName} · ${job.landmark}`
-                : `${job.landmark} (~${job.travelTimeMin} ${uiText(language, 'minuteAbbr')})`}
+              ? `${localizePlaceText(job.siteName, language)} · ${localizePlaceText(job.landmark, language)}`
+                : `${localizePlaceText(job.landmark, language)} (~${job.travelTimeMin} ${uiText(language, 'minuteAbbr')})`}
             </span>
           </div>
         </div>
@@ -172,7 +172,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           incomingJob={null}
           workerTradeName={job.categoryName}
           hasArrived={isArrivedAtSite}
-          customLocationText={isArrivedAtSite ? job.siteName : undefined}
+          customLocationText={isArrivedAtSite ? localizePlaceText(job.siteName, language) : undefined}
           onPositionChange={onLocationUpdate}
         />
 
@@ -253,7 +253,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
               <div>
                 <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 font-bold uppercase tracking-wider mb-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{uiText(language, 'onSite')}: {job.siteName}</span>
+                  <span>{uiText(language, 'onSite')}: {localizePlaceText(job.siteName, language)}</span>
                 </div>
                 <div className="text-sm font-bold text-slate-600">{uiText(language, 'workInProgress')}</div>
               </div>
@@ -270,10 +270,10 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] text-emerald-800 font-black uppercase tracking-wider block">
-                      {language === 'hi' ? '✓ अगला काम कतार में तय है' : '✓ Next Job Locked in Queue'}
+                      ✓ {uiText(language, 'nextJobLocked')}
                     </span>
                     <span className="text-xs font-black text-emerald-950 truncate block">
-                      {queuedJob.title}
+                      {language === 'hi' ? queuedJob.titleHi : queuedJob.title}
                     </span>
                     <span className="text-[11px] font-mono text-emerald-900 font-bold block">{queuedJob.distanceKm} {uiText(language, 'kmAway')}</span>
                   </div>
@@ -283,7 +283,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                   <button
                     onClick={onCancelQueuedJob}
                     className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-emerald-100/60"
-                    title="Remove from queue"
+                    title={uiText(language, 'removeQueue')}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -295,16 +295,16 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-black text-blue-950 flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Queue your next job</span>
+                      <span>{uiText(language, 'queueYourNext')}</span>
                     </span>
                     <span className="text-[10px] font-bold text-blue-700 bg-white px-2 py-0.5 rounded-full">
-                      Anytime
+                      {uiText(language, 'anytime')}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between bg-white rounded-xl p-2.5 shadow-xs">
                     <div className="min-w-0 flex-1 pr-2">
-                      <span className="text-xs font-black text-neutral-900 block truncate">{suggestedNextJob.title}</span>
+                      <span className="text-xs font-black text-neutral-900 block truncate">{language === 'hi' ? suggestedNextJob.titleHi : suggestedNextJob.title}</span>
                       <span className="text-[11px] text-slate-500 font-mono">{suggestedNextJob.distanceKm} {uiText(language, 'kmAway')}</span>
                     </div>
 
@@ -313,7 +313,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                       className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shrink-0 active:scale-95 shadow-xs transition-colors flex items-center gap-1"
                     >
                       <ListPlus className="w-3.5 h-3.5" />
-                      <span>{language === 'hi' ? 'कतार में जोड़ें' : 'Queue Next'}</span>
+                      <span>{uiText(language, 'queueNext')}</span>
                     </button>
                   </div>
                 </div>
@@ -326,7 +326,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
               className="w-full min-h-[52px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-transform"
             >
               <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-              <span>COMPLETE WORK &amp; SETTLE PAY</span>
+              <span>{uiText(language, 'completeWork')}</span>
             </button>
           </div>
         )}
@@ -352,14 +352,14 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                 onClick={() => setShowCallModal(false)}
                 className="flex-1 min-h-[46px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl"
               >
-                Close
+                {uiText(language, 'close')}
               </button>
               <a
                 href={`tel:${job.contractorPhone}`}
                 onClick={() => setShowCallModal(false)}
                 className="flex-1 min-h-[46px] bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl flex items-center justify-center shadow-xs"
               >
-                Call
+                {uiText(language, 'call')}
               </a>
             </div>
           </div>

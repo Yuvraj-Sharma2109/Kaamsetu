@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Job, Language } from '../types';
-import { uiText } from '../utils/uiText';
+import { localizePlaceText, uiText } from '../utils/uiText';
 import { MapPin, Navigation, Radio, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface UberMapViewProps {
@@ -54,10 +54,10 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   // Route labels and turns are tied to the selected job's landmark/address.
   const routeWaypoints = [
     { x: 200, y: 310, street: uiText(language, 'departedBase') },
-    { x: 200 + (destination.x - 200) * 0.28, y: 310 + (destination.y - 310) * 0.28, street: currentTargetJob?.locationAddress.split(',')[0] || uiText(language, 'alongRoute') },
-    { x: 200 + (destination.x - 200) * 0.58, y: 310 + (destination.y - 310) * 0.58, street: currentTargetJob?.landmark || uiText(language, 'approachingSite') },
-    { x: destination.x - 12, y: destination.y + 18, street: currentTargetJob?.landmark || uiText(language, 'nearJobSite') },
-    { x: destination.x, y: destination.y, street: currentTargetJob?.siteName || uiText(language, 'workSitePoint') },
+    { x: 200 + (destination.x - 200) * 0.28, y: 310 + (destination.y - 310) * 0.28, street: currentTargetJob ? localizePlaceText(currentTargetJob.locationAddress.split(',')[0], language) : uiText(language, 'alongRoute') },
+    { x: 200 + (destination.x - 200) * 0.58, y: 310 + (destination.y - 310) * 0.58, street: currentTargetJob ? localizePlaceText(currentTargetJob.landmark, language) : uiText(language, 'approachingSite') },
+    { x: destination.x - 12, y: destination.y + 18, street: currentTargetJob ? localizePlaceText(currentTargetJob.landmark, language) : uiText(language, 'nearJobSite') },
+    { x: destination.x, y: destination.y, street: currentTargetJob ? localizePlaceText(currentTargetJob.siteName, language) : uiText(language, 'workSitePoint') },
   ];
 
   // AUTOMATIC DOT MOVEMENT TO WORK SITE WHEN JOB IS SELECTED
@@ -73,7 +73,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
     if (hasArrived) {
       // Already arrived on site: lock to site point
       setDotPos(destination);
-      setLiveStreetName(activeJob.siteName);
+      setLiveStreetName(localizePlaceText(activeJob.siteName, language));
       return;
     }
 
@@ -102,11 +102,11 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   const locationLabel = customLocationText 
     ? customLocationText
     : hasArrived && activeJob
-      ? activeJob.siteName
+          ? localizePlaceText(activeJob.siteName, language)
       : liveStreetName
         ? liveStreetName
         : activeJob
-          ? `${uiText(language, 'movingTo')} ${activeJob.siteName}`
+          ? `${uiText(language, 'movingTo')} ${localizePlaceText(activeJob.siteName, language)}`
           : uiText(language, 'departedBase');
 
   return (
@@ -185,7 +185,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
             <span>{displayPreviewJob.distanceKm} {uiText(language, 'kmAway')}</span>
             <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md font-bold">{uiText(language, 'matched')}</span>
           </div>
-          <span className="text-xs font-black text-neutral-900 block truncate">{displayPreviewJob.title}</span>
+          <span className="text-xs font-black text-neutral-900 block truncate">{language === 'hi' ? displayPreviewJob.titleHi : displayPreviewJob.title}</span>
           <div className="mt-1.5 flex items-center justify-between text-xs">
             <span className="font-black text-blue-900 font-mono">₹{displayPreviewJob.agreedAmount} {uiText(language, 'taskPay')}</span>
             <span className="text-[10px] font-bold bg-neutral-900 text-white px-2 py-0.5 rounded-md">{uiText(language, 'view')}</span>

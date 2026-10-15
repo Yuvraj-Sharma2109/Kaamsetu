@@ -4,6 +4,7 @@ import { Language, TradeCategory, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
 import { speakText } from '../../utils/speech';
+import { localizeTradeName } from '../../utils/uiText';
 import { 
   Wrench, 
   Check, 
@@ -58,7 +59,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const selectedTradeInfo = TRADES.find((t) => t.id === selectedTrade) || TRADES[0];
   const tradeDisplayName = selectedTrades.map((tradeId) => {
     const trade = TRADES.find((item) => item.id === tradeId) || selectedTradeInfo;
-    return language === 'hi' ? trade.nameHi : trade.nameEn;
+    return localizeTradeName(trade.id, language);
   }).join(', ');
 
   // Step voice guidance
@@ -229,7 +230,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                     }`}
                   >
                     <span className="text-xs font-black block">
-                      {language === 'hi' ? trade.nameHi : trade.nameEn}
+                      {localizeTradeName(trade.id, language)}
                     </span>
                     {isSelected && (
                       <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs ml-2">
