@@ -19,9 +19,9 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
   const [isFramed, setIsFramed] = useState<boolean>(true);
 
   return (
-    <div className="min-h-screen bg-[#f1f1f1] text-neutral-900 flex flex-col items-center justify-start p-0 md:py-6 md:px-6 select-none font-sans">
+    <div className="min-h-[100dvh] bg-[#f1f1f1] text-neutral-900 flex flex-col items-center justify-start p-0 lg:py-6 lg:px-6 select-none font-sans">
       {/* Top Device View Switcher Banner for Desktop Viewers */}
-      <div className="w-full max-w-[430px] mb-3 hidden md:flex items-center justify-between px-4 py-2 bg-white rounded-2xl text-xs text-slate-600 shadow-sm">
+      <div className="w-full max-w-[430px] mb-3 hidden lg:flex items-center justify-between px-4 py-2 bg-white rounded-2xl text-xs text-slate-600 shadow-sm">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse" />
           <span className="font-bold text-neutral-900">KaamSetu</span>
@@ -48,16 +48,16 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
         </div>
       </div>
 
-      {/* Device Frame: Exactly W:430px and H:956px, completely borderless */}
+      {/* On phones this fills the viewport; desktop keeps a switchable device preview. */}
       <div
         className={`transition-all duration-300 ${
           isFramed
-          ? 'w-[412px] h-[917px] max-w-[412px] rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.18)] overflow-hidden bg-[#f1f1f1] flex flex-col relative'
-            : 'w-full max-w-[412px] min-h-[917px] rounded-3xl bg-[#f1f1f1] shadow-xl overflow-hidden flex flex-col relative'
+          ? 'w-full max-w-full h-[100dvh] lg:max-w-[412px] lg:h-[min(917px,calc(100dvh-3rem))] lg:rounded-[40px] lg:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.18)] overflow-hidden bg-[#f1f1f1] flex flex-col relative'
+            : 'w-full max-w-none min-h-[100dvh] lg:min-h-[calc(100dvh-3rem)] lg:rounded-3xl bg-[#f1f1f1] lg:shadow-xl overflow-hidden flex flex-col relative'
         }`}
       >
         {/* Mobile Status Bar (Clean White, No border) */}
-        <div className={`${fullScreenCanvas ? 'hidden' : 'flex'} w-full bg-[#f1f1f1] px-7 pt-3.5 pb-1.5 items-center justify-between text-[11px] font-bold text-neutral-900 shrink-0 select-none z-30`}>
+        <div className={`${fullScreenCanvas ? 'hidden' : 'hidden lg:flex'} w-full bg-[#f1f1f1] px-7 pt-3.5 pb-1.5 items-center justify-between text-[11px] font-bold text-neutral-900 shrink-0 select-none z-30`}>
           <span>09:41</span>
           {/* Dynamic Island / Speaker Pill */}
           <div className="w-24 h-4 bg-neutral-950 rounded-full flex items-center justify-center">
@@ -72,18 +72,18 @@ export const MobileFrame: React.FC<MobileFrameProps> = ({
         </div>
 
         {/* Viewport Content */}
-        <div className="flex-1 flex flex-col overflow-visible relative">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
           {children}
         </div>
 
         {bottomOverlay && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-[63px] z-50 flex justify-center">
+          <div className="pointer-events-none absolute inset-x-0 bottom-[env(safe-area-inset-bottom)] lg:bottom-[63px] z-50 flex justify-center">
             <div className="pointer-events-auto w-full flex justify-center">{bottomOverlay}</div>
           </div>
         )}
 
         {/* iOS Home Indicator Bar */}
-        <div className="w-full bg-[#f1f1f1] py-2 flex items-center justify-center shrink-0 z-30">
+        <div className="hidden lg:flex w-full bg-[#f1f1f1] py-2 items-center justify-center shrink-0 z-30">
           <div className="w-32 h-1 bg-neutral-900/20 rounded-full" />
         </div>
       </div>
