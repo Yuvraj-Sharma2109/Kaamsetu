@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Language } from '../types';
+import { uiText } from '../utils/uiText';
 import { 
   Radio, 
   Search, 
@@ -43,7 +44,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const navItems: { id: TabType; label: string; icon: React.ReactNode; badge?: React.ReactNode }[] = [
     {
       id: 'radar',
-      label: language === 'hi' ? 'ड्यूटी' : 'Duty',
+      label: uiText(language, 'navDuty'),
       icon: (
         <div className="relative">
           <Radio className="w-5 h-5" />
@@ -55,7 +56,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     },
     {
       id: 'feed',
-      label: language === 'hi' ? 'काम खोजें' : 'Jobs',
+      label: uiText(language, 'navJobs'),
       icon: <Search className="w-5 h-5" />,
       badge: availableJobsCount > 0 ? (
         <span className="text-[10px] font-black px-1.5 py-0.2 bg-neutral-900 text-white rounded-full">
@@ -65,7 +66,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     },
     {
       id: 'active',
-      label: language === 'hi' ? 'चालू काम' : 'Active',
+      label: uiText(language, 'navActive'),
       icon: (
         <div className="relative">
           <Briefcase className="w-5 h-5" />
@@ -77,14 +78,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     },
     {
       id: 'passbook',
-      label: language === 'hi' ? 'कमाई' : 'Pay',
+      label: uiText(language, 'navPay'),
       icon: <Wallet className="w-5 h-5" />,
     },
   ];
 
   return (
     <>
-      <nav aria-label={language === 'hi' ? 'मुख्य नेविगेशन' : 'Main navigation'} className="h-[65px] w-[calc(100%-32px)] max-w-[361px] md:max-w-xl shrink-0 rounded-[20px] bg-white px-1.5 select-none shadow-[0px_2px_20px_rgba(0,0,0,0.11)] lg:hidden">
+      <nav aria-label={uiText(language, 'mainNavigation')} className="h-[65px] w-[calc(100%-32px)] max-w-[361px] md:max-w-xl shrink-0 rounded-[20px] bg-white px-1.5 select-none shadow-[0px_2px_20px_rgba(0,0,0,0.11)] lg:hidden">
         <div className="grid grid-cols-4 items-center h-full">
           {navItems.filter((item) => item.id !== 'profile').map((item) => {
           const isActive = currentTab === item.id;
@@ -124,12 +125,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           <>
             <button
               type="button"
-              aria-label={language === 'hi' ? 'मेनू बंद करें' : 'Close menu'}
+              aria-label={uiText(language, 'menuClose')}
               onClick={onCloseMenu}
               className="fixed inset-0 z-[60] cursor-default"
             />
             <nav
-              aria-label={language === 'hi' ? 'मुख्य नेविगेशन' : 'Main navigation'}
+              aria-label={uiText(language, 'mainNavigation')}
               role="menu"
               style={{ left: 'max(16px, calc((100vw - 42rem) / 2 + 14px))' }}
               className="fixed top-20 z-[70] w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
@@ -163,3 +164,4 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     </>
   );
 };
+

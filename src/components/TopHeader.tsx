@@ -1,6 +1,7 @@
 import React from 'react';
 import { WorkerProfile, Language } from '../types';
 import { stopSpeech, isSpeaking } from '../utils/speech';
+import { uiText } from '../utils/uiText';
 import { 
   Volume2, 
   VolumeX, 
@@ -40,7 +41,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       <button
         type="button"
         onClick={onToggleDesktopMenu}
-        aria-label={desktopMenuOpen ? (language === 'hi' ? 'मेनू बंद करें' : 'Close menu') : (language === 'hi' ? 'मेनू खोलें' : 'Open menu')}
+        aria-label={uiText(language, desktopMenuOpen ? 'menuClose' : 'menuOpen')}
         aria-expanded={desktopMenuOpen}
         aria-haspopup="menu"
         className="mr-2 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-neutral-900 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:flex"
@@ -74,9 +75,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </div>
           <span className="text-[10px] text-slate-500 font-medium">
             {isOnline ? (
-              <span className="text-emerald-700 font-bold">{language === 'hi' ? 'ड्यूटी चालू' : 'On Duty'}</span>
+              <span className="text-emerald-700 font-bold">{uiText(language, 'onDuty')}</span>
             ) : (
-              <span>{language === 'hi' ? 'ऑफलाइन' : 'Offline'}</span>
+              <span>{uiText(language, 'offline')}</span>
             )}
           </span>
         </div>
@@ -96,8 +97,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               ? 'bg-blue-600 text-white font-bold shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:text-neutral-900 shadow-xs'
           }`}
-          title="Voice Reader"
-          aria-label="Voice assistance"
+          title={uiText(language, 'voiceReader')}
+          aria-label={uiText(language, 'voiceAssistance')}
         >
           {audioActive ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
         </button>
@@ -106,8 +107,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <button
           onClick={onOpenSosModal}
           className="w-8 h-8 flex items-center justify-center rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors shadow-xs"
-          title="Emergency SOS"
-          aria-label="Emergency SOS"
+          title={uiText(language, 'emergencySos')}
+          aria-label={uiText(language, 'emergencySos')}
         >
           <AlertTriangle className="w-4 h-4 stroke-[2.2]" />
         </button>

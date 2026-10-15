@@ -3,6 +3,7 @@ import { animate, motion, useMotionValue } from 'motion/react';
 import { Job, Language, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
+import { uiText } from '../../utils/uiText';
 import { speakText } from '../../utils/speech';
 import { UberMapView } from '../UberMapView';
 import { MapPin, Clock3, CircleCheck } from 'lucide-react';
@@ -187,7 +188,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
             <>
               <div className="absolute left-[25px] top-[25px] flex items-center gap-1.5">
                 <h2 className="text-[22px] leading-none font-bold text-black">
-                  {language === 'hi' ? 'काम खोज रहे हैं' : 'Searching Work'}
+                  {uiText(language, 'searchingWork')}
                 </h2>
                 <span className="inline-flex items-center gap-[2px]" aria-label="Searching">
                   {[0, 1, 2].map((dot) => (
@@ -203,7 +204,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
             </>
           )}
           {(onlineStage === 'preview' || onlineStage === 'expanded') && (
-          <motion.div key="available-work-list" aria-label={language === 'hi' ? 'उपलब्ध काम' : 'Available work'} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }} className="pb-[82px]">
+          <motion.div key="available-work-list" aria-label={uiText(language, 'availableWork')} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }} className="pb-[82px]">
           <div className="mx-auto flex w-full max-w-[390px] md:max-w-xl flex-col gap-[10px]">
             {availableJobs.length > 0 ? availableJobs.map((job) => {
               const jobTrade = TRADES.find((item) => item.id === job.trade);
@@ -237,14 +238,14 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                     className="mt-[10px] flex h-[55px] w-full items-center justify-center gap-[10px] rounded-[15px] bg-[#2d59f0] text-[18px] font-semibold leading-none text-white transition-transform active:scale-[0.98]"
                   >
                     <CircleCheck className="h-6 w-6 fill-white text-[#2d59f0]" />
-                    {language === 'hi' ? 'काम स्वीकारें' : 'Accept Job'}
+                    {uiText(language, 'acceptJob')}
                   </button>
                 </motion.article>
               );
             }) : (
               <div className="rounded-[22px] bg-white px-5 py-7 text-center shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
-                <h2 className="text-[16px] font-bold text-black">{language === 'hi' ? 'अभी कोई काम उपलब्ध नहीं' : 'No work available right now'}</h2>
-                <p className="mt-1 text-[12px] text-[#b5b5b5]">{language === 'hi' ? 'नए काम के अनुरोध यहाँ दिखेंगे।' : 'New work requests will appear here.'}</p>
+                <h2 className="text-[16px] font-bold text-black">{uiText(language, 'noWork')}</h2>
+                <p className="mt-1 text-[12px] text-[#b5b5b5]">{uiText(language, 'noWorkSub')}</p>
               </div>
             )}
           </div>
@@ -261,7 +262,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
         >
           <span className="flex h-[50px] w-[100px] flex-col items-center justify-center rounded-[20px] bg-[#2d59f0] text-[#f1f1f1]">
             <span className="text-[24px] leading-[24px] font-semibold">GO</span>
-            <span className="text-[12px] leading-[12px] font-medium text-white/70">Online</span>
+            <span className="text-[12px] leading-[12px] font-medium text-white/70">{uiText(language, 'online')}</span>
           </span>
       </motion.button>}
 
@@ -272,8 +273,9 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           aria-label={t.swipeToOffline}
         >
           <span className="text-[24px] leading-[24px] font-semibold">GO</span>
-          <span className="text-[12px] leading-[12px] font-medium text-[#b5b5b5]">Offline</span>
+          <span className="text-[12px] leading-[12px] font-medium text-[#b5b5b5]">{uiText(language, 'offline')}</span>
       </motion.button>}
     </div>
   );
 };
+
