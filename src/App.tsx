@@ -44,7 +44,7 @@ type DemoAccount = { contact: string; worker: WorkerProfile };
 type DemoSession = {
   contact: string; onboarded: boolean; worker: WorkerProfile; language: Language;
   currentTab: TabType; isOnline: boolean; jobs: Job[]; walletBalance: number;
-  transactions: Transaction[]; todayEarnings: number; shift: ShiftState;
+  transactions: Transaction[]; todayEarnings: number; monthlyEarnings: number; daysWorked: number; shift: ShiftState;
 };
 
 const readDemoAccounts = (): DemoAccount[] => {
@@ -83,6 +83,8 @@ export default function App() {
   const [walletBalance, setWalletBalance] = useState<number>(savedSession?.walletBalance ?? 3450);
   const [transactions, setTransactions] = useState<Transaction[]>(savedSession?.transactions || INITIAL_TRANSACTIONS);
   const [todayEarnings, setTodayEarnings] = useState<number>(savedSession?.todayEarnings ?? 950);
+  const [monthlyEarnings, setMonthlyEarnings] = useState<number>(savedSession?.monthlyEarnings ?? 24800);
+  const [daysWorked, setDaysWorked] = useState<number>(savedSession?.daysWorked ?? 26);
 
   // Active Shift State with Back-to-Back Work Queue
   const [shift, setShift] = useState<ShiftState>(savedSession?.shift || {
@@ -97,13 +99,13 @@ export default function App() {
 
   useEffect(() => {
     if (!isLoggedIn || !hasCompletedOnboarding) return;
-    const session: DemoSession = { contact: tempUserContact, onboarded: true, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, shift };
+    const session: DemoSession = { contact: tempUserContact, onboarded: true, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift };
     try {
       localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(session));
       const accounts = readDemoAccounts();
       localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(accounts.map((account) => account.contact === tempUserContact ? { ...account, worker } : account)));
     } catch { /* storage may be unavailable */ }
-  }, [isLoggedIn, hasCompletedOnboarding, tempUserContact, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, shift]);
+  }, [isLoggedIn, hasCompletedOnboarding, tempUserContact, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift]);
 
   // Modals & Overlays
   const [incomingJob, setIncomingJob] = useState<Job | null>(null);
@@ -273,6 +275,8 @@ export default function App() {
     if (finalEarned > 0) {
       setWalletBalance((prev) => prev + finalEarned);
       setTodayEarnings((prev) => prev + finalEarned);
+      setMonthlyEarnings((prev) => prev + finalEarned);
+      setDaysWorked((prev) => prev + 1);
     }
 
     // Add transaction record
@@ -396,6 +400,8 @@ export default function App() {
       setWalletBalance(0);
       setTransactions([]);
       setTodayEarnings(0);
+      setMonthlyEarnings(0);
+      setDaysWorked(0);
       setIsOnline(false);
       setShift({ isActive: false, job: null, status: 'assigned', punchInTime: null, punchInPhotoUrl: null, punchOutTime: null, queuedJob: null });
       setHasCompletedOnboarding(false);
@@ -465,7 +471,7 @@ export default function App() {
               const accounts = readDemoAccounts();
               const nextAccounts = [...accounts.filter((account) => account.contact !== tempUserContact), { contact: tempUserContact, worker: { ...worker, ...newProfile } }];
               localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(nextAccounts));
-              localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify({ contact: tempUserContact, onboarded: true, worker: { ...worker, ...newProfile }, language, currentTab: 'radar', isOnline: false, jobs, walletBalance, transactions, todayEarnings, shift } satisfies DemoSession));
+              localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify({ contact: tempUserContact, onboarded: true, worker: { ...worker, ...newProfile }, language, currentTab: 'radar', isOnline: false, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift } satisfies DemoSession));
             } catch {}
 
             if (audioActive) {
@@ -617,6 +623,8 @@ export default function App() {
           <motion.div key="passbook" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
           <EarningsScreen
             walletBalance={walletBalance}
+            monthlyEarnings={monthlyEarnings}
+            daysWorked={daysWorked}
             transactions={transactions}
             language={language}
             worker={worker}
@@ -650,6 +658,8 @@ export default function App() {
               setWalletBalance(3450);
               setTransactions(INITIAL_TRANSACTIONS);
               setTodayEarnings(950);
+              setMonthlyEarnings(24800);
+              setDaysWorked(26);
               setShift({ isActive: false, job: null, status: 'assigned', punchInTime: null, punchInPhotoUrl: null, punchOutTime: null, queuedJob: null });
               setIsOnline(false);
               setCurrentTab('radar');

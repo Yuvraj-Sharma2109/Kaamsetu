@@ -18,6 +18,8 @@ import {
 
 interface EarningsScreenProps {
   walletBalance: number;
+  monthlyEarnings: number;
+  daysWorked: number;
   transactions: Transaction[];
   language: Language;
   worker: WorkerProfile;
@@ -26,6 +28,8 @@ interface EarningsScreenProps {
 
 export const EarningsScreen: React.FC<EarningsScreenProps> = ({
   walletBalance,
+  monthlyEarnings,
+  daysWorked,
   transactions,
   language,
   worker,
@@ -117,10 +121,10 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
             {language === 'hi' ? 'महीने की कमाई' : 'This Month'}
           </span>
           <span className="text-lg font-black text-neutral-900 font-mono mt-0.5 block">
-            ₹24,800
+            ₹{monthlyEarnings.toLocaleString('en-IN')}
           </span>
           <span className="text-[10px] text-blue-900 font-bold block">
-            26 {language === 'hi' ? 'दिन काम किया' : 'days worked'}
+            {daysWorked} {language === 'hi' ? 'दिन काम किया' : 'days worked'}
           </span>
         </div>
 
