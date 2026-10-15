@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Language } from '../types';
 import { 
@@ -7,8 +7,6 @@ import {
   Briefcase, 
   Wallet, 
   UserCheck,
-  Menu,
-  X,
 } from 'lucide-react';
 
 export type TabType = 'radar' | 'feed' | 'active' | 'passbook' | 'profile';
@@ -20,6 +18,8 @@ interface BottomNavProps {
   isOnline: boolean;
   hasActiveJob: boolean;
   availableJobsCount: number;
+  menuOpen: boolean;
+  onCloseMenu: () => void;
 }
 
 export const BottomNav: React.FC<BottomNavProps> = ({
@@ -29,17 +29,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   isOnline,
   hasActiveJob,
   availableJobsCount,
+  menuOpen,
+  onCloseMenu,
 }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   useEffect(() => {
     if (!menuOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+      if (event.key === 'Escape') onCloseMenu();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen]);
+  }, [menuOpen, onCloseMenu]);
 
   const navItems: { id: TabType; label: string; icon: React.ReactNode; badge?: React.ReactNode }[] = [
     {
@@ -126,29 +126,19 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       </nav>
 
       <div className="hidden lg:block">
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-label={menuOpen ? (language === 'hi' ? 'मेनू बंद करें' : 'Close menu') : (language === 'hi' ? 'मेनू खोलें' : 'Open menu')}
-          aria-expanded={menuOpen}
-          aria-haspopup="menu"
-          className="fixed right-6 top-6 z-[70] flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-neutral-900 shadow-lg transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-        >
-          {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-
         {menuOpen && (
           <>
             <button
               type="button"
               aria-label={language === 'hi' ? 'मेनू बंद करें' : 'Close menu'}
-              onClick={() => setMenuOpen(false)}
+              onClick={onCloseMenu}
               className="fixed inset-0 z-[60] cursor-default"
             />
             <nav
               aria-label={language === 'hi' ? 'मुख्य नेविगेशन' : 'Main navigation'}
               role="menu"
-              className="fixed right-6 top-[5rem] z-[70] w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
+              style={{ left: 'max(16px, calc((100vw - 42rem) / 2 + 14px))' }}
+              className="fixed top-20 z-[70] w-64 overflow-hidden rounded-2xl border border-slate-100 bg-white p-2 shadow-xl"
             >
               {navItems.map((item) => {
                 const isActive = currentTab === item.id;
@@ -160,7 +150,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                     aria-current={isActive ? 'page' : undefined}
                     onClick={() => {
                       onSelectTab(item.id);
-                      setMenuOpen(false);
+                      onCloseMenu();
                     }}
                     className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-bold transition-colors ${isActive ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
                   >

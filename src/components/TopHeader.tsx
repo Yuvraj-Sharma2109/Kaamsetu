@@ -5,6 +5,8 @@ import {
   Volume2, 
   VolumeX, 
   AlertTriangle,
+  Menu,
+  X,
 } from 'lucide-react';
 
 interface TopHeaderProps {
@@ -16,6 +18,8 @@ interface TopHeaderProps {
   onToggleAudio: () => void;
   onOpenSosModal: () => void;
   onOpenProfile?: () => void;
+  desktopMenuOpen: boolean;
+  onToggleDesktopMenu: () => void;
   todayEarnings?: number;
 }
 
@@ -27,10 +31,22 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onToggleAudio,
   onOpenSosModal,
   onOpenProfile,
+  desktopMenuOpen,
+  onToggleDesktopMenu,
   todayEarnings = 950,
 }) => {
   return (
     <header className="sticky top-0 z-30 mx-auto mt-3 h-[65px] w-[calc(100%-32px)] max-w-[360px] md:max-w-2xl rounded-[20px] bg-white px-3.5 sm:px-[15px] flex items-center justify-between select-none shrink-0 shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
+      <button
+        type="button"
+        onClick={onToggleDesktopMenu}
+        aria-label={desktopMenuOpen ? (language === 'hi' ? 'मेनू बंद करें' : 'Close menu') : (language === 'hi' ? 'मेनू खोलें' : 'Open menu')}
+        aria-expanded={desktopMenuOpen}
+        aria-haspopup="menu"
+        className="mr-2 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-neutral-900 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:flex"
+      >
+        {desktopMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
       {/* Left: Worker profile summary */}
       <div role="button" tabIndex={0} onClick={onOpenProfile} onKeyDown={(event) => event.key === 'Enter' && onOpenProfile?.()} className="flex items-center gap-2.5 min-w-0 cursor-pointer">
         <div className="relative shrink-0">

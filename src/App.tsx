@@ -88,6 +88,7 @@ export default function App() {
   const [showAadhaarModal, setShowAadhaarModal] = useState<boolean>(false);
   const [showEShramModal, setShowEShramModal] = useState(false);
   const [profileSettingsOpenRequest, setProfileSettingsOpenRequest] = useState(0);
+  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
 
   const handleVerifyAadhaarSuccess = () => {
     setShowAadhaarModal(false);
@@ -423,9 +424,12 @@ export default function App() {
           onSelectTab={(tab) => {
             if (tab === 'profile') setProfileReturnTab(currentTab);
             setCurrentTab(tab);
+            setDesktopMenuOpen(false);
             setIsWorkListExpanded(false);
             workListProgress.set(0);
           }}
+          menuOpen={desktopMenuOpen}
+          onCloseMenu={() => setDesktopMenuOpen(false)}
           language={language}
           isOnline={isOnline}
           hasActiveJob={shift.isActive}
@@ -458,6 +462,8 @@ export default function App() {
         onLanguageChange={setLanguage}
         audioActive={audioActive}
         onToggleAudio={() => setAudioActive(!audioActive)}
+        desktopMenuOpen={desktopMenuOpen}
+        onToggleDesktopMenu={() => setDesktopMenuOpen((open) => !open)}
         onOpenSosModal={() => setShowSosModal(true)}
         todayEarnings={todayEarnings}
         onOpenProfile={() => {
