@@ -35,7 +35,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // Form fields
-  const [selectedTrade, setSelectedTrade] = useState<TradeCategory>('mason');
+  const [selectedTrades, setSelectedTrades] = useState<TradeCategory[]>(['mason']);
   const [name, setName] = useState<string>('Rameshwar Kumar');
   const [location, setLocation] = useState<string>('Indiranagar, Bangalore');
   const [experienceYears, setExperienceYears] = useState<number>(7);
@@ -48,9 +48,18 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [isAadhaarVerified, setIsAadhaarVerified] = useState<boolean>(false);
   const [hasFrontPhoto, setHasFrontPhoto] = useState<boolean>(false);
   const [hasBackPhoto, setHasBackPhoto] = useState<boolean>(false);
+  const [uan, setUan] = useState('');
+  const [uanOtp, setUanOtp] = useState('');
+  const [isEShramVerified, setIsEShramVerified] = useState(false);
+  const [esharamOtpSent, setEsharamOtpSent] = useState(false);
+  const [esharamError, setEsharamError] = useState('');
 
+  const selectedTrade = selectedTrades[0] || 'mason';
   const selectedTradeInfo = TRADES.find((t) => t.id === selectedTrade) || TRADES[0];
-  const tradeDisplayName = language === 'hi' ? selectedTradeInfo.nameHi : selectedTradeInfo.nameEn;
+  const tradeDisplayName = selectedTrades.map((tradeId) => {
+    const trade = TRADES.find((item) => item.id === tradeId) || selectedTradeInfo;
+    return language === 'hi' ? trade.nameHi : trade.nameEn;
+  }).join(', ');
 
   // Step voice guidance
   const handleSpeakCurrentStep = () => {
@@ -80,13 +89,28 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   const handleSelectTrade = (tradeId: TradeCategory) => {
-    setSelectedTrade(tradeId);
+    setSelectedTrades((selected) => selected.includes(tradeId)
+      ? (selected.length > 1 ? selected.filter((item) => item !== tradeId) : selected)
+      : [...selected, tradeId]);
     const trade = TRADES.find((t) => t.id === tradeId);
     if (trade) {
       if (language === 'hi') {
         speakText(`आपने ${trade.nameHi} चुना।`, language);
       }
     }
+  };
+
+  const handleVerifyEShram = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (uan.replace(/\D/g, '').length !== 12) return setEsharamError('Enter the 12-digit UAN from your e-Shram card.');
+    if (!esharamOtpSent) {
+      setEsharamOtpSent(true);
+      setEsharamError('Demo OTP sent. Enter 6184 to verify.');
+      return;
+    }
+    if (uanOtp !== '6184') return setEsharamError('For this demo, enter OTP 6184.');
+    setIsEShramVerified(true);
+    setEsharamError('');
   };
 
   const handleFormatAadhaar = (val: string) => {
@@ -114,9 +138,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     onComplete({
       name: name.trim() || 'Rameshwar Kumar',
       primaryTrade: selectedTrade,
+      secondaryTrades: selectedTrades.slice(1),
       experienceYears: experienceYears,
       currentLocation: location,
       isKycVerified: isAadhaarVerified,
+      isEShramVerified,
     });
   };
 
@@ -184,14 +210,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 {language === 'hi' ? 'आप क्या काम करते हैं?' : 'Select Your Main Work'}
               </h2>
               <p className="text-xs text-slate-500">
-                {language === 'hi' ? 'अपना मुख्य काम चुनें' : 'Choose 1 trade to receive matching jobs'}
+                {language === 'hi' ? 'अपने सभी काम चुनें' : 'Select every type of work you can do'}
               </p>
             </div>
 
             {/* Trade Grid (Borderless Cards) */}
             <div className="grid grid-cols-2 gap-2.5 max-h-[400px] overflow-y-auto pr-0.5 pt-1">
               {TRADES.map((trade) => {
-                const isSelected = trade.id === selectedTrade;
+                const isSelected = selectedTrades.includes(trade.id);
                 return (
                   <motion.div
                     key={trade.id}
@@ -513,6 +539,19 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               </p>
             </div>
 
+            <form onSubmit={handleVerifyEShram} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div><h3 className="text-sm font-black text-slate-900">e-Shram card</h3><p className="text-[11px] text-slate-500">Optional verification · Demo OTP: 6184</p></div>
+                <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${isEShramVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{isEShramVerified ? '✓ Verified' : 'Not verified'}</span>
+              </div>
+              {!isEShramVerified && <>
+                <input aria-label="12-digit e-Shram UAN" inputMode="numeric" maxLength={12} value={uan} onChange={(event) => { setUan(event.target.value.replace(/\D/g, '').slice(0, 12)); setEsharamError(''); }} placeholder="12-digit UAN" className="w-full rounded-xl bg-slate-100 px-3.5 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-300" />
+                {esharamOtpSent && <input aria-label="e-Shram OTP" inputMode="numeric" maxLength={4} value={uanOtp} onChange={(event) => { setUanOtp(event.target.value.replace(/\D/g, '').slice(0, 4)); setEsharamError(''); }} placeholder="Enter OTP 6184" className="w-full rounded-xl bg-slate-100 px-3.5 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-300" />}
+                {esharamError && <p role="alert" className="text-[11px] font-semibold text-rose-700">{esharamError}</p>}
+                <button type="submit" className="w-full rounded-xl bg-blue-700 py-2.5 text-xs font-black text-white">{esharamOtpSent ? 'Verify e-Shram card' : 'Send verification OTP'}</button>
+              </>}
+            </form>
+
             {/* Ready Worker Card (Borderless) */}
             <div className="bg-white rounded-3xl p-5 space-y-3 shadow-sm">
               <div className="flex items-center gap-3">
@@ -556,6 +595,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 }`}>
                   {isAadhaarVerified ? '✓ Verified' : 'Pending'}
                 </span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-slate-100/70 rounded-xl text-xs shadow-xs">
+                <span className="text-slate-600 font-bold">e-Shram Status</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${isEShramVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>{isEShramVerified ? '✓ Verified' : 'Not verified'}</span>
               </div>
             </div>
           </div>
