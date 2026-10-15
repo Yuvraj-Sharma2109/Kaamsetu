@@ -43,7 +43,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         aria-label={desktopMenuOpen ? (language === 'hi' ? 'मेनू बंद करें' : 'Close menu') : (language === 'hi' ? 'मेनू खोलें' : 'Open menu')}
         aria-expanded={desktopMenuOpen}
         aria-haspopup="menu"
-        className="mr-2 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-neutral-900 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:flex"
+        className="mr-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-neutral-900 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
       >
         {desktopMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>

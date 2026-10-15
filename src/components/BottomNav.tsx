@@ -6,7 +6,6 @@ import {
   Search, 
   Briefcase, 
   Wallet, 
-  UserCheck,
 } from 'lucide-react';
 
 export type TabType = 'radar' | 'feed' | 'active' | 'passbook' | 'profile';
@@ -81,11 +80,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       label: language === 'hi' ? 'कमाई' : 'Pay',
       icon: <Wallet className="w-5 h-5" />,
     },
-    {
-      id: 'profile',
-      label: language === 'hi' ? 'पहचान ID' : 'Worker ID',
-      icon: <UserCheck className="w-5 h-5" />,
-    },
   ];
 
   return (
@@ -125,7 +119,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         </div>
       </nav>
 
-      <div className="hidden lg:block">
+      <div className="block">
         {menuOpen && (
           <>
             <button
