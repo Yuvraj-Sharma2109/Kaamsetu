@@ -124,11 +124,11 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const isArrivedAtSite = shift.status === 'arrived' || shift.status === 'punched_in';
 
   return (
-    <div className="relative mx-auto flex min-h-max w-full max-w-[393px] md:max-w-2xl flex-none flex-col overflow-x-hidden bg-[#f1f1f1] select-none font-sans">
+    <div className="relative mx-auto flex min-h-max w-full max-w-[393px] flex-none flex-col overflow-x-hidden bg-[#f1f1f1] select-none font-sans md:max-w-2xl lg:grid lg:max-w-7xl lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-start lg:gap-5 lg:p-5">
       {/* 1. TURN-BY-TURN GUIDANCE BANNER */}
       <div className={`z-20 text-white px-4 py-3 shadow-md flex items-center justify-between shrink-0 transition-colors duration-500 ${
         isArrivedAtSite ? 'bg-emerald-600' : 'bg-blue-600'
-      }`}>
+      } lg:col-span-2`}>
         <div className="flex items-center gap-2.5 min-w-0">
           {isArrivedAtSite ? (
             <CheckCircle2 className="w-5 h-5 shrink-0" />
@@ -163,7 +163,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
       </div>
 
       {/* 2. JOB-SPECIFIC SCHEMATIC ROUTE MAP */}
-      <div className="relative h-[45vh] min-h-[300px] w-full shrink-0">
+      <div className="relative h-[45vh] min-h-[300px] w-full shrink-0 lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)] lg:min-h-[420px]">
         <UberMapView
           isOnline={true}
           activeJob={job}
@@ -195,7 +195,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
       </div>
 
       {/* 3. UBER WHITE BOTTOM CARD CONTROLS */}
-      <div className="relative z-20 -mt-8 shrink-0 px-4 pt-2 pb-[112px]">
+      <div className="relative z-20 -mt-8 shrink-0 px-4 pt-2 pb-[112px] lg:mt-0 lg:min-w-0 lg:px-0 lg:pt-0">
         <JobListingCard job={job} language={language}>
         {shift.status !== 'punched_in' ? (
           /* ARRIVAL & PUNCH-IN STAGE */

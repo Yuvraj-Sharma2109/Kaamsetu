@@ -170,7 +170,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }}
           style={{ height: panelHeight }}
-          className="absolute z-20 bottom-[calc(77px+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-24px)] max-w-[420px] md:max-w-2xl -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-[#f1f1f1] px-3.5 sm:px-[15px] pt-[15px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] scrollbar-none"
+          className="absolute z-20 bottom-[calc(77px+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-[#f1f1f1] px-3.5 sm:px-[15px] pt-[15px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] scrollbar-none lg:bottom-6 lg:left-auto lg:right-6 lg:max-h-[calc(100%-3rem)] lg:w-[min(420px,40vw)] lg:max-w-none lg:translate-x-0"
         >
           {(onlineStage === 'preview' || onlineStage === 'expanded') && <button
             type="button"
@@ -256,7 +256,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
       {onlineStage === 'offline' && <motion.button
           type="button"
           onClick={handleGoClick}
-          className="absolute z-20 bottom-[calc(76px+env(safe-area-inset-bottom))] left-1/2 flex h-[60px] w-[110px] -translate-x-1/2 items-center justify-center rounded-[22px] bg-[#2d59f0]/40 shadow-[0_2px_10px_rgba(45,89,240,0.18)] transition-transform active:scale-95"
+          className="absolute z-20 bottom-[calc(76px+env(safe-area-inset-bottom))] left-1/2 flex h-[60px] w-[110px] -translate-x-1/2 items-center justify-center rounded-[22px] bg-[#2d59f0]/40 shadow-[0_2px_10px_rgba(45,89,240,0.18)] transition-transform active:scale-95 lg:bottom-6"
           aria-label={t.swipeToOnline}
         >
           <span className="flex h-[50px] w-[100px] flex-col items-center justify-center rounded-[20px] bg-[#2d59f0] text-[#f1f1f1]">
@@ -268,7 +268,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
       {(onlineStage === 'searching' || onlineStage === 'preview' || onlineStage === 'expanded') && <motion.button
           type="button"
           onClick={handleGoClick}
-          className="absolute z-30 bottom-[calc(145px+env(safe-area-inset-bottom))] left-1/2 flex h-[50px] w-[100px] -translate-x-1/2 flex-col items-center justify-center rounded-[20px] bg-white text-black shadow-[0px_2px_10px_rgba(0,0,0,0.11)] transition-transform active:scale-95"
+          className="absolute z-30 bottom-[calc(145px+env(safe-area-inset-bottom))] left-1/2 flex h-[50px] w-[100px] -translate-x-1/2 flex-col items-center justify-center rounded-[20px] bg-white text-black shadow-[0px_2px_10px_rgba(0,0,0,0.11)] transition-transform active:scale-95 lg:bottom-28"
           aria-label={t.swipeToOffline}
         >
           <span className="text-[24px] leading-[24px] font-semibold">GO</span>

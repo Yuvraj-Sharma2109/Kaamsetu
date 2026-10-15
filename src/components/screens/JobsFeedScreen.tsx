@@ -82,7 +82,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] md:max-w-2xl flex-1 flex-col space-y-3.5 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
+    <div className="mx-auto flex w-full max-w-[393px] md:max-w-2xl lg:max-w-6xl flex-1 flex-col space-y-3.5 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
       {/* ACTIVE SHIFT STATUS NOTICE IF WORKER HAS JOB IN PROGRESS */}
       {activeJob && (
         <div className="bg-blue-50/90 rounded-2xl p-3.5 space-y-1.5 shadow-xs animate-in fade-in">
@@ -202,7 +202,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
       </div>
 
       {/* 4. JOBS LIST WITH EXCLUSIVE / QUEUE LOGIC */}
-      <div className="space-y-3.5">
+      <div className="space-y-3.5 md:grid md:grid-cols-2 md:items-start md:gap-4 md:space-y-0">
         {filteredJobs.length === 0 ? (
           <div className="bg-white rounded-3xl p-8 text-center space-y-2 shadow-sm">
             <span className="text-3xl block">🔍</span>

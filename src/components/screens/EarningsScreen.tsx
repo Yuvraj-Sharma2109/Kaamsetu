@@ -58,9 +58,9 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] md:max-w-2xl flex-1 flex-col space-y-3 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
+    <div className="mx-auto grid w-full max-w-[393px] flex-1 grid-cols-1 content-start gap-3 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans md:max-w-2xl md:grid-cols-2 md:gap-4 lg:max-w-5xl">
       {/* 1. HERO BALANCE CARD (Borderless White Card) */}
-      <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3">
+      <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3 md:h-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-bold shadow-xs">
@@ -138,12 +138,12 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
       </div>
 
       {/* 3. RECENT PAYOUTS LIST (Borderless) */}
-      <div className="space-y-2">
+      <div className="space-y-2 md:col-span-2">
         <span className="text-xs font-black text-neutral-900 px-1 block">
           {language === 'hi' ? 'हाल की दिहाड़ी (पासबुक)' : 'Recent Payouts'}
         </span>
 
-        <div className="space-y-2">
+        <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
           {transactions.map((tx) => (
             <div
               key={tx.id}
