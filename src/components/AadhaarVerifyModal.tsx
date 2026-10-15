@@ -11,6 +11,7 @@ import {
   User, 
   Lock, 
   Volume2,
+  VolumeX,
   AlertTriangle
 } from 'lucide-react';
 
@@ -20,6 +21,8 @@ interface AadhaarVerifyModalProps {
   onVerifySuccess: () => void;
   language: Language;
   workerName: string;
+  audioActive: boolean;
+  onToggleAudio: () => void;
 }
 
 export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
@@ -28,6 +31,8 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
   onVerifySuccess,
   language,
   workerName,
+  audioActive,
+  onToggleAudio,
 }) => {
   const [aadhaarNumber, setAadhaarNumber] = useState<string>('5421 8904 9012');
   const [mode, setMode] = useState<'otp' | 'photo'>('otp');
@@ -35,6 +40,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
   const [otp, setOtp] = useState<string>('6184');
   const [frontCaptured, setFrontCaptured] = useState<boolean>(false);
   const [backCaptured, setBackCaptured] = useState<boolean>(false);
+  const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
@@ -42,7 +48,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
     const text = language === 'hi'
       ? 'काम स्वीकार करने के लिए आधार कार्ड सत्यापन जरूरी है। अपना 12 अंकों का आधार नंबर डालें या फोटो लें।'
       : 'Aadhaar verification is required to accept work. Enter 12-digit number or take card photo.';
-    speakText(text, language);
+    if (audioActive) speakText(text, language);
   };
 
   const handleFormatAadhaar = (val: string) => {
@@ -52,15 +58,29 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
   };
 
   const handleSendOtp = () => {
+    if (aadhaarNumber.replace(/\D/g, '').length !== 12) {
+      setError('Enter a valid 12-digit Aadhaar number first.');
+      return;
+    }
+    setError('');
     setShowOtpInput(true);
-    if (language === 'hi') {
+    if (language === 'hi' && audioActive) {
       speakText('OTP कोड 6 1 8 4 भेजा गया है।', language);
     }
   };
 
   const handleConfirmVerification = () => {
+    if (aadhaarNumber.replace(/\D/g, '').length !== 12) {
+      setError('Enter a valid 12-digit Aadhaar number.');
+      return;
+    }
+    if (mode === 'otp' && (!showOtpInput || otp !== '6184')) {
+      setError(showOtpInput ? 'For this demo, enter OTP 6184.' : 'Request and verify the Aadhaar OTP first.');
+      return;
+    }
+    setError('');
     onVerifySuccess();
-    if (language === 'hi') {
+    if (language === 'hi' && audioActive) {
       speakText('बधाई! आधार कार्ड सत्यापित हो गया है।', language);
     }
   };
@@ -91,6 +111,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
             >
               <Volume2 className="w-4 h-4 text-blue-600" />
             </button>
+            <button type="button" onClick={onToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} title={audioActive ? 'Mute audio' : 'Unmute audio'} className="rounded-xl bg-slate-100 p-2 text-blue-700 hover:bg-slate-200">{audioActive ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
             <button
               type="button"
               onClick={onClose}
@@ -166,7 +187,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
                   <input
                     type="text"
                     value={aadhaarNumber}
-                    onChange={(e) => handleFormatAadhaar(e.target.value)}
+                    onChange={(e) => { handleFormatAadhaar(e.target.value); setError(''); }}
                     placeholder="XXXX XXXX XXXX"
                     className="w-full bg-white rounded-xl px-3.5 py-2.5 text-center text-base font-black font-mono tracking-widest text-neutral-900 focus:outline-none shadow-xs"
                     maxLength={14}
@@ -201,13 +222,14 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
                   <input
                     type="text"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.slice(0, 4))}
+                    onChange={(e) => { setOtp(e.target.value.slice(0, 4)); setError(''); }}
                     className="w-full bg-white rounded-xl px-4 py-2.5 text-center text-2xl font-black font-mono tracking-widest text-neutral-900 focus:outline-none shadow-xs"
                     maxLength={4}
                   />
                   <span className="text-[10px] text-slate-400 block text-center mt-1">
                     Demo Code: <strong className="text-neutral-700">6184</strong>
                   </span>
+                  {error && <p role="alert" className="mt-2 text-center text-xs font-bold text-rose-700">{error}</p>}
                 </div>
 
                 <button

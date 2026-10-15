@@ -8,6 +8,7 @@ import {
   Phone, 
   ShieldCheck, 
   Volume2, 
+  VolumeX,
   ArrowRight, 
   ArrowLeft,
   Check, 
@@ -19,12 +20,16 @@ interface LoginScreenProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
   onLoginSuccess: (method: 'phone' | 'google' | 'facebook', phoneOrEmail?: string, isNewUser?: boolean) => boolean;
+  audioActive: boolean;
+  onToggleAudio: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   language,
   onLanguageChange,
   onLoginSuccess,
+  audioActive,
+  onToggleAudio,
 }) => {
   const t = getTranslation(language);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
@@ -34,6 +39,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [authError, setAuthError] = useState('');
 
   const handleVoiceHelp = () => {
+    if (!audioActive) return;
     const text = language === 'hi'
       ? authMode === 'signin'
         ? 'लॉगिन करने के लिए अपना मोबाइल नंबर डालें या सीधे गूगल या फेसबुक बटन दबाएं।'
@@ -47,14 +53,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const handleLanguageSelect = (newLang: Language) => {
     onLanguageChange(newLang);
     const greeting = newLang === 'hi' ? 'भाषा हिन्दी' : 'English selected';
-    speakText(greeting, newLang);
+    if (audioActive) speakText(greeting, newLang);
   };
 
   const handleSendOtp = (e: React.FormEvent) => {
     e.preventDefault();
     if (phoneNumber.trim().length >= 10) {
       setStep('otp_verify');
-      if (language === 'hi') {
+      if (language === 'hi' && audioActive) {
         speakText('OTP कोड 4 8 1 2 भेजा गया है। पुष्टि करें।', language);
       }
     }
@@ -89,6 +95,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 1. TOP BAR */}
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-2">
+          <button type="button" onClick={onToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} title={audioActive ? 'Mute audio' : 'Unmute audio'} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-700 shadow-xs">{audioActive ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
           {step === 'otp_verify' && (
             <button
               type="button"

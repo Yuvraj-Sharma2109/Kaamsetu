@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'motion/react';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft, Settings, Volume2, VolumeX } from 'lucide-react';
 import { MobileFrame } from './components/MobileFrame';
 import { TopHeader } from './components/TopHeader';
 import { BottomNav, TabType } from './components/BottomNav';
@@ -109,11 +109,18 @@ export default function App() {
   const [incomingJob, setIncomingJob] = useState<Job | null>(null);
   const [inspectingJob, setInspectingJob] = useState<Job | null>(null);
   const [showSosModal, setShowSosModal] = useState<boolean>(false);
-  const [audioActive, setAudioActive] = useState<boolean>(true);
+  const [audioActive, setAudioActive] = useState<boolean>(() => localStorage.getItem('kaamsetu_audio_enabled') !== 'false');
   const [showAadhaarModal, setShowAadhaarModal] = useState<boolean>(false);
   const [showEShramModal, setShowEShramModal] = useState(false);
   const [profileSettingsOpenRequest, setProfileSettingsOpenRequest] = useState(0);
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
+
+  const handleToggleAudio = () => {
+    const next = !audioActive;
+    if (!next) stopSpeech();
+    setAudioActive(next);
+    try { localStorage.setItem('kaamsetu_audio_enabled', String(next)); } catch {}
+  };
 
   const handleVerifyAadhaarSuccess = () => {
     setShowAadhaarModal(false);
@@ -409,6 +416,8 @@ export default function App() {
           language={language}
           onLanguageChange={setLanguage}
           onLoginSuccess={handleLoginSuccess}
+          audioActive={audioActive}
+          onToggleAudio={handleToggleAudio}
         />
       </MobileFrame>
     );
@@ -421,6 +430,8 @@ export default function App() {
       >
         <OnboardingScreen
           language={language}
+          audioActive={audioActive}
+          onToggleAudio={handleToggleAudio}
           initialPhone={tempUserContact}
           onBackToLogin={() => {
             setIsLoggedIn(false);
@@ -489,6 +500,9 @@ export default function App() {
           <button type="button" onClick={() => setCurrentTab(profileReturnTab)} aria-label="Back" className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
             <ArrowLeft className="h-6 w-6" />
           </button>
+          <button type="button" onClick={handleToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-blue-700">
+            {audioActive ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
           <button type="button" onClick={() => {
             document.getElementById('profile-settings')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setProfileSettingsOpenRequest((request) => request + 1);
@@ -507,7 +521,7 @@ export default function App() {
         language={language}
         onLanguageChange={setLanguage}
         audioActive={audioActive}
-        onToggleAudio={() => setAudioActive(!audioActive)}
+        onToggleAudio={handleToggleAudio}
         desktopMenuOpen={desktopMenuOpen}
         onToggleDesktopMenu={() => setDesktopMenuOpen((open) => !open)}
         onOpenSosModal={() => setShowSosModal(true)}
@@ -686,9 +700,11 @@ export default function App() {
         onVerifySuccess={handleVerifyAadhaarSuccess}
         language={language}
         workerName={worker.name}
+        audioActive={audioActive}
+        onToggleAudio={handleToggleAudio}
       />
 
-      <EShramVerifyModal isOpen={showEShramModal} onClose={() => setShowEShramModal(false)} onVerifySuccess={handleVerifyEShramSuccess} />
+      <EShramVerifyModal isOpen={showEShramModal} onClose={() => setShowEShramModal(false)} onVerifySuccess={handleVerifyEShramSuccess} audioActive={audioActive} onToggleAudio={handleToggleAudio} />
     </MobileFrame>
   );
 }

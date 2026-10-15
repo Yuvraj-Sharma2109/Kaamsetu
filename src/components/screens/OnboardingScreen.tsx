@@ -10,6 +10,7 @@ import {
   ShieldCheck, 
   MapPin, 
   Volume2, 
+  VolumeX,
   ArrowRight,
   ArrowLeft,
   User,
@@ -23,6 +24,8 @@ interface OnboardingScreenProps {
   onComplete: (profile: Partial<WorkerProfile>) => void;
   initialPhone?: string;
   onBackToLogin?: () => void;
+  audioActive: boolean;
+  onToggleAudio: () => void;
 }
 
 export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
@@ -30,6 +33,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onComplete,
   initialPhone = '+91 98765 43210',
   onBackToLogin,
+  audioActive,
+  onToggleAudio,
 }) => {
   const t = getTranslation(language);
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
@@ -45,6 +50,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [aadhaarMode, setAadhaarMode] = useState<'otp' | 'photo'>('otp');
   const [showOtpModal, setShowOtpModal] = useState<boolean>(false);
   const [enteredOtp, setEnteredOtp] = useState<string>('6184');
+  const [aadhaarOtpError, setAadhaarOtpError] = useState('');
   const [isAadhaarVerified, setIsAadhaarVerified] = useState<boolean>(false);
   const [hasFrontPhoto, setHasFrontPhoto] = useState<boolean>(false);
   const [hasBackPhoto, setHasBackPhoto] = useState<boolean>(false);
@@ -88,7 +94,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         ? 'कदम 5: प्रोफाइल तैयार है। काम शुरू करने के लिए बटन दबाएं।'
         : 'Step 5: Profile ready. Tap button to start work.';
     }
-    speakText(text, language);
+    if (audioActive) speakText(text, language);
   };
 
   const handleSelectTrade = (tradeId: TradeCategory) => {
@@ -97,7 +103,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       : [...selected, tradeId]);
     const trade = TRADES.find((t) => t.id === tradeId);
     if (trade) {
-      if (language === 'hi') {
+      if (language === 'hi' && audioActive) {
         speakText(`आपने ${trade.nameHi} चुना।`, language);
       }
     }
@@ -123,16 +129,26 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   const handleSendAadhaarOtp = () => {
+    if (aadhaarNumber.replace(/\D/g, '').length !== 12) {
+      setAadhaarOtpError('Enter a valid 12-digit Aadhaar number first.');
+      return;
+    }
+    setAadhaarOtpError('');
     setShowOtpModal(true);
-    if (language === 'hi') {
+    if (language === 'hi' && audioActive) {
       speakText('OTP कोड 6 1 8 4 भेजा गया है।', language);
     }
   };
 
   const handleVerifyOtpSuccess = () => {
+    if (enteredOtp !== '6184') {
+      setAadhaarOtpError('For this demo, enter OTP 6184.');
+      return;
+    }
+    setAadhaarOtpError('');
     setShowOtpModal(false);
     setIsAadhaarVerified(true);
-    if (language === 'hi') {
+    if (language === 'hi' && audioActive) {
       speakText('आधार कार्ड सफलतापूर्वक सत्यापित हो गया है!', language);
     }
   };
@@ -182,6 +198,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             <Volume2 className="w-4 h-4 text-blue-600" />
             <span>{language === 'hi' ? 'बोलकर सुनें' : 'Audio Help'}</span>
           </button>
+          <button type="button" onClick={onToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} title={audioActive ? 'Mute audio' : 'Unmute audio'} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-700 shadow-xs">{audioActive ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
         </div>
 
         <span className="text-xs font-black text-neutral-900 bg-white px-3 py-1 rounded-xl shadow-xs">
@@ -674,13 +691,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               <input
                 type="text"
                 value={enteredOtp}
-                onChange={(e) => setEnteredOtp(e.target.value.slice(0, 4))}
+                onChange={(e) => { setEnteredOtp(e.target.value.slice(0, 4)); setAadhaarOtpError(''); }}
                 className="w-full bg-slate-100 rounded-2xl px-4 py-3 text-center text-3xl font-black font-mono tracking-widest text-neutral-900 focus:outline-none"
                 maxLength={4}
               />
               <span className="text-[11px] text-slate-400 block text-center mt-1">
                 Demo Code: <strong className="text-neutral-700">6184</strong>
               </span>
+              {aadhaarOtpError && <span role="alert" className="mt-2 block text-center text-xs font-bold text-rose-700">{aadhaarOtpError}</span>}
             </div>
 
             <div className="space-y-2">
