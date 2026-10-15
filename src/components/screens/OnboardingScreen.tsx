@@ -647,7 +647,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         {currentStep < 6 ? (
           <button
             type="button"
-            disabled={currentStep === 5 && !isEShramVerified}
+            disabled={(currentStep === 4 && !isAadhaarVerified) || (currentStep === 5 && !isEShramVerified)}
             onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5 | 6)}
             className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
           >
@@ -655,7 +655,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               {currentStep === 1 && (language === 'hi' ? 'आगे: नाम दर्ज करें' : 'Next: Name & City')}
               {currentStep === 2 && (language === 'hi' ? 'आगे: काम का तजुर्बा' : 'Next: Work Experience')}
               {currentStep === 3 && (language === 'hi' ? 'आगे: आधार सत्यापन' : 'Next: Aadhaar KYC')}
-              {currentStep === 4 && (language === 'hi' ? 'आगे: ई-श्रम सत्यापन' : 'Next: e-Shram Verification')}
+              {currentStep === 4 && (isAadhaarVerified ? (language === 'hi' ? 'आगे: ई-श्रम सत्यापन' : 'Next: e-Shram Verification') : (language === 'hi' ? 'आगे बढ़ने के लिए आधार सत्यापित करें' : 'Verify Aadhaar to continue'))}
               {currentStep === 5 && (isEShramVerified ? (language === 'hi' ? 'आगे: प्रोफाइल समीक्षा' : 'Next: Review Profile') : 'Verify e-Shram to continue')}
             </span>
             <ArrowRight className="w-4 h-4" />
