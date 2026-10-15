@@ -156,6 +156,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
     <div ref={screenRef} className="relative isolate flex-1 min-h-0 w-full overflow-hidden bg-[#f1f1f1] select-none font-sans">
       <div className="absolute inset-0">
         <UberMapView
+          language={language}
           isOnline={isOnline}
           activeJob={null}
           incomingJob={null}
@@ -210,7 +211,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
               const jobTrade = TRADES.find((item) => item.id === job.trade);
               const jobTradeName = language === 'hi' ? jobTrade?.nameHi : jobTrade?.nameEn;
               const title = language === 'hi' ? job.titleHi : job.title;
-              const rateUnit = job.wageType === 'hourly' ? '/hour' : job.wageType === 'daily' ? '/day' : ' total';
+              const rateUnit = uiText(language, job.wageType === 'hourly' ? 'hourlyRate' : job.wageType === 'daily' ? 'dailyRate' : 'totalRate');
               return (
                 <motion.article key={job.id} layout initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="relative min-h-[208px] rounded-[22px] bg-white px-[15px] pt-[15px] pb-[10px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
                   <span className="inline-flex h-[17px] max-w-[calc(100%-125px)] items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-[5px] bg-[rgba(3,192,60,0.22)] px-1 text-[10px] font-semibold leading-none text-[#03c03c]">

@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { MapPin, Clock3, CircleCheck } from 'lucide-react';
 import { Job, Language } from '../types';
 import { TRADES } from '../data/mockData';
+import { uiText } from '../utils/uiText';
 
 interface JobListingCardProps {
   job: Job;
@@ -15,7 +16,7 @@ export const JobListingCard: React.FC<JobListingCardProps> = ({ job, language, c
   const trade = TRADES.find((item) => item.id === job.trade);
   const tradeName = language === 'hi' ? trade?.nameHi : trade?.nameEn;
   const title = language === 'hi' ? job.titleHi : job.title;
-  const rateUnit = job.wageType === 'hourly' ? '/hour' : job.wageType === 'daily' ? '/day' : ' total';
+  const rateUnit = uiText(language, job.wageType === 'hourly' ? 'hourlyRate' : job.wageType === 'daily' ? 'dailyRate' : 'totalRate');
 
   return (
     <article className={`relative w-full min-h-[208px] rounded-[22px] bg-white px-[15px] pt-[15px] pb-[10px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] ${className}`}>

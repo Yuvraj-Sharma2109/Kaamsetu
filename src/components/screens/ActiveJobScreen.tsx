@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { JobListingCard } from '../JobListingCard';
 import { ShiftState, Language, Job } from '../../types';
 import { speakText } from '../../utils/speech';
+import { uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
 import { 
   Navigation, 
@@ -146,7 +147,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             <span className="text-[11px] opacity-90 block truncate">
               {isArrivedAtSite
                 ? `${job.siteName} · ${job.landmark}`
-                : `${job.landmark} (~${job.travelTimeMin} min)`}
+                : `${job.landmark} (~${job.travelTimeMin} ${uiText(language, 'minuteAbbr')})`}
             </span>
           </div>
         </div>
@@ -165,6 +166,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
       {/* 2. JOB-SPECIFIC SCHEMATIC ROUTE MAP */}
       <div className="relative h-[45vh] min-h-[300px] w-full shrink-0 lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)] lg:min-h-[420px]">
         <UberMapView
+          language={language}
           isOnline={true}
           activeJob={job}
           incomingJob={null}
@@ -202,41 +204,41 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           <div className="space-y-3.5">
             {!isArrivedAtSite ? (
               <div className="space-y-2">
-                <p className="text-[11px] text-slate-500 text-center">Travel to this job's location before checking in.</p>
+                <p className="text-[11px] text-slate-500 text-center">{uiText(language, 'travelBeforeCheckin')}</p>
                 <button
                   onClick={handleMarkArrived}
                   className="flex h-[55px] w-full items-center justify-center gap-[10px] rounded-[15px] bg-[#2d59f0] text-[14px] font-semibold leading-none text-white transition-transform active:scale-[0.98]"
                 >
                   <MapPin className="w-4 h-4" />
-                  <span>{language === 'hi' ? 'मैं इस साइट पर पहुंच गया हूं' : 'I HAVE ARRIVED AT THIS SITE'}</span>
+                  <span>{uiText(language, 'arrived')}</span>
                 </button>
               </div>
             ) : (
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-xs font-black text-neutral-900">
                   <ShieldCheck className="w-4 h-4 text-[#2d59f0]" />
-                  <span>{language === 'hi' ? 'साइट OTP से हाजिरी सत्यापित करें' : 'Verify your attendance with the site OTP'}</span>
+                  <span>{uiText(language, 'verifyAttendanceOtp')}</span>
                 </div>
                 {!otpSent ? (
                   <button onClick={handleRequestSiteOtp} className="flex h-[55px] w-full items-center justify-center rounded-[15px] bg-[#2d59f0] text-[14px] font-semibold text-white transition-transform active:scale-[0.98]">
-                    {language === 'hi' ? 'कॉन्ट्रैक्टर से OTP लें' : 'REQUEST SITE OTP'}
+                    {uiText(language, 'requestSiteOtp')}
                   </button>
                 ) : (
                   <>
-                    <p className="text-[11px] text-slate-600">Demo OTP from contractor: <strong className="font-mono text-neutral-900">{siteOtp}</strong></p>
+                    <p className="text-[11px] text-slate-600">{uiText(language, 'demoOtp')} <strong className="font-mono text-neutral-900">{siteOtp}</strong></p>
                     <input
                       inputMode="numeric"
                       autoComplete="one-time-code"
                       maxLength={4}
                       value={enteredOtp}
                       onChange={(event) => { setEnteredOtp(event.target.value.replace(/\D/g, '').slice(0, 4)); setOtpError(''); }}
-                      placeholder="Enter 4-digit OTP"
-                      aria-label="Site OTP"
+                      placeholder={uiText(language, 'enterOtp')}
+                      aria-label={uiText(language, 'siteOtp')}
                       className="w-full h-12 rounded-xl bg-white border border-slate-200 px-4 text-center text-lg font-black tracking-[0.4em] outline-none focus:border-[#2d59f0]"
                     />
                     {otpError && <p role="alert" className="text-xs font-bold text-rose-600">{otpError}</p>}
                     <button onClick={handleVerifySiteOtp} disabled={enteredOtp.length !== 4} className="flex h-[55px] w-full items-center justify-center rounded-[15px] bg-[#2d59f0] text-[14px] font-semibold text-white transition-transform active:scale-[0.98] disabled:bg-slate-300">
-                      {language === 'hi' ? 'OTP सत्यापित करें और काम शुरू करें' : 'VERIFY OTP & PUNCH IN'}
+                      {uiText(language, 'verifyOtpPunchIn')}
                     </button>
                   </>
                 )}
@@ -251,12 +253,12 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
               <div>
                 <div className="flex items-center gap-1.5 text-[10px] text-emerald-800 font-bold uppercase tracking-wider mb-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>On Site: {job.siteName}</span>
+                  <span>{uiText(language, 'onSite')}: {job.siteName}</span>
                 </div>
-                <div className="text-sm font-bold text-slate-600">Work in progress</div>
+                <div className="text-sm font-bold text-slate-600">{uiText(language, 'workInProgress')}</div>
               </div>
 
-              <span className="text-xs font-bold text-blue-800">Work-based pay</span>
+              <span className="text-xs font-bold text-blue-800">{uiText(language, 'workBasedPay')}</span>
             </div>
 
             {/* QUEUED WORK OR "10 MINS TO FINISH" RECOMMENDATION */}
@@ -273,7 +275,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                     <span className="text-xs font-black text-emerald-950 truncate block">
                       {queuedJob.title}
                     </span>
-                    <span className="text-[11px] font-mono text-emerald-900 font-bold block">{queuedJob.distanceKm} km away</span>
+                    <span className="text-[11px] font-mono text-emerald-900 font-bold block">{queuedJob.distanceKm} {uiText(language, 'kmAway')}</span>
                   </div>
                 </div>
 
@@ -303,7 +305,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                   <div className="flex items-center justify-between bg-white rounded-xl p-2.5 shadow-xs">
                     <div className="min-w-0 flex-1 pr-2">
                       <span className="text-xs font-black text-neutral-900 block truncate">{suggestedNextJob.title}</span>
-                      <span className="text-[11px] text-slate-500 font-mono">{suggestedNextJob.distanceKm} km away</span>
+                      <span className="text-[11px] text-slate-500 font-mono">{suggestedNextJob.distanceKm} {uiText(language, 'kmAway')}</span>
                     </div>
 
                     <button

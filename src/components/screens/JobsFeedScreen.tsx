@@ -4,6 +4,7 @@ import { Job, Language, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
 import { speakText } from '../../utils/speech';
+import { uiText } from '../../utils/uiText';
 import { 
   Search, 
   MapPin, 
@@ -261,8 +262,8 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                   </div>
 
                                     <div className="shrink-0 bg-blue-50/90 rounded-2xl px-3.5 py-2 shadow-xs text-right">
-                    <div className="text-xs font-black text-blue-900">TASK PAY</div>
-                    <div className="text-[10px] text-blue-800 font-bold uppercase">₹{job.agreedAmount} agreed</div>
+                    <div className="text-xs font-black text-blue-900">{uiText(language, 'taskPay')}</div>
+                    <div className="text-[10px] text-blue-800 font-bold uppercase">₹{job.agreedAmount} {uiText(language, 'agreed')}</div>
                   </div>
                 </div>
 

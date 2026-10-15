@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Job } from '../types';
+import { Job, Language } from '../types';
+import { uiText } from '../utils/uiText';
 import { MapPin, Navigation, Radio, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface UberMapViewProps {
+  language: Language;
   isOnline: boolean;
   activeJob: Job | null;
   incomingJob: Job | null;
@@ -15,6 +17,7 @@ interface UberMapViewProps {
 }
 
 export const UberMapView: React.FC<UberMapViewProps> = ({
+  language,
   isOnline,
   activeJob,
   incomingJob,
@@ -50,11 +53,11 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
 
   // Route labels and turns are tied to the selected job's landmark/address.
   const routeWaypoints = [
-    { x: 200, y: 310, street: 'Departed Indiranagar Base' },
-    { x: 200 + (destination.x - 200) * 0.28, y: 310 + (destination.y - 310) * 0.28, street: currentTargetJob?.locationAddress.split(',')[0] || 'Along the route' },
-    { x: 200 + (destination.x - 200) * 0.58, y: 310 + (destination.y - 310) * 0.58, street: currentTargetJob?.landmark || 'Approaching the site' },
-    { x: destination.x - 12, y: destination.y + 18, street: currentTargetJob?.landmark || 'Near the job site' },
-    { x: destination.x, y: destination.y, street: currentTargetJob?.siteName || 'Work Site Point' },
+    { x: 200, y: 310, street: uiText(language, 'departedBase') },
+    { x: 200 + (destination.x - 200) * 0.28, y: 310 + (destination.y - 310) * 0.28, street: currentTargetJob?.locationAddress.split(',')[0] || uiText(language, 'alongRoute') },
+    { x: 200 + (destination.x - 200) * 0.58, y: 310 + (destination.y - 310) * 0.58, street: currentTargetJob?.landmark || uiText(language, 'approachingSite') },
+    { x: destination.x - 12, y: destination.y + 18, street: currentTargetJob?.landmark || uiText(language, 'nearJobSite') },
+    { x: destination.x, y: destination.y, street: currentTargetJob?.siteName || uiText(language, 'workSitePoint') },
   ];
 
   // AUTOMATIC DOT MOVEMENT TO WORK SITE WHEN JOB IS SELECTED
@@ -76,7 +79,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
 
     setDotPos({ x: 200, y: 310 });
     setCurrentStepIndex(0);
-    setLiveStreetName('Departed Indiranagar Base');
+    setLiveStreetName(uiText(language, 'departedBase'));
 
     // When job is active and en route: automatically advance dot step-by-step to the work site
     const moveTimer = setInterval(() => {
@@ -93,7 +96,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
     }, 1400);
 
     return () => clearInterval(moveTimer);
-  }, [activeJob?.id, hasArrived]);
+  }, [activeJob?.id, hasArrived, language]);
 
   // Determine current location chip text
   const locationLabel = customLocationText 
@@ -103,8 +106,8 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
       : liveStreetName
         ? liveStreetName
         : activeJob
-          ? `Moving to ${activeJob.siteName}`
-          : 'Indiranagar Sector 4';
+          ? `${uiText(language, 'movingTo')} ${activeJob.siteName}`
+          : uiText(language, 'departedBase');
 
   return (
     <div className="relative w-full h-full min-h-0 overflow-hidden select-none bg-[#f1f1f1]" style={{ backgroundImage: "url('/figma/map_raw_1.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
@@ -179,13 +182,13 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
           className="absolute top-14 right-4 z-10 bg-white shadow-md rounded-2xl p-3 max-w-[170px] animate-in fade-in cursor-pointer hover:shadow-lg transition-shadow"
         >
           <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold mb-1">
-            <span>{displayPreviewJob.distanceKm} km away</span>
-            <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md font-bold">Matched</span>
+            <span>{displayPreviewJob.distanceKm} {uiText(language, 'kmAway')}</span>
+            <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md font-bold">{uiText(language, 'matched')}</span>
           </div>
           <span className="text-xs font-black text-neutral-900 block truncate">{displayPreviewJob.title}</span>
           <div className="mt-1.5 flex items-center justify-between text-xs">
-            <span className="font-black text-blue-900 font-mono">₹{displayPreviewJob.agreedAmount} task pay</span>
-            <span className="text-[10px] font-bold bg-neutral-900 text-white px-2 py-0.5 rounded-md">View</span>
+            <span className="font-black text-blue-900 font-mono">₹{displayPreviewJob.agreedAmount} {uiText(language, 'taskPay')}</span>
+            <span className="text-[10px] font-bold bg-neutral-900 text-white px-2 py-0.5 rounded-md">{uiText(language, 'view')}</span>
           </div>
         </div>
       )}
