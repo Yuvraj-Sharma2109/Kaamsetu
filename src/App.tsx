@@ -681,6 +681,8 @@ export default function App() {
             }}
             onOpenAadhaarModal={() => setShowAadhaarModal(true)}
             showSettings={isProfileSettingsOpen}
+            audioActive={audioActive}
+            onToggleAudio={handleToggleAudio}
           />
           </motion.div>
         )}
