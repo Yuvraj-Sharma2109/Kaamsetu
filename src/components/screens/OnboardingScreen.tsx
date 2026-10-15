@@ -48,10 +48,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [isAadhaarVerified, setIsAadhaarVerified] = useState<boolean>(false);
   const [hasFrontPhoto, setHasFrontPhoto] = useState<boolean>(false);
   const [hasBackPhoto, setHasBackPhoto] = useState<boolean>(false);
-  const [uan, setUan] = useState('');
-  const [uanOtp, setUanOtp] = useState('');
+  const [uan, setUan] = useState('123456789012');
+  const [uanOtp, setUanOtp] = useState('6184');
   const [isEShramVerified, setIsEShramVerified] = useState(false);
   const [esharamOtpSent, setEsharamOtpSent] = useState(false);
+  const [esharamMode, setEsharamMode] = useState<'otp' | 'photo'>('otp');
   const [esharamError, setEsharamError] = useState('');
 
   const selectedTrade = selectedTrades[0] || 'mason';
@@ -531,18 +532,29 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
         {/* ================= STEP 5: E-SHRAM VERIFICATION ================= */}
         {currentStep === 5 && (
-          <div className="mx-auto w-full max-w-md space-y-4 animate-in fade-in">
-            <div><h2 className="text-base font-black text-neutral-900">Verify your e-Shram card</h2><p className="text-xs text-slate-500">Enter your 12-digit UAN and confirm the demo OTP to continue to profile review.</p></div>
-            <form onSubmit={handleVerifyEShram} className="space-y-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between gap-3"><div><h3 className="text-sm font-black text-slate-900">e-Shram card verification</h3><p className="text-[11px] text-slate-500">Demo OTP: 6184</p></div><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${isEShramVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>{isEShramVerified ? '✓ Verified' : 'Required'}</span></div>
-              {!isEShramVerified && <>
-                <label className="block space-y-1"><span className="text-xs font-bold text-slate-700">12-digit UAN</span><input inputMode="numeric" maxLength={12} value={uan} onChange={(event) => { setUan(event.target.value.replace(/\D/g, '').slice(0, 12)); setEsharamError(''); }} placeholder="Enter UAN" className="w-full rounded-xl bg-slate-100 px-3.5 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-300" /></label>
-                {esharamOtpSent && <label className="block space-y-1"><span className="text-xs font-bold text-slate-700">OTP</span><input inputMode="numeric" maxLength={4} value={uanOtp} onChange={(event) => { setUanOtp(event.target.value.replace(/\D/g, '').slice(0, 4)); setEsharamError(''); }} placeholder="Enter OTP 6184" className="w-full rounded-xl bg-slate-100 px-3.5 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-300" /></label>}
-                {esharamError && <p role="alert" className="text-xs font-semibold text-rose-700">{esharamError}</p>}
-                <button type="submit" className="w-full rounded-xl bg-blue-700 py-3 text-sm font-black text-white">{esharamOtpSent ? 'Verify e-Shram card' : 'Send OTP'}</button>
-              </>}
-              {isEShramVerified && <p className="rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">e-Shram card verified successfully. Continue to review your profile.</p>}
-            </form>
+          <div className="space-y-3 animate-in fade-in">
+            <div><h2 className="text-base font-black text-neutral-900">{language === 'hi' ? 'ई-श्रम कार्ड सत्यापन' : 'e-Shram Verification'}</h2><p className="text-xs text-slate-500">{language === 'hi' ? 'काम शुरू करने के लिए अपना ई-श्रम कार्ड सत्यापित करें' : 'Verify your e-Shram card to continue to profile review.'}</p></div>
+
+            <div className="space-y-2.5 rounded-3xl bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between pb-1.5">
+                <div className="flex items-center gap-2"><span className="text-lg">🇮🇳</span><div><span className="block text-[10px] font-black uppercase tracking-wider text-neutral-900">GOVT OF INDIA · e-SHRAM</span><span className="text-[9px] text-slate-400"> श्रमेव जयते</span></div></div>
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-black ${isEShramVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>{isEShramVerified ? '✓ VERIFIED' : 'PENDING'}</span>
+              </div>
+              <div className="flex items-center gap-3 py-1"><div className="flex h-14 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-slate-100 text-slate-400"><User className="h-6 w-6 text-slate-500"/><span className="mt-0.5 text-[7px] uppercase">PHOTO</span></div><div className="min-w-0 flex-1 space-y-0.5"><span className="block truncate text-xs font-black text-neutral-900">{name}</span><span className="block font-mono text-sm font-black tracking-widest text-blue-900">UAN: {uan || 'XXXX XXXX XXXX'}</span></div></div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-1.5 rounded-2xl bg-slate-100 p-1 shadow-xs">
+              <button type="button" onClick={() => setEsharamMode('otp')} className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold ${esharamMode === 'otp' ? 'bg-neutral-900 text-white shadow-xs' : 'text-slate-600'}`}><KeyRound className="h-3.5 w-3.5"/>UAN + OTP</button>
+              <button type="button" onClick={() => setEsharamMode('photo')} className={`flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold ${esharamMode === 'photo' ? 'bg-neutral-900 text-white shadow-xs' : 'text-slate-600'}`}><Camera className="h-3.5 w-3.5"/>Card Photo</button>
+            </div>
+
+            {esharamMode === 'otp' ? <form onSubmit={handleVerifyEShram} className="space-y-2.5 rounded-3xl bg-white p-4 shadow-sm">
+              <label className="block"><span className="mb-1 block text-xs font-bold text-slate-600">Enter 12-Digit UAN</span><input inputMode="numeric" maxLength={12} value={uan} onChange={(event) => { setUan(event.target.value.replace(/\D/g, '').slice(0, 12)); setEsharamError(''); }} className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-center font-mono text-base font-black tracking-widest text-neutral-900 outline-none" /></label>
+              {esharamOtpSent && <label className="block"><span className="mb-1 block text-xs font-bold text-slate-600">Enter 4-Digit OTP</span><input inputMode="numeric" maxLength={4} value={uanOtp} onChange={(event) => { setUanOtp(event.target.value.replace(/\D/g, '').slice(0, 4)); setEsharamError(''); }} className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-center font-mono text-xl font-black tracking-widest text-neutral-900 outline-none"/><span className="mt-1 block text-center text-[11px] text-slate-400">Demo Code: <strong className="text-neutral-700">6184</strong></span></label>}
+              {esharamError && <p role="alert" className="text-xs font-semibold text-rose-700">{esharamError}</p>}
+              <button type="submit" disabled={isEShramVerified} className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-neutral-900 text-xs font-black text-white disabled:bg-emerald-700">{isEShramVerified ? 'e-Shram Verified' : esharamOtpSent ? 'Verify e-Shram OTP' : 'Get e-Shram OTP'}</button>
+            </form> : <div className="space-y-2 rounded-3xl bg-white p-4 shadow-sm"><span className="block text-xs font-bold text-slate-600">Capture e-Shram card photos:</span><div className="grid grid-cols-2 gap-2">{(['Front', 'Back'] as const).map((side) => <button key={side} type="button" onClick={() => setIsEShramVerified(true)} className="flex h-20 flex-col items-center justify-center rounded-xl bg-slate-100 text-xs font-bold text-slate-700"><Camera className="mb-1 h-4 w-4 text-slate-500"/>{side} of card</button>)}</div><p className="text-center text-[10px] text-slate-400">Demo: capture either side to mark verified</p></div>}
+            {isEShramVerified && <p className="rounded-xl bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">e-Shram card verified. Select Next to review your profile.</p>}
           </div>
         )}
 
