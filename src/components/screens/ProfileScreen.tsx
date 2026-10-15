@@ -30,7 +30,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const registeredTrades = [worker.primaryTrade, ...worker.secondaryTrades];
 
   return (
-    <div id="profile-scroll" className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] font-sans scrollbar-none">
+    <div id="profile-scroll" className="mx-auto flex min-h-0 w-full max-w-[393px] md:max-w-2xl flex-1 flex-col gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] font-sans scrollbar-none">
       <section className="relative h-[300px] w-full shrink-0 rounded-[20px] bg-white">
         <img src="/figma/account_raw_1.jpeg" alt="Worker profile" className="absolute left-1/2 top-[26px] h-[92px] w-[92px] -translate-x-1/2 rounded-full object-cover shadow-md" />
         <h2 className="absolute inset-x-3 top-[134px] text-center text-lg font-bold text-black">{worker.name}</h2>

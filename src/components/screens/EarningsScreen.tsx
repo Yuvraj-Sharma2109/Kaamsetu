@@ -58,7 +58,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col space-y-3 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
+    <div className="mx-auto flex w-full max-w-[393px] md:max-w-2xl flex-1 flex-col space-y-3 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
       {/* 1. HERO BALANCE CARD (Borderless White Card) */}
       <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">

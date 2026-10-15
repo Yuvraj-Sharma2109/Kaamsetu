@@ -79,7 +79,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   ];
 
   return (
-    <nav className="h-[65px] w-[calc(100%-32px)] max-w-[361px] shrink-0 rounded-[20px] bg-white px-1.5 select-none shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
+    <nav className="h-[65px] w-[calc(100%-32px)] max-w-[361px] md:max-w-xl shrink-0 rounded-[20px] bg-white px-1.5 select-none shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
       <div className="grid grid-cols-4 items-center h-full">
         {navItems.filter((item) => item.id !== 'profile').map((item) => {
           const isActive = currentTab === item.id;

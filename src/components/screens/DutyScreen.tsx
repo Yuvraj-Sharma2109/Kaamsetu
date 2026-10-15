@@ -38,10 +38,15 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   onOpenAadhaarModal,
 }) => {
   const t = getTranslation(language);
+  const screenRef = useRef<HTMLDivElement>(null);
   const [onlineStage, setOnlineStage] = useState<OnlineStage>(isOnline ? 'preview' : 'offline');
+  const [screenHeight, setScreenHeight] = useState(() => typeof window === 'undefined' ? 917 : window.innerHeight);
   const dragStart = useRef<{ y: number; height: number } | null>(null);
   const flowTimers = useRef<number[]>([]);
   const panelHeight = useMotionValue(isOnline ? 337 : 226);
+  const previewHeight = Math.min(337, Math.max(260, screenHeight * 0.52));
+  const searchHeight = Math.min(226, Math.max(170, screenHeight * 0.28));
+  const expandedHeight = Math.max(previewHeight, screenHeight - 124);
   const trade = TRADES.find((item) => item.id === worker.primaryTrade) || TRADES[0];
   const tradeName = language === 'hi' ? trade.nameHi : trade.nameEn;
   const availableJobs = jobs.filter((job) =>
@@ -53,15 +58,25 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   }, []);
 
   useEffect(() => {
+    const element = screenRef.current;
+    if (!element) return;
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      setScreenHeight(entry.contentRect.height);
+    });
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
     if (onlineStage !== 'searching' && onlineStage !== 'preview' && onlineStage !== 'expanded') return;
-    const targetHeight = onlineStage === 'searching' ? 226 : onlineStage === 'expanded' ? 793 : 337;
+    const targetHeight = onlineStage === 'searching' ? searchHeight : onlineStage === 'expanded' ? expandedHeight : previewHeight;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const animation = animate(panelHeight, targetHeight, {
       duration: reduceMotion ? 0.01 : 0.3,
       ease: [0.42, 0, 0.58, 1],
     });
     return () => animation.stop();
-  }, [onlineStage, panelHeight]);
+  }, [onlineStage, panelHeight, searchHeight, previewHeight, expandedHeight]);
 
   const handleGoClick = () => {
     if (!isOnline && !worker.isKycVerified) {
@@ -87,7 +102,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
       flowTimers.current.push(window.setTimeout(() => {
         onToggleOnline();
         setOnlineStage('offline');
-        panelHeight.set(226);
+        panelHeight.set(searchHeight);
       }, 550));
       return;
     }
@@ -112,9 +127,9 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
 
   const movePanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (!dragStart.current) return;
-    const nextHeight = Math.max(337, Math.min(793, dragStart.current.height + dragStart.current.y - event.clientY));
+    const nextHeight = Math.max(previewHeight, Math.min(expandedHeight, dragStart.current.height + dragStart.current.y - event.clientY));
     panelHeight.set(nextHeight);
-    onExpansionProgress?.((nextHeight - 337) / (793 - 337));
+    onExpansionProgress?.((nextHeight - previewHeight) / Math.max(1, expandedHeight - previewHeight));
   };
 
   const finishPanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -128,7 +143,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
     onExpansionProgress?.(shouldExpand ? 1 : 0, true);
     if (nextStage === onlineStage) {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      animate(panelHeight, shouldExpand ? 793 : 337, {
+      animate(panelHeight, shouldExpand ? expandedHeight : previewHeight, {
         duration: reduceMotion ? 0.01 : 0.3,
         ease: [0.42, 0, 0.58, 1],
       });
@@ -136,7 +151,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   };
 
   return (
-    <div className="relative isolate flex-1 min-h-0 w-full overflow-hidden bg-[#f1f1f1] select-none font-sans">
+    <div ref={screenRef} className="relative isolate flex-1 min-h-0 w-full overflow-hidden bg-[#f1f1f1] select-none font-sans">
       <div className="absolute inset-0">
         <UberMapView
           isOnline={isOnline}
@@ -154,7 +169,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }}
           style={{ height: panelHeight }}
-          className="absolute z-20 bottom-[63px] left-1/2 w-[calc(100%-52px)] max-w-[360px] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-[#f1f1f1] px-[15px] pt-[15px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] scrollbar-none"
+          className="absolute z-20 bottom-[calc(77px+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-24px)] max-w-[420px] md:max-w-2xl -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-[#f1f1f1] px-3.5 sm:px-[15px] pt-[15px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] scrollbar-none"
         >
           {(onlineStage === 'preview' || onlineStage === 'expanded') && <button
             type="button"
@@ -188,7 +203,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           )}
           {(onlineStage === 'preview' || onlineStage === 'expanded') && (
           <motion.div key="available-work-list" aria-label={language === 'hi' ? 'उपलब्ध काम' : 'Available work'} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }} className="pb-[82px]">
-          <div className="mx-auto flex w-full max-w-[330px] flex-col gap-[10px]">
+          <div className="mx-auto flex w-full max-w-[390px] md:max-w-xl flex-col gap-[10px]">
             {availableJobs.length > 0 ? availableJobs.map((job) => {
               const jobTrade = TRADES.find((item) => item.id === job.trade);
               const jobTradeName = language === 'hi' ? jobTrade?.nameHi : jobTrade?.nameEn;
@@ -237,35 +252,27 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
         </motion.section>
       )}
 
-      <motion.button
+      {onlineStage === 'offline' && <motion.button
+          type="button"
           onClick={handleGoClick}
-          animate={{ top: onlineStage === 'offline' ? 718 : 792 }}
-          transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }}
-          style={{ pointerEvents: onlineStage === 'offline' ? 'auto' : 'none' }}
-          aria-hidden={onlineStage !== 'offline'}
-          tabIndex={onlineStage === 'offline' ? 0 : -1}
-          className="absolute z-20 left-1/2 flex h-[60px] w-[110px] -translate-x-1/2 items-center justify-center rounded-[22px] bg-[#2d59f0]/40 shadow-[0_2px_10px_rgba(45,89,240,0.18)] transition-transform active:scale-95"
+          className="absolute z-20 bottom-[calc(76px+env(safe-area-inset-bottom))] left-1/2 flex h-[60px] w-[110px] -translate-x-1/2 items-center justify-center rounded-[22px] bg-[#2d59f0]/40 shadow-[0_2px_10px_rgba(45,89,240,0.18)] transition-transform active:scale-95"
           aria-label={t.swipeToOnline}
         >
           <span className="flex h-[50px] w-[100px] flex-col items-center justify-center rounded-[20px] bg-[#2d59f0] text-[#f1f1f1]">
             <span className="text-[24px] leading-[24px] font-semibold">GO</span>
             <span className="text-[12px] leading-[12px] font-medium text-white/70">Online</span>
           </span>
-      </motion.button>
+      </motion.button>}
 
-      <motion.button
+      {(onlineStage === 'searching' || onlineStage === 'preview' || onlineStage === 'expanded') && <motion.button
+          type="button"
           onClick={handleGoClick}
-          animate={{ top: onlineStage === 'searching' || onlineStage === 'preview' || onlineStage === 'expanded' ? 723 : 795 }}
-          transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }}
-          style={{ pointerEvents: onlineStage === 'searching' || onlineStage === 'preview' || onlineStage === 'expanded' ? 'auto' : 'none' }}
-          aria-hidden={onlineStage !== 'searching' && onlineStage !== 'preview' && onlineStage !== 'expanded'}
-          tabIndex={onlineStage === 'searching' || onlineStage === 'preview' || onlineStage === 'expanded' ? 0 : -1}
-          className="absolute z-30 left-1/2 flex h-[50px] w-[100px] -translate-x-1/2 flex-col items-center justify-center rounded-[20px] bg-white text-black shadow-[0px_2px_10px_rgba(0,0,0,0.11)] transition-transform active:scale-95"
+          className="absolute z-30 bottom-[calc(145px+env(safe-area-inset-bottom))] left-1/2 flex h-[50px] w-[100px] -translate-x-1/2 flex-col items-center justify-center rounded-[20px] bg-white text-black shadow-[0px_2px_10px_rgba(0,0,0,0.11)] transition-transform active:scale-95"
           aria-label={t.swipeToOffline}
         >
           <span className="text-[24px] leading-[24px] font-semibold">GO</span>
           <span className="text-[12px] leading-[12px] font-medium text-[#b5b5b5]">Offline</span>
-      </motion.button>
+      </motion.button>}
     </div>
   );
 };

@@ -82,7 +82,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[393px] flex-1 flex-col space-y-3.5 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
+    <div className="mx-auto flex w-full max-w-[393px] md:max-w-2xl flex-1 flex-col space-y-3.5 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
       {/* ACTIVE SHIFT STATUS NOTICE IF WORKER HAS JOB IN PROGRESS */}
       {activeJob && (
         <div className="bg-blue-50/90 rounded-2xl p-3.5 space-y-1.5 shadow-xs animate-in fade-in">

@@ -30,7 +30,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   todayEarnings = 950,
 }) => {
   return (
-    <header className="sticky top-0 z-30 mx-auto mt-3 h-[65px] w-[calc(100%-52px)] max-w-[360px] rounded-[20px] bg-white px-[15px] flex items-center justify-between select-none shrink-0 shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
+    <header className="sticky top-0 z-30 mx-auto mt-3 h-[65px] w-[calc(100%-32px)] max-w-[360px] md:max-w-2xl rounded-[20px] bg-white px-3.5 sm:px-[15px] flex items-center justify-between select-none shrink-0 shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
       {/* Left: Worker profile summary */}
       <div role="button" tabIndex={0} onClick={onOpenProfile} onKeyDown={(event) => event.key === 'Enter' && onOpenProfile?.()} className="flex items-center gap-2.5 min-w-0 cursor-pointer">
         <div className="relative shrink-0">

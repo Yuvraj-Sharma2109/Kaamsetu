@@ -124,7 +124,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const isArrivedAtSite = shift.status === 'arrived' || shift.status === 'punched_in';
 
   return (
-    <div className="relative mx-auto flex min-h-max w-full max-w-[393px] flex-none flex-col overflow-x-hidden bg-[#f1f1f1] select-none font-sans">
+    <div className="relative mx-auto flex min-h-max w-full max-w-[393px] md:max-w-2xl flex-none flex-col overflow-x-hidden bg-[#f1f1f1] select-none font-sans">
       {/* 1. TURN-BY-TURN GUIDANCE BANNER */}
       <div className={`z-20 text-white px-4 py-3 shadow-md flex items-center justify-between shrink-0 transition-colors duration-500 ${
         isArrivedAtSite ? 'bg-emerald-600' : 'bg-blue-600'

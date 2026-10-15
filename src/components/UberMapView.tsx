@@ -107,7 +107,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
           : 'Indiranagar Sector 4';
 
   return (
-    <div className="relative w-full h-full min-h-[360px] overflow-hidden select-none bg-[#f1f1f1]" style={{ backgroundImage: "url('/figma/map_raw_1.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+    <div className="relative w-full h-full min-h-0 overflow-hidden select-none bg-[#f1f1f1]" style={{ backgroundImage: "url('/figma/map_raw_1.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
       {/* Route, worker position, and destination are drawn over the Figma map asset. */}
       <svg
         ref={svgRef}
