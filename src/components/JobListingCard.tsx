@@ -19,19 +19,19 @@ export const JobListingCard: React.FC<JobListingCardProps> = ({ job, language, c
 
   return (
     <article className={`relative w-full min-h-[208px] rounded-[22px] bg-white px-[15px] pt-[15px] pb-[10px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] ${className}`}>
-      <span className="inline-flex h-[17px] items-center gap-1 rounded-[5px] bg-[rgba(3,192,60,0.22)] px-1 text-[10px] font-semibold leading-none text-[#03c03c]">
+      <span className="inline-flex h-[17px] max-w-[calc(100%-125px)] items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-[5px] bg-[rgba(3,192,60,0.22)] px-1 text-[10px] font-semibold leading-none text-[#03c03c]">
         <CircleCheck className="h-[12px] w-[12px] fill-[#03c03c] text-white" />
         {tradeName || job.categoryName}
       </span>
-      <span className="absolute right-[15px] top-[42px] max-w-[115px] rounded-[15px] bg-[rgba(45,89,240,0.16)] px-[9px] py-[11px] text-[12px] font-bold leading-none text-[#2d59f0]">
+      <span className="ml-2 inline-flex max-w-[115px] shrink-0 rounded-[15px] bg-[rgba(45,89,240,0.16)] px-2 py-2.5 align-top text-[11px] font-bold leading-none text-[#2d59f0] sm:px-[9px] sm:text-[12px]">
         ₹{job.agreedAmount}{rateUnit}
       </span>
-      <h3 className="mt-[10px] min-h-[38px] max-w-[225px] pr-1 text-[16px] font-bold leading-[19px] text-black line-clamp-2">{title}</h3>
+      <h3 className="mt-[10px] min-h-[38px] w-full pr-1 text-[16px] font-bold leading-[19px] text-black line-clamp-2">{title}</h3>
       <div className="mt-[9px] flex min-w-0 items-center gap-1 text-[10px] leading-[14px] text-[#b5b5b5]">
         <MapPin className="h-[13px] w-[13px] shrink-0 fill-[#b5b5b5] text-[#b5b5b5]" />
         <span className="truncate">{job.siteName}</span>
       </div>
-      <div className="mt-[10px] flex items-center gap-[10px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5]">
+      <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5] sm:gap-[10px]">
         <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[#f1f1f1] px-1.5">
           <MapPin className="h-3 w-3 fill-[#b5b5b5]" />{job.distanceKm} km
         </span>

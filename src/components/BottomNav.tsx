@@ -119,7 +119,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         </div>
       </nav>
 
-      <div className="block">
+      <div className="hidden lg:block">
         {menuOpen && (
           <>
             <button
