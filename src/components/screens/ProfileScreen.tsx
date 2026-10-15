@@ -12,7 +12,7 @@ interface ProfileScreenProps {
   onLogout?: () => void;
   onClearDemoData?: () => void;
   onOpenAadhaarModal?: () => void;
-  settingsOpenRequest?: number;
+  showSettings: boolean;
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({
@@ -23,22 +23,37 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onLogout,
   onClearDemoData,
   onOpenAadhaarModal,
-  settingsOpenRequest = 0,
+  showSettings,
 }) => {
   const [showTradePicker, setShowTradePicker] = useState(false);
   const primaryTrade = TRADES.find((trade) => trade.id === worker.primaryTrade) ?? TRADES[0];
   const registeredTrades = [worker.primaryTrade, ...worker.secondaryTrades];
 
+  if (showSettings) {
+    return (
+      <div id="profile-scroll" className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] pt-[76px] font-sans scrollbar-none md:max-w-2xl lg:max-w-5xl">
+        <section className="w-full rounded-[20px] bg-white p-4">
+          <div className="mb-4 flex items-center gap-2"><Settings className="h-5 w-5 text-blue-600" /><h2 className="text-base font-black text-slate-900">Settings</h2></div>
+          <div className="space-y-2 rounded-xl bg-[#f1f1f1] p-3">
+            <div className="flex items-center gap-2"><Languages className="h-4 w-4 text-slate-700" /><span className="text-xs font-bold text-slate-900">App language</span></div>
+            <LanguageDropdown currentLanguage={language} onLanguageChange={onLanguageChange} variant="full" />
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div id="profile-scroll" className="mx-auto grid min-h-0 w-full max-w-[393px] flex-1 grid-cols-1 content-start gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] font-sans scrollbar-none md:max-w-2xl md:grid-cols-2 lg:max-w-5xl">
-      <section className="relative h-[250px] w-full shrink-0 rounded-[20px] bg-white md:col-span-2 md:flex md:h-auto md:min-h-[180px] md:items-center md:gap-8 md:px-8 md:py-6">
+      <section className="relative h-[285px] w-full shrink-0 rounded-[20px] bg-white md:col-span-2 md:flex md:h-auto md:min-h-[180px] md:items-center md:gap-8 md:px-8 md:py-6">
         <img src="/figma/account_raw_1.jpeg" alt="Worker profile" className="absolute left-1/2 top-[26px] h-[92px] w-[92px] -translate-x-1/2 rounded-full object-cover shadow-md md:static md:shrink-0 md:translate-x-0" />
         <h2 className="absolute inset-x-3 top-[134px] text-center text-lg font-bold text-black md:static md:inset-auto md:min-w-0 md:flex-1 md:text-left">{worker.name}</h2>
-        <div className="absolute inset-x-[15px] top-[171px] min-h-[57px] rounded-[20px] bg-[#f1f1f1] px-[5px] md:static md:h-auto md:min-w-0 md:flex-1">
-          <div className="flex h-[57px] items-center gap-3 px-1.5">
+        <div className="absolute inset-x-[15px] top-[171px] min-h-[97px] rounded-[20px] bg-[#f1f1f1] px-[5px] md:static md:h-auto md:min-w-0 md:flex-1">
+          <div className="flex h-[57px] items-center gap-3 border-b border-[#b5b5b5] px-1.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white"><Phone className="h-5 w-5 text-black" /></span>
             <span className="text-sm font-medium text-black">{worker.phone}</span>
           </div>
+          <button type="button" onClick={onOpenAadhaarModal} className="flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 text-left hover:bg-white/70"><IdCard className="h-4 w-4 shrink-0 text-slate-700" /><span className="flex-1 text-xs font-bold text-slate-900">Aadhaar</span>{worker.isKycVerified ? <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700"><CheckCircle2 className="h-3 w-3" />Verified</span> : <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700"><AlertCircle className="h-3 w-3" />Not verified · Verify</span>}</button>
         </div>
       </section>
 
@@ -49,6 +64,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       </section>
 
       <section aria-label="Registered work trades" className="min-h-[197px] w-full shrink-0 rounded-[20px] bg-white p-[15px]">
+        <h3 className="mb-3 text-sm font-bold text-black">Work Type</h3>
         <div className="flex flex-wrap gap-x-[13px] gap-y-[14px]">
           {registeredTrades.map((tradeId) => {
             const trade = TRADES.find((item) => item.id === tradeId);
@@ -60,21 +76,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {showTradePicker && <div className="mt-3 flex flex-wrap gap-2">{TRADES.filter((trade) => !registeredTrades.includes(trade.id)).map((trade) => <button type="button" key={trade.id} onClick={() => onAddTrade(trade.id)} className="rounded-[7px] border border-slate-300 bg-white px-2.5 py-2 text-left text-xs font-bold text-slate-800">{language === 'hi' ? trade.nameHi : trade.nameEn}<span className="ml-2 text-blue-700">+</span></button>)}</div>}
       </section>
 
-      <section id="profile-settings" className="w-full shrink-0 space-y-3 rounded-[20px] bg-white p-4">
-        <div className="flex items-center gap-2"><Settings className="h-4 w-4 text-blue-600" /><span className="text-xs font-black text-slate-900">Settings</span></div>
-        <div className="space-y-2 rounded-xl bg-[#f1f1f1] p-3">
-          <div className="flex items-center gap-2"><Languages className="h-4 w-4 text-slate-700" /><span className="text-xs font-bold text-slate-900">App language</span></div>
-          <LanguageDropdown currentLanguage={language} onLanguageChange={onLanguageChange} variant="full" openRequest={settingsOpenRequest} />
-        </div>
-        <button type="button" onClick={onOpenAadhaarModal} className="flex min-h-[48px] w-full items-center gap-2 rounded-xl bg-[#f1f1f1] px-3 text-left hover:bg-slate-200">
-          <IdCard className="h-4 w-4 shrink-0 text-slate-700" />
-          <span className="flex-1 text-xs font-bold text-slate-900">Required verification · Aadhaar</span>
-          {worker.isKycVerified ? <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700"><CheckCircle2 className="h-3 w-3" />Verified</span> : <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700"><AlertCircle className="h-3 w-3" />Required</span>}
-        </button>
-      </section>
-
-      {onLogout && <button onClick={onLogout} className="flex min-h-[50px] w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-white text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-100"><LogOut className="h-4 w-4 text-slate-500" />Log Out / Switch Worker</button>}
-      {onClearDemoData && <button onClick={onClearDemoData} className="mb-2 flex min-h-[50px] w-full shrink-0 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-xs font-bold text-rose-700 hover:bg-rose-100">Clear Demo Data</button>}
+      {(onLogout || onClearDemoData) && <section aria-label="Account actions" className="mb-2 flex w-full flex-col gap-3 rounded-[20px] bg-white p-[15px]">
+        {onLogout && <button onClick={onLogout} className="flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-[#f1f1f1] px-2 text-center text-xs font-bold text-slate-700 hover:bg-slate-200"><LogOut className="h-4 w-4 shrink-0 text-slate-500" />Log Out / Switch Worker</button>}
+        {onClearDemoData && <button onClick={onClearDemoData} className="flex min-h-[50px] w-full items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-2 text-center text-xs font-bold text-rose-700 hover:bg-rose-100">Clear Demo Data</button>}
+      </section>}
     </div>
   );
 };

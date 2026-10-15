@@ -118,7 +118,7 @@ export default function App() {
   const [showSosModal, setShowSosModal] = useState<boolean>(false);
   const [audioActive, setAudioActive] = useState<boolean>(() => localStorage.getItem('kaamsetu_audio_enabled') !== 'false');
   const [showAadhaarModal, setShowAadhaarModal] = useState<boolean>(false);
-  const [profileSettingsOpenRequest, setProfileSettingsOpenRequest] = useState(0);
+  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
 
   const handleToggleAudio = () => {
@@ -534,16 +534,13 @@ export default function App() {
       {/* Top Application Bar */}
       {currentTab === 'profile' ? (
         <div className="absolute inset-x-0 top-3 z-30 mx-auto flex w-[calc(100%-32px)] max-w-[360px] md:max-w-2xl items-center justify-between">
-          <button type="button" onClick={() => setCurrentTab(profileReturnTab)} aria-label="Back" className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
+          <button type="button" onClick={() => isProfileSettingsOpen ? setIsProfileSettingsOpen(false) : setCurrentTab(profileReturnTab)} aria-label={isProfileSettingsOpen ? 'Back to profile' : 'Back'} className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
             <ArrowLeft className="h-6 w-6" />
           </button>
           <button type="button" onClick={handleToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-blue-700">
             {audioActive ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
           </button>
-          <button type="button" onClick={() => {
-            document.getElementById('profile-settings')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            setProfileSettingsOpenRequest((request) => request + 1);
-          }} aria-label="Profile settings" className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
+          <button type="button" onClick={() => setIsProfileSettingsOpen(true)} aria-label="Open settings" className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
             <Settings className="h-6 w-6" />
           </button>
         </div>
@@ -683,7 +680,7 @@ export default function App() {
               stopSpeech();
             }}
             onOpenAadhaarModal={() => setShowAadhaarModal(true)}
-            settingsOpenRequest={profileSettingsOpenRequest}
+            showSettings={isProfileSettingsOpen}
           />
           </motion.div>
         )}
