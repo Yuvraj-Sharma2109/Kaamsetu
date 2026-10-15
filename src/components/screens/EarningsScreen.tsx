@@ -276,7 +276,13 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
             <div className="p-3.5 bg-slate-50 rounded-xl space-y-1 text-xs">
               <span className="font-bold text-neutral-900 block">{worker.name}</span>
               <span className="text-slate-500 block">Labour Registry ID: {worker.id}</span>
-              <span className="text-blue-900 font-bold font-mono block">3-Month Payout: ₹72,400</span>
+              <div className="mt-3 space-y-2 border-t border-slate-200 pt-3">
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Completed jobs</span><strong className="text-neutral-900">{worker.totalJobsCompleted}</strong></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Days worked this month</span><strong className="text-neutral-900">{daysWorked}</strong></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Earnings this month</span><strong className="font-mono text-blue-900">₹{monthlyEarnings.toLocaleString('en-IN')}</strong></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Available balance</span><strong className="font-mono text-neutral-900">₹{walletBalance.toLocaleString('en-IN')}</strong></div>
+              </div>
+              {worker.totalJobsCompleted === 0 && <p className="pt-2 text-[11px] font-medium text-slate-500">No completed jobs yet. This slip will update when your first job payout is recorded.</p>}
             </div>
             <button
               onClick={() => setShowCertificateModal(false)}
