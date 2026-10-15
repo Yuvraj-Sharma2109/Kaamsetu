@@ -18,7 +18,7 @@ import {
 interface LoginScreenProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
-  onLoginSuccess: (method: 'phone' | 'google' | 'facebook', phoneOrEmail?: string, isNewUser?: boolean) => void;
+  onLoginSuccess: (method: 'phone' | 'google' | 'facebook', phoneOrEmail?: string, isNewUser?: boolean) => boolean;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
@@ -31,6 +31,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [phoneNumber, setPhoneNumber] = useState<string>('9876543210');
   const [step, setStep] = useState<'phone_input' | 'otp_verify'>('phone_input');
   const [otp, setOtp] = useState<string>('4812');
+  const [authError, setAuthError] = useState('');
 
   const handleVoiceHelp = () => {
     const text = language === 'hi'
@@ -61,15 +62,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    onLoginSuccess('phone', `+91 ${phoneNumber}`, authMode === 'signup');
+    if (otp !== '4812') {
+      setAuthError(language === 'hi' ? 'डेमो OTP 4812 दर्ज करें।' : 'Enter the demo OTP 4812.');
+      return;
+    }
+    setAuthError('');
+    if (!onLoginSuccess('phone', `+91 ${phoneNumber}`, authMode === 'signup')) {
+      setAuthError(authMode === 'signup'
+        ? (language === 'hi' ? 'यह नंबर पहले से पंजीकृत है। लॉगिन करें।' : 'This number is already registered. Sign in instead.')
+        : (language === 'hi' ? 'खाता नहीं मिला। पहले रजिस्टर करें।' : 'No account found. Register first.'));
+    }
   };
 
   const handleGoogleLogin = () => {
-    onLoginSuccess('google', 'rameshwar.worker@gmail.com', authMode === 'signup');
+    setAuthError('');
+    if (!onLoginSuccess('google', 'rameshwar.worker@gmail.com', authMode === 'signup')) setAuthError(authMode === 'signup' ? 'This demo Google account already exists.' : 'No demo Google account found. Register first.');
   };
 
   const handleFacebookLogin = () => {
-    onLoginSuccess('facebook', 'rameshwar.facebook@fb.com', authMode === 'signup');
+    setAuthError('');
+    if (!onLoginSuccess('facebook', 'rameshwar.facebook@fb.com', authMode === 'signup')) setAuthError(authMode === 'signup' ? 'This demo Facebook account already exists.' : 'No demo Facebook account found. Register first.');
   };
 
   return (
@@ -162,6 +174,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 4. MAIN AUTH CARD */}
       <div className="w-full max-w-sm mx-auto space-y-3 text-left">
         <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3.5">
+          <p className="rounded-xl bg-blue-50 px-3 py-2 text-center text-[11px] font-semibold text-blue-800">Demo access · OTP: <strong>4812</strong></p>
+          {authError && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-center text-xs font-bold text-rose-700">{authError}</p>}
           {/* Direct 1-Tap Google Login Button */}
           <button
             type="button"

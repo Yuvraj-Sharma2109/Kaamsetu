@@ -38,39 +38,54 @@ import {
 } from './data/mockData';
 import { speakText, stopSpeech } from './utils/speech';
 
-export default function App() {
-  // Auth & Onboarding Flow states
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(true);
-  const [tempUserContact, setTempUserContact] = useState<string>('+91 98765 43210');
+const DEMO_ACCOUNTS_KEY = 'kaamsetu_demo_accounts';
+const DEMO_SESSION_KEY = 'kaamsetu_demo_session';
+type DemoAccount = { contact: string; worker: WorkerProfile };
+type DemoSession = {
+  contact: string; onboarded: boolean; worker: WorkerProfile; language: Language;
+  currentTab: TabType; isOnline: boolean; jobs: Job[]; walletBalance: number;
+  transactions: Transaction[]; todayEarnings: number; shift: ShiftState;
+};
 
-  // Track accounts that have already created their profile
-  const [onboardedAccounts, setOnboardedAccounts] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('kaamsetu_onboarded_accounts');
-      return saved ? JSON.parse(saved) : ['+91 98765 43210', 'google_default', 'facebook_default'];
-    } catch {
-      return ['+91 98765 43210', 'google_default', 'facebook_default'];
-    }
-  });
+const readDemoAccounts = (): DemoAccount[] => {
+  try { return JSON.parse(localStorage.getItem(DEMO_ACCOUNTS_KEY) || '[]') as DemoAccount[]; }
+  catch { return []; }
+};
+const readDemoSession = (): DemoSession | null => {
+  try { return JSON.parse(localStorage.getItem(DEMO_SESSION_KEY) || 'null') as DemoSession | null; }
+  catch { return null; }
+};
+
+export default function App() {
+  const [savedSession] = useState<DemoSession | null>(readDemoSession);
+  const [showSplash, setShowSplash] = useState(true);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowSplash(false), 1100);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  // Auth & Onboarding Flow states
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(savedSession));
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(() => Boolean(savedSession?.onboarded));
+  const [tempUserContact, setTempUserContact] = useState<string>(() => savedSession?.contact || '');
 
   // Core app states
-  const [isOnline, setIsOnline] = useState<boolean>(false);
-  const [language, setLanguage] = useState<Language>('en');
-  const [currentTab, setCurrentTab] = useState<TabType>('radar');
+  const [isOnline, setIsOnline] = useState<boolean>(savedSession?.isOnline ?? false);
+  const [language, setLanguage] = useState<Language>(savedSession?.language || 'en');
+  const [currentTab, setCurrentTab] = useState<TabType>(savedSession?.currentTab || 'radar');
   const [profileReturnTab, setProfileReturnTab] = useState<TabType>('radar');
   const [isWorkListExpanded, setIsWorkListExpanded] = useState(false);
   const workListProgress = useMotionValue(0);
   const headerY = useTransform(workListProgress, [0, 1], [0, -132]);
   const headerOpacity = useTransform(workListProgress, [0, 0.78, 1], [1, 1, 0]);
-  const [worker, setWorker] = useState<WorkerProfile>(INITIAL_WORKER);
-  const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
-  const [walletBalance, setWalletBalance] = useState<number>(3450);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [todayEarnings, setTodayEarnings] = useState<number>(950);
+  const [worker, setWorker] = useState<WorkerProfile>(savedSession?.worker || INITIAL_WORKER);
+  const [jobs, setJobs] = useState<Job[]>(savedSession?.jobs || MOCK_JOBS);
+  const [walletBalance, setWalletBalance] = useState<number>(savedSession?.walletBalance ?? 3450);
+  const [transactions, setTransactions] = useState<Transaction[]>(savedSession?.transactions || INITIAL_TRANSACTIONS);
+  const [todayEarnings, setTodayEarnings] = useState<number>(savedSession?.todayEarnings ?? 950);
 
   // Active Shift State with Back-to-Back Work Queue
-  const [shift, setShift] = useState<ShiftState>({
+  const [shift, setShift] = useState<ShiftState>(savedSession?.shift || {
     isActive: false,
     job: null,
     status: 'assigned',
@@ -79,6 +94,16 @@ export default function App() {
     punchOutTime: null,
     queuedJob: null,
   });
+
+  useEffect(() => {
+    if (!isLoggedIn || !hasCompletedOnboarding) return;
+    const session: DemoSession = { contact: tempUserContact, onboarded: true, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, shift };
+    try {
+      localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(session));
+      const accounts = readDemoAccounts();
+      localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(accounts.map((account) => account.contact === tempUserContact ? { ...account, worker } : account)));
+    } catch { /* storage may be unavailable */ }
+  }, [isLoggedIn, hasCompletedOnboarding, tempUserContact, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, shift]);
 
   // Modals & Overlays
   const [incomingJob, setIncomingJob] = useState<Job | null>(null);
@@ -328,14 +353,20 @@ export default function App() {
     method: 'phone' | 'google' | 'facebook', 
     contact?: string, 
     isNewUser: boolean = false
-  ) => {
-    setIsLoggedIn(true);
+  ): boolean => {
     const resolvedContact = contact || (method === 'phone' ? '+91 98765 43210' : `${method}.user@kaamsetu.in`);
+    const accountKey = (value: string) => value.includes('@') ? value.trim().toLowerCase() : value.replace(/\D/g, '').slice(-10);
+    const accounts = readDemoAccounts();
+    const existingAccount = accounts.find((account) => accountKey(account.contact) === accountKey(resolvedContact));
+    if (isNewUser ? Boolean(existingAccount) : !existingAccount) return false;
+
+    setIsLoggedIn(true);
     setTempUserContact(resolvedContact);
 
     const isExistingAccount = !isNewUser;
 
     if (isExistingAccount) {
+      setWorker(existingAccount!.worker);
       setHasCompletedOnboarding(true);
       setCurrentTab('radar');
       if (audioActive) {
@@ -345,6 +376,7 @@ export default function App() {
         );
       }
     } else {
+      setWorker({ ...INITIAL_WORKER, id: `WRK-${Math.floor(1000 + Math.random() * 9000)}`, phone: resolvedContact });
       setHasCompletedOnboarding(false);
       if (audioActive) {
         speakText(
@@ -353,9 +385,22 @@ export default function App() {
         );
       }
     }
+    return true;
   };
 
   // 1. FLOW STAGE: NOT LOGGED IN -> SHOW LOGIN SCREEN
+  if (showSplash) {
+    return (
+      <MobileFrame>
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white">
+          <div className="flex h-20 w-20 items-center justify-center rounded-[26px] bg-blue-500 text-3xl font-black shadow-2xl shadow-blue-500/30">KS</div>
+          <div className="text-center"><h1 className="text-2xl font-black tracking-tight">KaamSetu</h1><p className="mt-1 text-sm text-blue-100">Work made simple. Wages made secure.</p></div>
+          <div className="mt-4 h-1 w-24 overflow-hidden rounded-full bg-white/20"><div className="h-full w-1/2 animate-pulse rounded-full bg-blue-400" /></div>
+        </div>
+      </MobileFrame>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <MobileFrame
@@ -389,13 +434,14 @@ export default function App() {
             setHasCompletedOnboarding(true);
             setCurrentTab('radar');
 
-            setOnboardedAccounts((prev) => {
-              const updated = Array.from(new Set([...prev, tempUserContact]));
-              try {
-                localStorage.setItem('kaamsetu_onboarded_accounts', JSON.stringify(updated));
-              } catch {}
-              return updated;
-            });
+            try {
+              const onboarded = JSON.parse(localStorage.getItem('kaamsetu_onboarded_accounts') || '[]') as string[];
+              localStorage.setItem('kaamsetu_onboarded_accounts', JSON.stringify(Array.from(new Set([...onboarded, tempUserContact]))));
+              const accounts = readDemoAccounts();
+              const nextAccounts = [...accounts.filter((account) => account.contact !== tempUserContact), { contact: tempUserContact, worker: { ...worker, ...newProfile } }];
+              localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(nextAccounts));
+              localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify({ contact: tempUserContact, onboarded: true, worker: { ...worker, ...newProfile }, language, currentTab: 'radar', isOnline: false, jobs, walletBalance, transactions, todayEarnings, shift } satisfies DemoSession));
+            } catch {}
 
             if (audioActive) {
               const tr = TRADES.find((t) => t.id === newProfile.primaryTrade);
@@ -559,8 +605,26 @@ export default function App() {
             onLanguageChange={setLanguage}
             onAddTrade={handleUpdateTrade}
             onLogout={() => {
+              localStorage.removeItem(DEMO_SESSION_KEY);
               setIsLoggedIn(false);
               setIsOnline(false);
+              stopSpeech();
+            }}
+            onClearDemoData={() => {
+              localStorage.removeItem(DEMO_SESSION_KEY);
+              localStorage.removeItem(DEMO_ACCOUNTS_KEY);
+              localStorage.removeItem('kaamsetu_onboarded_accounts');
+              setIsLoggedIn(false);
+              setHasCompletedOnboarding(false);
+              setTempUserContact('');
+              setWorker(INITIAL_WORKER);
+              setJobs(MOCK_JOBS);
+              setWalletBalance(3450);
+              setTransactions(INITIAL_TRANSACTIONS);
+              setTodayEarnings(950);
+              setShift({ isActive: false, job: null, status: 'assigned', punchInTime: null, punchInPhotoUrl: null, punchOutTime: null, queuedJob: null });
+              setIsOnline(false);
+              setCurrentTab('radar');
               stopSpeech();
             }}
             onOpenAadhaarModal={() => setShowAadhaarModal(true)}

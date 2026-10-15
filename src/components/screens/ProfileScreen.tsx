@@ -10,6 +10,7 @@ interface ProfileScreenProps {
   onLanguageChange: (lang: Language) => void;
   onAddTrade: (trade: TradeCategory) => void;
   onLogout?: () => void;
+  onClearDemoData?: () => void;
   onOpenAadhaarModal?: () => void;
   onOpenEShramModal?: () => void;
   settingsOpenRequest?: number;
@@ -21,6 +22,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onLanguageChange,
   onAddTrade,
   onLogout,
+  onClearDemoData,
   onOpenAadhaarModal,
   onOpenEShramModal,
   settingsOpenRequest = 0,
@@ -76,6 +78,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       <section id="profile-settings" className="w-full shrink-0 space-y-3 rounded-[20px] bg-white p-4"><div className="flex items-center gap-2"><Languages className="h-4 w-4 text-blue-600" /><span className="text-xs font-black text-slate-900">App language</span></div><LanguageDropdown currentLanguage={language} onLanguageChange={onLanguageChange} variant="full" openRequest={settingsOpenRequest} /></section>
 
       {onLogout && <button onClick={onLogout} className="flex min-h-[50px] w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-white text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-100"><LogOut className="h-4 w-4 text-slate-500" />Log Out / Switch Worker</button>}
+      {onClearDemoData && <button onClick={onClearDemoData} className="mb-2 flex min-h-[50px] w-full shrink-0 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-xs font-bold text-rose-700 hover:bg-rose-100">Clear Demo Data</button>}
     </div>
   );
 };
