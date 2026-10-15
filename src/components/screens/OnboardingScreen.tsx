@@ -626,10 +626,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 <span className="text-slate-600 font-bold">
                   {language === 'hi' ? 'आधार कार्ड सत्यापन' : 'Aadhaar Status'}
                 </span>
-                <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
-                  isAadhaarVerified ? 'bg-blue-50 text-blue-900 font-black' : 'bg-slate-100 text-slate-600'
-                }`}>
-                  {isAadhaarVerified ? '✓ Verified' : 'Pending'}
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${isAadhaarVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
+                  {isAadhaarVerified ? '✓ Verified' : 'Not verified'}
                 </span>
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-100/70 rounded-xl text-xs shadow-xs">
