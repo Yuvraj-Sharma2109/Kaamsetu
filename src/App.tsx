@@ -40,7 +40,11 @@ import { speakText, stopSpeech } from './utils/speech';
 
 const DEMO_ACCOUNTS_KEY = 'kaamsetu_demo_accounts';
 const DEMO_SESSION_KEY = 'kaamsetu_demo_session';
-type DemoAccount = { contact: string; worker: WorkerProfile };
+type DemoAccount = {
+  contact: string; worker: WorkerProfile; walletBalance?: number; transactions?: Transaction[];
+  todayEarnings?: number; monthlyEarnings?: number; daysWorked?: number; jobs?: Job[];
+  shift?: ShiftState; isOnline?: boolean;
+};
 type DemoSession = {
   contact: string; onboarded: boolean; worker: WorkerProfile; language: Language;
   currentTab: TabType; isOnline: boolean; jobs: Job[]; walletBalance: number;
@@ -83,8 +87,8 @@ export default function App() {
   const [walletBalance, setWalletBalance] = useState<number>(savedSession?.walletBalance ?? 3450);
   const [transactions, setTransactions] = useState<Transaction[]>(savedSession?.transactions || INITIAL_TRANSACTIONS);
   const [todayEarnings, setTodayEarnings] = useState<number>(savedSession?.todayEarnings ?? 950);
-  const [monthlyEarnings, setMonthlyEarnings] = useState<number>(savedSession?.monthlyEarnings ?? 24800);
-  const [daysWorked, setDaysWorked] = useState<number>(savedSession?.daysWorked ?? 26);
+  const [monthlyEarnings, setMonthlyEarnings] = useState<number>(savedSession?.monthlyEarnings ?? (savedSession?.worker.totalJobsCompleted === 0 ? 0 : 24800));
+  const [daysWorked, setDaysWorked] = useState<number>(savedSession?.daysWorked ?? (savedSession?.worker.totalJobsCompleted === 0 ? 0 : 26));
 
   // Active Shift State with Back-to-Back Work Queue
   const [shift, setShift] = useState<ShiftState>(savedSession?.shift || {
@@ -103,7 +107,9 @@ export default function App() {
     try {
       localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(session));
       const accounts = readDemoAccounts();
-      localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(accounts.map((account) => account.contact === tempUserContact ? { ...account, worker } : account)));
+      localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(accounts.map((account) => account.contact === tempUserContact ? {
+        ...account, worker, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, jobs, shift, isOnline,
+      } : account)));
     } catch { /* storage may be unavailable */ }
   }, [isLoggedIn, hasCompletedOnboarding, tempUserContact, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift]);
 
@@ -378,6 +384,15 @@ export default function App() {
 
     if (isExistingAccount) {
       setWorker(existingAccount!.worker);
+      const isFirstTimeWorker = existingAccount!.worker.totalJobsCompleted === 0;
+      setWalletBalance(existingAccount!.walletBalance ?? (isFirstTimeWorker ? 0 : 3450));
+      setTransactions(existingAccount!.transactions ?? (isFirstTimeWorker ? [] : INITIAL_TRANSACTIONS));
+      setTodayEarnings(existingAccount!.todayEarnings ?? (isFirstTimeWorker ? 0 : 950));
+      setMonthlyEarnings(existingAccount!.monthlyEarnings ?? (isFirstTimeWorker ? 0 : 24800));
+      setDaysWorked(existingAccount!.daysWorked ?? (isFirstTimeWorker ? 0 : 26));
+      if (existingAccount!.jobs) setJobs(existingAccount!.jobs);
+      if (existingAccount!.shift) setShift(existingAccount!.shift);
+      setIsOnline(existingAccount!.isOnline ?? false);
       setHasCompletedOnboarding(true);
       setCurrentTab('radar');
       if (audioActive) {
