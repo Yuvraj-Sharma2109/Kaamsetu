@@ -285,8 +285,8 @@ export default function App() {
       setTodayEarnings((prev) => prev + finalEarned);
       setMonthlyEarnings((prev) => prev + finalEarned);
       setDaysWorked((prev) => prev + 1);
-      setWorker((prev) => ({ ...prev, totalJobsCompleted: prev.totalJobsCompleted + 1 }));
     }
+    setWorker((prev) => ({ ...prev, totalJobsCompleted: prev.totalJobsCompleted + 1 }));
 
     // Add transaction record
     const newTx: Transaction = {
