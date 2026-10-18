@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Job, Language } from '../types';
-import { localizePlaceText, uiText } from '../utils/uiText';
+import { localizeJobTitle, localizePlaceText, uiText } from '../utils/uiText';
 import { MapPin, Navigation, Radio, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 interface UberMapViewProps {
@@ -185,7 +185,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
             <span>{displayPreviewJob.distanceKm} {uiText(language, 'kmAway')}</span>
             <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md font-bold">{uiText(language, 'matched')}</span>
           </div>
-          <span className="text-xs font-black text-neutral-900 block truncate">{language === 'hi' ? displayPreviewJob.titleHi : displayPreviewJob.title}</span>
+          <span className="text-xs font-black text-neutral-900 block truncate">{localizeJobTitle(displayPreviewJob, language)}</span>
           <div className="mt-1.5 flex items-center justify-between text-xs">
             <span className="font-black text-blue-900 font-mono">₹{displayPreviewJob.agreedAmount} {uiText(language, 'taskPay')}</span>
             <span className="text-[10px] font-bold bg-neutral-900 text-white px-2 py-0.5 rounded-md">{uiText(language, 'view')}</span>

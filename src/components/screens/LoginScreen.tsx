@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Language } from '../../types';
 import { getTranslation } from '../../utils/i18n';
+import { uiText } from '../../utils/uiText';
+import { aiLabel } from '../../utils/aiLabels';
 import { speakText } from '../../utils/speech';
 import { LanguageDropdown } from '../LanguageDropdown';
 import { 
   Phone, 
   ShieldCheck, 
-  Volume2, 
-  VolumeX,
+  Bot,
   ArrowRight, 
   ArrowLeft,
   Check, 
@@ -39,7 +40,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [authError, setAuthError] = useState('');
 
   const handleVoiceHelp = () => {
-    if (!audioActive) return;
+    window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
+    return;
     const text = language === 'hi'
       ? authMode === 'signin'
         ? 'लॉगिन करने के लिए अपना मोबाइल नंबर डालें या सीधे गूगल या फेसबुक बटन दबाएं।'
@@ -69,25 +71,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
     if (otp !== '4812') {
-      setAuthError(language === 'hi' ? 'डेमो OTP 4812 दर्ज करें।' : 'Enter the demo OTP 4812.');
+      setAuthError(uiText(language, 'invalidOtpLogin'));
       return;
     }
     setAuthError('');
     if (!onLoginSuccess('phone', `+91 ${phoneNumber}`, authMode === 'signup')) {
       setAuthError(authMode === 'signup'
-        ? (language === 'hi' ? 'यह नंबर पहले से पंजीकृत है। लॉगिन करें।' : 'This number is already registered. Sign in instead.')
-        : (language === 'hi' ? 'खाता नहीं मिला। पहले रजिस्टर करें।' : 'No account found. Register first.'));
+        ? uiText(language, 'accountExists')
+        : uiText(language, 'accountMissing'));
     }
   };
 
   const handleGoogleLogin = () => {
     setAuthError('');
-    if (!onLoginSuccess('google', 'rameshwar.worker@gmail.com', authMode === 'signup')) setAuthError(authMode === 'signup' ? 'This demo Google account already exists.' : 'No demo Google account found. Register first.');
+    if (!onLoginSuccess('google', 'rameshwar.worker@gmail.com', authMode === 'signup')) setAuthError(uiText(language, authMode === 'signup' ? 'googleExists' : 'googleMissing'));
   };
 
   const handleFacebookLogin = () => {
     setAuthError('');
-    if (!onLoginSuccess('facebook', 'rameshwar.facebook@fb.com', authMode === 'signup')) setAuthError(authMode === 'signup' ? 'This demo Facebook account already exists.' : 'No demo Facebook account found. Register first.');
+    if (!onLoginSuccess('facebook', 'rameshwar.facebook@fb.com', authMode === 'signup')) setAuthError(uiText(language, authMode === 'signup' ? 'facebookExists' : 'facebookMissing'));
   };
 
   return (
@@ -95,16 +97,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 1. TOP BAR */}
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={onToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} title={audioActive ? 'Mute audio' : 'Unmute audio'} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-700 shadow-xs">{audioActive ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
+          <button type="button" onClick={onToggleAudio} aria-label={aiLabel(language).title} title={aiLabel(language).title} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-700 shadow-xs"><Bot className="h-4 w-4" /></button>
           {step === 'otp_verify' && (
             <button
               type="button"
               onClick={() => setStep('phone_input')}
               className="h-9 px-3 bg-white hover:bg-slate-100 rounded-xl text-xs font-bold text-neutral-800 flex items-center gap-1.5 active:scale-95 transition-transform shadow-xs"
-              title={language === 'hi' ? 'पीछे जाएं' : 'Go Back'}
+              title={uiText(language, 'goBack')}
             >
               <ArrowLeft className="w-4 h-4 text-slate-700" />
-              <span>{language === 'hi' ? 'वापस' : 'Back'}</span>
+              <span>{uiText(language, 'back')}</span>
             </button>
           )}
 
@@ -113,8 +115,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             onClick={handleVoiceHelp}
             className="h-9 px-3.5 bg-white hover:bg-slate-100 rounded-xl text-xs font-bold text-neutral-800 flex items-center gap-1.5 active:scale-95 transition-transform shadow-xs"
           >
-            <Volume2 className="w-4 h-4 text-blue-600" />
-            <span>{language === 'hi' ? 'बोलकर सुनें' : 'Audio Help'}</span>
+            <Bot className="w-4 h-4 text-blue-600" />
+            <span>{aiLabel(language).open}</span>
           </button>
         </div>
 
@@ -133,10 +135,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <div>
           <h1 className="text-xl font-black tracking-tight text-neutral-900">
-            {language === 'hi' ? 'कामसेतु' : 'KaamSetu'}
+            {t.appName}
           </h1>
           <p className="text-xs text-slate-500 font-medium">
-            {language === 'hi' ? 'सीधा काम · पक्की दिहाड़ी' : 'Direct Daily Work · Guaranteed Pay'}
+            {t.tagline}
           </p>
         </div>
       </div>
@@ -157,7 +159,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             }`}
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>{language === 'hi' ? 'लॉगिन' : 'Existing'}</span>
+            <span>{uiText(language, 'existing')}</span>
           </button>
 
           <button
@@ -173,7 +175,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             }`}
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>{language === 'hi' ? 'रजिस्टर' : 'Register'}</span>
+            <span>{uiText(language, 'register')}</span>
           </button>
         </div>
       </div>
@@ -181,7 +183,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 4. MAIN AUTH CARD */}
       <div className="w-full max-w-sm mx-auto space-y-3 text-left">
         <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3.5">
-          <p className="rounded-xl bg-blue-50 px-3 py-2 text-center text-[11px] font-semibold text-blue-800">Demo access · OTP: <strong>4812</strong></p>
+          <p className="rounded-xl bg-blue-50 px-3 py-2 text-center text-[11px] font-semibold text-blue-800">{uiText(language, 'demoAccess')} <strong>4812</strong></p>
           {authError && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-center text-xs font-bold text-rose-700">{authError}</p>}
           {/* Direct 1-Tap Google Login Button */}
           <button
@@ -197,8 +199,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </svg>
             <span>
               {authMode === 'signin'
-                ? (language === 'hi' ? 'गूगल से सीधे लॉगिन करें' : 'Sign in with Google')
-                : (language === 'hi' ? 'गूगल से रजिस्टर करें' : 'Register with Google')}
+                ? uiText(language, 'signInGoogle')
+                : uiText(language, 'registerGoogle')}
             </span>
           </button>
 
@@ -213,8 +215,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </svg>
             <span>
               {authMode === 'signin'
-                ? (language === 'hi' ? 'फेसबुक से सीधे लॉगिन करें' : 'Sign in with Facebook')
-                : (language === 'hi' ? 'फेसबुक से रजिस्टर करें' : 'Register with Facebook')}
+                ? uiText(language, 'signInFacebook')
+                : uiText(language, 'registerFacebook')}
             </span>
           </button>
 
@@ -222,7 +224,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div className="flex items-center gap-2 py-0.5">
             <div className="flex-1 h-px bg-slate-200" />
             <span className="text-[10px] uppercase font-bold text-slate-400">
-              {language === 'hi' ? 'या मोबाइल नंबर से' : 'OR VIA MOBILE'}
+              {uiText(language, 'orViaMobile')}
             </span>
             <div className="flex-1 h-px bg-slate-200" />
           </div>
@@ -232,7 +234,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <motion.form key="phone-input" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} onSubmit={handleSendOtp} className="space-y-3">
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1">
-                  {language === 'hi' ? 'मोबाइल नंबर दर्ज करें' : 'Mobile Number'}
+                  {uiText(language, 'mobileNumber')}
                 </label>
                 <div className="flex items-center bg-slate-100 rounded-2xl overflow-hidden shadow-xs">
                   <span className="px-3.5 py-3 text-sm font-black text-slate-500 font-mono">
@@ -254,7 +256,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="submit"
                 className="w-full min-h-[50px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-black text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-xs"
               >
-                <span>{language === 'hi' ? 'आगे बढ़ें' : 'Next'}</span>
+                <span>{uiText(language, 'next')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </motion.form>
@@ -263,14 +265,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-bold text-slate-600 block">
-                    {language === 'hi' ? '4 अंकों का OTP डालें' : 'Enter 4-Digit OTP'}
+                    {uiText(language, 'enterOtp')}
                   </label>
                   <button
                     type="button"
                     onClick={() => setStep('phone_input')}
                     className="text-xs text-blue-700 hover:underline font-bold"
                   >
-                    {language === 'hi' ? 'बदलें' : 'Change'}
+                    {uiText(language, 'change')}
                   </button>
                 </div>
 
@@ -283,7 +285,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   required
                 />
                 <span className="text-[11px] text-slate-400 block text-center mt-1">
-                  Demo Code: <strong className="text-neutral-800">4812</strong>
+                  {uiText(language, 'demoAccess')} <strong className="text-neutral-800">4812</strong>
                 </span>
               </div>
 
@@ -294,8 +296,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 <Check className="w-5 h-5 stroke-[3]" />
                 <span>
                   {authMode === 'signin'
-                    ? (language === 'hi' ? 'सत्यापित कर पोर्टल खोलें' : 'Verify & Open Portal')
-                    : (language === 'hi' ? 'सत्यापित कर प्रोफाइल बनाएं' : 'Verify & Set Up Profile')}
+                    ? uiText(language, 'verifyOpenPortal')
+                    : uiText(language, 'verifySetProfile')}
                 </span>
               </button>
             </motion.form>
@@ -305,8 +307,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div className="text-center pt-0.5">
             <span className="text-[11px] text-slate-500 block">
               {authMode === 'signin'
-                ? (language === 'hi' ? '✓ मौजूदा मजदूरों का प्रोफाइल पहले से सुरक्षित है' : '✓ Existing accounts skip profile setup')
-                : (language === 'hi' ? 'ℹ️ प्रोफाइल केवल पहली बार पंजीकरण के समय बनानी होती है' : 'ℹ️ Profile creation is only done once upon registering')}
+                ? `✓ ${uiText(language, 'existingAccounts')}`
+                : `ℹ️ ${uiText(language, 'profileOneTime')}`}
             </span>
           </div>
         </div>
@@ -315,7 +317,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 5. FOOTER TRUST BADGE */}
       <div className="py-1 flex items-center justify-center gap-1.5 text-xs text-slate-500 font-semibold">
         <ShieldCheck className="w-4 h-4 text-blue-600" />
-        <span>{language === 'hi' ? 'सरकारी सुरक्षा व श्रम कल्याण प्रमाणित' : 'Govt Labour Registry Verified'}</span>
+        <span>{uiText(language, 'registryVerified')}</span>
       </div>
     </div>
   );

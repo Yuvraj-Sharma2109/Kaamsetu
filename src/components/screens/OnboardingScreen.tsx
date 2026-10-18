@@ -4,13 +4,13 @@ import { Language, TradeCategory, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
 import { speakText } from '../../utils/speech';
-import { localizeTradeName } from '../../utils/uiText';
+import { localizeTradeName, uiText } from '../../utils/uiText';
+import { aiLabel } from '../../utils/aiLabels';
 import { 
   Wrench, 
   Check, 
   MapPin, 
-  Volume2, 
-  VolumeX,
+  Bot,
   ArrowRight,
   ArrowLeft,
   User,
@@ -64,6 +64,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   // Step voice guidance
   const handleSpeakCurrentStep = () => {
+    window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
+    return;
     let text = '';
     if (currentStep === 1) {
       text = language === 'hi'
@@ -109,7 +111,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   const handleSendAadhaarOtp = () => {
     if (aadhaarNumber.replace(/\D/g, '').length !== 12) {
-      setAadhaarOtpError('Enter a valid 12-digit Aadhaar number first.');
+      setAadhaarOtpError(uiText(language, 'aadhaarInvalid'));
       return;
     }
     setAadhaarOtpError('');
@@ -121,7 +123,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   const handleVerifyOtpSuccess = () => {
     if (enteredOtp !== '6184') {
-      setAadhaarOtpError('For this demo, enter OTP 6184.');
+      setAadhaarOtpError(uiText(language, 'aadhaarDemoOtp'));
       return;
     }
     setAadhaarOtpError('');
@@ -161,10 +163,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               type="button"
               onClick={handleGoBack}
               className="h-9 px-3 bg-white hover:bg-slate-100 rounded-xl text-xs font-bold text-neutral-800 flex items-center gap-1.5 shadow-xs active:scale-95 transition-transform"
-              title={currentStep > 1 ? (language === 'hi' ? 'पिछले कदम पर जाएं' : 'Previous Step') : (language === 'hi' ? 'लॉगिन पर वापस जाएं' : 'Back to Login')}
+              title={uiText(language, 'back')}
             >
               <ArrowLeft className="w-4 h-4 text-slate-700" />
-              <span>{language === 'hi' ? 'वापस' : 'Back'}</span>
+              <span>{uiText(language, 'back')}</span>
             </button>
           )}
 
@@ -173,14 +175,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             onClick={handleSpeakCurrentStep}
             className="h-9 px-3 bg-white rounded-xl text-xs font-bold text-neutral-800 flex items-center gap-1.5 shadow-xs active:scale-95 transition-transform"
           >
-            <Volume2 className="w-4 h-4 text-blue-600" />
-            <span>{language === 'hi' ? 'बोलकर सुनें' : 'Audio Help'}</span>
+            <Bot className="w-4 h-4 text-blue-600" />
+            <span>{aiLabel(language).open}</span>
           </button>
-          <button type="button" onClick={onToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} title={audioActive ? 'Mute audio' : 'Unmute audio'} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-700 shadow-xs">{audioActive ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
+          <button type="button" onClick={onToggleAudio} aria-label={aiLabel(language).title} title={aiLabel(language).title} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-700 shadow-xs"><Bot className="h-4 w-4" /></button>
         </div>
 
         <span className="text-xs font-black text-neutral-900 bg-white px-3 py-1 rounded-xl shadow-xs">
-          {language === 'hi' ? `कदम ${currentStep} / 5` : `Step ${currentStep} of 5`}
+          {currentStep} / 5
         </span>
       </div>
 
@@ -205,10 +207,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           <div className="space-y-2.5 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
-                {language === 'hi' ? 'आप क्या काम करते हैं?' : 'Select Your Main Work'}
+                {uiText(language, 'chooseWork')}
               </h2>
               <p className="text-xs text-slate-500">
-                {language === 'hi' ? 'अपने सभी काम चुनें' : 'Select every type of work you can do'}
+                {uiText(language, 'selectAllTrades')}
               </p>
             </div>
 
@@ -249,17 +251,17 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
-                {language === 'hi' ? 'आपका नाम और इलाका' : 'Your Name & City'}
+                {uiText(language, 'nameAndCity')}
               </h2>
               <p className="text-xs text-slate-500">
-                {language === 'hi' ? 'ठेकेदार इसी नाम से आपको पहचानेंगे' : 'For site attendance and identification'}
+                {uiText(language, 'attendanceIdentity')}
               </p>
             </div>
 
             <div className="space-y-3 bg-white rounded-3xl p-5 shadow-sm">
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1">
-                  {language === 'hi' ? 'आपका पूरा नाम' : 'Full Name'}
+                  {uiText(language, 'fullName')}
                 </label>
                 <input
                   type="text"
@@ -273,7 +275,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1">
-                  {language === 'hi' ? 'काम करने का शहर या इलाका' : 'Preferred City or Area'}
+                  {uiText(language, 'preferredArea')}
                 </label>
                 <input
                   type="text"
@@ -286,7 +288,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               </div>
 
               <div className="pt-2 flex items-center justify-between text-xs text-slate-500">
-                <span>{language === 'hi' ? 'लॉगिन मोबाइल नंबर:' : 'Registered Phone:'}</span>
+                <span>{uiText(language, 'registeredPhone')}:</span>
                 <span className="font-mono text-neutral-900 font-bold">{initialPhone}</span>
               </div>
             </div>
@@ -298,10 +300,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           <div className="space-y-3.5 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
-                {language === 'hi' ? 'काम का तजुर्बा' : 'Work Experience'}
+                {uiText(language, 'workExperience')}
               </h2>
               <p className="text-xs text-slate-500">
-                {language === 'hi' ? 'अपने काम का अनुभव चुनें' : 'Select your years of work experience in this trade'}
+                {uiText(language, 'selectExperience')}
               </p>
             </div>
 
@@ -309,20 +311,20 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             <div className="bg-white rounded-3xl p-5 space-y-3.5 shadow-sm">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-600">
-                  {language === 'hi' ? 'चुना गया तजुर्बा:' : 'Selected Experience:'}
+                  {uiText(language, 'selectedExperience')}:
                 </span>
                 <span className="font-mono text-neutral-900 font-black text-sm bg-slate-100 px-3 py-1 rounded-xl">
-                  {experienceYears} {language === 'hi' ? 'साल' : 'Years'}
+                  {experienceYears} {uiText(language, 'years')}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 pt-1">
                 {[
-                  { yr: 1, labelEn: '1 Year', labelHi: '1 साल' },
+      { yr: 1, labelEn: '1 Year', labelHi: '1 साल' },
                   { yr: 3, labelEn: '3 Years', labelHi: '3 साल' },
                   { yr: 5, labelEn: '5 Years', labelHi: '5 साल' },
                   { yr: 8, labelEn: '8+ Years', labelHi: '8+ साल' },
-                ].map(({ yr, labelEn, labelHi }) => {
+                ].map(({ yr }) => {
                   const isSelected = experienceYears === yr;
                   return (
                     <motion.button
@@ -338,7 +340,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
-                      <span>{language === 'hi' ? labelHi : labelEn}</span>
+                      <span>{yr === 8 ? '8+' : yr} {uiText(language, 'years')}</span>
                       {isSelected && (
                         <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs ml-2">
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
@@ -357,10 +359,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
-                {language === 'hi' ? 'आधार कार्ड सत्यापन' : 'Aadhaar Verification'}
+                {uiText(language, 'aadhaarVerification')}
               </h2>
               <p className="text-xs text-slate-500">
-                {language === 'hi' ? 'सत्यापित मजदूरों को तुरंत काम मिलता है' : 'Required to accept and start jobs'}
+                {uiText(language, 'requiredStartWork')}
               </p>
             </div>
 
@@ -415,7 +417,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 }`}
               >
                 <KeyRound className="w-3.5 h-3.5" />
-                <span>{language === 'hi' ? 'आधार नंबर + OTP' : 'Aadhaar OTP'}</span>
+                <span>{uiText(language, 'aadhaarOtp')}</span>
               </button>
 
               <button
@@ -428,7 +430,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 }`}
               >
                 <Camera className="w-3.5 h-3.5" />
-                <span>{language === 'hi' ? 'कार्ड की फोटो' : 'Card Photo'}</span>
+                <span>{uiText(language, 'cardPhoto')}</span>
               </button>
             </div>
 
@@ -437,7 +439,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               <div className="space-y-2.5 bg-white rounded-3xl p-4 shadow-sm">
                 <div>
                   <label className="text-xs font-bold text-slate-600 block mb-1">
-                    {language === 'hi' ? '12 अंकों का आधार नंबर डालें' : 'Enter 12-Digit Aadhaar Number'}
+                    {uiText(language, 'enterAadhaar')}
                   </label>
                   <input
                     type="text"
@@ -455,7 +457,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                   className="w-full min-h-[44px] rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-black text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-xs"
                 >
                   <KeyRound className="w-4 h-4 text-blue-300" />
-                  <span>{language === 'hi' ? 'OTP प्राप्त करें' : 'Get UIDAI OTP'}</span>
+                  <span>{uiText(language, 'getUidaiOtp')}</span>
                 </button>
               </div>
             )}
@@ -464,7 +466,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             {aadhaarMode === 'photo' && (
               <div className="space-y-2 bg-white rounded-3xl p-4 shadow-sm">
                 <span className="text-xs text-slate-600 font-bold block">
-                  {language === 'hi' ? 'कार्ड की फोटो खींचें:' : 'Capture card photos:'}
+                  {uiText(language, 'capturePhotos')}:
                 </span>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -519,7 +521,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 }}
                 className="text-xs text-slate-500 hover:text-neutral-900 underline font-semibold"
               >
-                {language === 'hi' ? 'मेरे पास अभी कार्ड नहीं है (बाद में सत्यापित करें)' : 'I don\'t have card right now (Verify Later)'}
+                {uiText(language, 'noCard')}
               </button>
             </div>
           </div>
@@ -530,10 +532,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
-                {language === 'hi' ? 'प्रोफाइल तैयार है' : 'Profile Ready'}
+                {uiText(language, 'profileReady')}
               </h2>
               <p className="text-xs text-slate-500">
-                {language === 'hi' ? 'काम शुरू करने के लिए नीचे दबाएं' : 'Tap below to start receiving work'}
+                {uiText(language, 'startReceiving')}
               </p>
             </div>
 
@@ -555,17 +557,17 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               <div className="grid grid-cols-2 gap-2 pt-2 text-xs">
                 <div className="bg-slate-100/70 rounded-xl p-3 shadow-xs">
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    {language === 'hi' ? 'पेशा' : 'Trade'}
+                    {uiText(language, 'trade')}
                   </span>
                   <span className="text-sm font-black text-neutral-900">{tradeDisplayName}</span>
                 </div>
 
                 <div className="bg-slate-100/70 rounded-xl p-3 shadow-xs">
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">
-                    {language === 'hi' ? 'तजुर्बा' : 'Experience'}
+                    {uiText(language, 'workExperience')}
                   </span>
                   <span className="text-sm font-black text-blue-900 font-mono">
-                    {experienceYears} {language === 'hi' ? 'साल' : 'Years'}
+                    {experienceYears} {uiText(language, 'years')}
                   </span>
                 </div>
               </div>
@@ -573,7 +575,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               {/* Aadhaar status pill */}
               <div className="flex items-center justify-between p-3 bg-slate-100/70 rounded-xl text-xs shadow-xs">
                 <span className="text-slate-600 font-bold">
-                  {language === 'hi' ? 'आधार कार्ड सत्यापन' : 'Aadhaar Status'}
+                  {uiText(language, 'aadhaarStatus')}
                 </span>
                 <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${isAadhaarVerified ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}`}>
                   {isAadhaarVerified ? '✓ Verified' : 'Not verified'}
@@ -595,10 +597,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
           >
             <span>
-              {currentStep === 1 && (language === 'hi' ? 'आगे: नाम दर्ज करें' : 'Next: Name & City')}
-              {currentStep === 2 && (language === 'hi' ? 'आगे: काम का तजुर्बा' : 'Next: Work Experience')}
-              {currentStep === 3 && (language === 'hi' ? 'आगे: आधार सत्यापन' : 'Next: Aadhaar KYC')}
-              {currentStep === 4 && (isAadhaarVerified ? (language === 'hi' ? 'आगे: प्रोफाइल समीक्षा' : 'Next: Review Profile') : (language === 'hi' ? 'आगे बढ़ने के लिए आधार सत्यापित करें' : 'Verify Aadhaar to continue'))}
+              {currentStep === 1 && uiText(language, 'nextName')}
+              {currentStep === 2 && uiText(language, 'nextExperience')}
+              {currentStep === 3 && uiText(language, 'nextAadhaar')}
+              {currentStep === 4 && (isAadhaarVerified ? uiText(language, 'nextReview') : uiText(language, 'verifyToContinue'))}
             </span>
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -609,7 +611,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             className="w-full min-h-[50px] rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md active:scale-98 transition-transform"
           >
             <Check className="w-5 h-5 stroke-[3]" />
-            <span>{language === 'hi' ? 'काम शुरू करें (ड्यूटी चालू)' : 'START WORK NOW'}</span>
+            <span>{uiText(language, 'startWork')}</span>
           </button>
         )}
       </div>
@@ -623,10 +625,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 <Lock className="w-6 h-6" />
               </div>
               <h3 className="text-base font-black text-neutral-900">
-                {language === 'hi' ? 'UIDAI आधार OTP दर्ज करें' : 'Enter Aadhaar OTP'}
+                {uiText(language, 'enterAadhaarOtp')}
               </h3>
               <p className="text-xs text-slate-500">
-                {language === 'hi' ? '4 अंकों का कोड डालें' : 'Enter 4-digit code'}
+                {uiText(language, 'enterFourDigit')}
               </p>
             </div>
 
@@ -651,7 +653,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 className="w-full min-h-[48px] rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm flex items-center justify-center gap-2 shadow-xs"
               >
                 <Check className="w-5 h-5 stroke-[3]" />
-                <span>{language === 'hi' ? 'पुष्टि करें (सत्यापन सफल)' : 'Verify & Continue'}</span>
+                <span>{uiText(language, 'verifyContinue')}</span>
               </button>
 
               <button
@@ -659,7 +661,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 onClick={() => setShowOtpModal(false)}
                 className="w-full py-2 text-xs text-slate-500 hover:text-neutral-900"
               >
-                {language === 'hi' ? 'रद्द करें' : 'Cancel'}
+                {uiText(language, 'cancel')}
               </button>
             </div>
           </div>

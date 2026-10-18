@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Language } from '../types';
+import { uiText } from '../utils/uiText';
 import { 
   AlertTriangle, 
   ShieldAlert, 
@@ -28,7 +29,7 @@ export const SosModal: React.FC<SosModalProps> = ({
               <AlertTriangle className="w-5 h-5 animate-pulse" />
             </div>
             <h3 className="text-base font-black text-neutral-900">
-              {language === 'hi' ? 'आपातकालीन सहायता (SOS)' : 'Emergency SOS'}
+              {uiText(language, 'emergencyHelp')}
             </h3>
           </div>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-neutral-900 rounded-xl hover:bg-slate-100">
@@ -54,7 +55,7 @@ export const SosModal: React.FC<SosModalProps> = ({
           >
             <div className="flex items-center gap-2.5">
               <ShieldAlert className="w-4 h-4 text-blue-300" />
-              <span>{language === 'hi' ? 'राष्ट्रीय पुलिस हेल्पलाइन' : 'Police Emergency Helpline'} (112)</span>
+              <span>{uiText(language, 'policeHelp')} (112)</span>
             </div>
             <span className="text-xs font-mono text-blue-300 font-black">112</span>
           </a>
@@ -66,7 +67,7 @@ export const SosModal: React.FC<SosModalProps> = ({
           >
             <div className="flex items-center gap-2.5">
               <HeartHandshake className="w-4 h-4 text-rose-600" />
-              <span>{language === 'hi' ? 'एम्बुलेंस / चिकित्सा सहायता' : 'Ambulance Helpline'} (108)</span>
+              <span>{uiText(language, 'ambulanceHelp')} (108)</span>
             </div>
             <span className="text-xs font-mono text-rose-700 font-black">108</span>
           </a>

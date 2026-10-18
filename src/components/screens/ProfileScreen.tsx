@@ -3,14 +3,14 @@ import { WorkerProfile, Language, TradeCategory } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { LanguageDropdown } from '../LanguageDropdown';
 import { localizeTradeName } from '../../utils/uiText';
-import { Star, LogOut, Languages, Phone, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Volume2, VolumeX } from 'lucide-react';
+import { Star, LogOut, Languages, Phone, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot } from 'lucide-react';
 
-const PROFILE_COPY: Record<Language, { settings: string; appLanguage: string; audio: string; on: string; off: string; aadhaar: string; verified: string; verify: string; experience: string; jobs: string; rating: string; workType: string; logout: string; clearDemo: string }> = {
-  en: { settings: 'Settings', appLanguage: 'App language', audio: 'Audio assistance', on: 'On', off: 'Off', aadhaar: 'Aadhaar', verified: 'Verified', verify: 'Not verified · Verify', experience: 'Experience', jobs: 'Jobs', rating: 'Rating', workType: 'Work Type', logout: 'Log Out / Switch Worker', clearDemo: 'Clear Demo Data' },
-  hi: { settings: 'सेटिंग्स', appLanguage: 'ऐप की भाषा', audio: 'ऑडियो सहायता', on: 'चालू', off: 'बंद', aadhaar: 'आधार', verified: 'सत्यापित', verify: 'सत्यापित नहीं · सत्यापित करें', experience: 'अनुभव', jobs: 'काम', rating: 'रेटिंग', workType: 'काम के प्रकार', logout: 'लॉग आउट / श्रमिक बदलें', clearDemo: 'डेमो डेटा हटाएँ' },
-  bn: { settings: 'সেটিংস', appLanguage: 'অ্যাপের ভাষা', audio: 'অডিও সহায়তা', on: 'চালু', off: 'বন্ধ', aadhaar: 'আধার', verified: 'যাচাইকৃত', verify: 'যাচাই হয়নি · যাচাই করুন', experience: 'অভিজ্ঞতা', jobs: 'কাজ', rating: 'রেটিং', workType: 'কাজের ধরন', logout: 'লগ আউট / কর্মী বদলান', clearDemo: 'ডেমো ডেটা মুছুন' },
-  mr: { settings: 'सेटिंग्ज', appLanguage: 'अ‍ॅपची भाषा', audio: 'ऑडिओ सहाय्य', on: 'चालू', off: 'बंद', aadhaar: 'आधार', verified: 'पडताळले', verify: 'पडताळलेले नाही · पडताळा', experience: 'अनुभव', jobs: 'कामे', rating: 'रेटिंग', workType: 'कामाचे प्रकार', logout: 'लॉग आउट / कामगार बदला', clearDemo: 'डेमो डेटा हटवा' },
-  te: { settings: 'సెట్టింగ్‌లు', appLanguage: 'యాప్ భాష', audio: 'ఆడియో సహాయం', on: 'ఆన్', off: 'ఆఫ్', aadhaar: 'ఆధార్', verified: 'ధృవీకరించబడింది', verify: 'ధృవీకరించలేదు · ధృవీకరించండి', experience: 'అనుభవం', jobs: 'పనులు', rating: 'రేటింగ్', workType: 'పని రకాలు', logout: 'లాగ్ అవుట్ / కార్మికుడిని మార్చండి', clearDemo: 'డెమో డేటాను తొలగించండి' },
+const PROFILE_COPY: Record<Language, { settings: string; appLanguage: string; assistant: string; assistantHelp: string; aadhaar: string; verified: string; verify: string; experience: string; jobs: string; rating: string; workType: string; logout: string; clearDemo: string }> = {
+  en: { settings: 'Settings', appLanguage: 'App language', assistant: 'AI assistance', assistantHelp: 'Ask about jobs, payments, or your account', aadhaar: 'Aadhaar', verified: 'Verified', verify: 'Not verified · Verify', experience: 'Experience', jobs: 'Jobs', rating: 'Rating', workType: 'Work Type', logout: 'Log Out / Switch Worker', clearDemo: 'Clear Demo Data' },
+  hi: { settings: 'सेटिंग्स', appLanguage: 'ऐप की भाषा', assistant: 'AI सहायता', assistantHelp: 'काम, भुगतान या खाते के बारे में पूछें', aadhaar: 'आधार', verified: 'सत्यापित', verify: 'सत्यापित नहीं · सत्यापित करें', experience: 'अनुभव', jobs: 'काम', rating: 'रेटिंग', workType: 'काम के प्रकार', logout: 'लॉग आउट / श्रमिक बदलें', clearDemo: 'डेमो डेटा हटाएँ' },
+  bn: { settings: 'সেটিংস', appLanguage: 'অ্যাপের ভাষা', assistant: 'AI সহায়তা', assistantHelp: 'কাজ, পেমেন্ট বা অ্যাকাউন্ট সম্পর্কে জিজ্ঞাসা করুন', aadhaar: 'আধার', verified: 'যাচাইকৃত', verify: 'যাচাই হয়নি · যাচাই করুন', experience: 'অভিজ্ঞতা', jobs: 'কাজ', rating: 'রেটিং', workType: 'কাজের ধরন', logout: 'লগ আউট / কর্মী বদলান', clearDemo: 'ডেমো ডেটা মুছুন' },
+  mr: { settings: 'सेटिंग्ज', appLanguage: 'अ‍ॅपची भाषा', assistant: 'AI सहाय्य', assistantHelp: 'काम, पेमेंट किंवा खात्याबद्दल विचारा', aadhaar: 'आधार', verified: 'पडताळले', verify: 'पडताळलेले नाही · पडताळा', experience: 'अनुभव', jobs: 'कामे', rating: 'रेटिंग', workType: 'कामाचे प्रकार', logout: 'लॉग आउट / कामगार बदला', clearDemo: 'डेमो डेटा हटवा' },
+  te: { settings: 'సెట్టింగ్‌లు', appLanguage: 'యాప్ భాష', assistant: 'AI సహాయం', assistantHelp: 'పని, చెల్లింపులు లేదా ఖాతా గురించి అడగండి', aadhaar: 'ఆధార్', verified: 'ధృవీకరించబడింది', verify: 'ధృవీకరించలేదు · ధృవీకరించండి', experience: 'అనుభవం', jobs: 'పనులు', rating: 'రేటింగ్', workType: 'పని రకాలు', logout: 'లాగ్ అవుట్ / కార్మికుడిని మార్చండి', clearDemo: 'డెమో డేటాను తొలగించండి' },
 };
 
 interface ProfileScreenProps {
@@ -35,7 +35,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onClearDemoData,
   onOpenAadhaarModal,
   showSettings,
-  audioActive,
   onToggleAudio,
 }) => {
   const [showTradePicker, setShowTradePicker] = useState(false);
@@ -52,10 +51,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <div className="flex items-center gap-2"><Languages className="h-4 w-4 text-slate-700" /><span className="text-xs font-bold text-slate-900">{copy.appLanguage}</span></div>
             <LanguageDropdown currentLanguage={language} onLanguageChange={onLanguageChange} variant="full" />
           </div>
-          <button type="button" role="switch" aria-checked={audioActive} onClick={onToggleAudio} className="flex min-h-[52px] w-full items-center gap-3 rounded-xl bg-[#f1f1f1] px-3 text-left hover:bg-slate-200">
-            {audioActive ? <Volume2 className="h-4 w-4 shrink-0 text-blue-700" /> : <VolumeX className="h-4 w-4 shrink-0 text-slate-500" />}
-            <span className="flex-1"><span className="block text-xs font-bold text-slate-900">{copy.audio}</span><span className="block text-[11px] text-slate-500">{audioActive ? copy.on : copy.off}</span></span>
-            <span className={`relative h-6 w-11 rounded-full transition-colors ${audioActive ? 'bg-blue-600' : 'bg-slate-300'}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${audioActive ? 'translate-x-6' : 'translate-x-1'}`} /></span>
+          <button type="button" onClick={onToggleAudio} className="flex min-h-[58px] w-full items-center gap-3 rounded-xl bg-[#f1f1f1] px-3 text-left hover:bg-slate-200">
+            <Bot className="h-5 w-5 shrink-0 text-blue-700" />
+            <span className="min-w-0 flex-1"><span className="block text-xs font-bold text-slate-900">{copy.assistant}</span><span className="block text-[11px] text-slate-500">{copy.assistantHelp}</span></span>
+            <span className="rounded-full bg-blue-700 px-3 py-1.5 text-[11px] font-bold text-white">{language === 'en' ? 'Open' : language === 'hi' ? 'खोलें' : language === 'bn' ? 'খুলুন' : language === 'mr' ? 'उघडा' : 'తెరవండి'}</span>
           </button>
         </section>
       </div>

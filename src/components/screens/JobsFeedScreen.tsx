@@ -3,14 +3,14 @@ import { motion } from 'motion/react';
 import { Job, Language, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
-import { speakText } from '../../utils/speech';
-import { localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
+import { aiLabel } from '../../utils/aiLabels';
+import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { 
   Search, 
   MapPin, 
   Clock, 
-  Volume2, 
-  CheckCircle2, 
+  Bot,
+CheckCircle2, 
   Utensils, 
   Wrench, 
   AlertTriangle, 
@@ -49,7 +49,6 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
   const [maxDistance, setMaxDistance] = useState<number>(5);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [tradeFilterMode, setTradeFilterMode] = useState<'my_trade' | 'all'>('my_trade');
-  const [playingJobId, setPlayingJobId] = useState<string | null>(null);
 
   // Look up worker's registered trade info
   const workerTrade = TRADES.find((t) => t.id === worker.primaryTrade) || TRADES[0];
@@ -70,17 +69,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
     return true;
   });
 
-  const handleSpeakJob = (e: React.MouseEvent, job: Job) => {
-    e.stopPropagation();
-    const narration = `${job.title}. Agreed task amount is ${job.agreedAmount} rupees. Distance ${job.distanceKm} km.`;
-    setPlayingJobId(job.id);
-    speakText(
-      narration,
-      language,
-      () => setPlayingJobId(job.id),
-      () => setPlayingJobId(null)
-    );
-  };
+  const handleSpeakJob = (e: React.MouseEvent, _job: Job) => { e.stopPropagation(); window.dispatchEvent(new Event('kaamsetu:open-ai-assistant')); };
 
   return (
     <div className="mx-auto flex w-full max-w-[393px] md:max-w-2xl lg:max-w-6xl flex-1 flex-col space-y-3.5 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans">
@@ -97,9 +86,9 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
             </span>
           </div>
           <p className="text-[11px] text-blue-900 leading-tight">
-            {queuedJob 
-              ? (language === 'hi' ? `चालू काम खत्म होने के बाद कतार का काम शुरू होगा।` : `Next shift locked: ${queuedJob.title}. Starts after punch-out.`)
-              : (language === 'hi' ? `आप एक समय पर एक ही काम कर सकते हैं। अगला काम कतार में बुक करें।` : `You cannot work two sites at once. Tap "Queue for Next" to book upcoming work.`)}
+            {queuedJob
+              ? uiText(language, 'queuedIntro').replace('{job}', localizeJobTitle(queuedJob, language))
+              : uiText(language, 'oneSiteRule')}
           </p>
         </div>
       )}
@@ -113,7 +102,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
             </div>
             <div>
               <span className="text-[10px] text-slate-400 font-bold uppercase block">
-                {language === 'hi' ? 'आपका तय पेशा' : 'Your Selected Trade'}
+                {uiText(language, 'yourTrade')}
               </span>
               <h2 className="text-sm font-black text-neutral-900">{tradeDisplayName}</h2>
             </div>
@@ -122,7 +111,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
           {/* Pastel Green Matched Badge */}
           <span className="text-[11px] font-black text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl shadow-xs flex items-center gap-1">
             <Check className="w-3.5 h-3.5 text-emerald-600 stroke-[3]" />
-            <span>{filteredJobs.length} {language === 'hi' ? 'काम उपलब्ध' : 'Jobs'}</span>
+            <span>{filteredJobs.length} {uiText(language, 'jobsCount')}</span>
           </span>
         </div>
 
@@ -138,7 +127,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
             }`}
           >
             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-            <span>{language === 'hi' ? `सिर्फ ${tradeDisplayName}` : `Only ${tradeDisplayName}`}</span>
+            <span>{uiText(language, 'only')} {tradeDisplayName}</span>
           </button>
 
           <button
@@ -164,10 +153,10 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
             </div>
             <div className="min-w-0">
               <span className="text-xs font-black text-amber-950 block leading-tight">
-                {language === 'hi' ? 'आधार सत्यापन बाकी है' : 'Aadhaar Pending'}
+                {uiText(language, 'aadhaarPending')}
               </span>
               <span className="text-[11px] text-amber-800 font-medium block truncate">
-                {language === 'hi' ? 'काम स्वीकारने के लिए सत्यापित करें' : 'Verify Aadhaar to claim jobs'}
+                {uiText(language, 'verifyClaimJobs')}
               </span>
             </div>
           </div>
@@ -176,7 +165,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
               onClick={onOpenAadhaarModal}
               className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-black text-xs shrink-0 active:scale-95 shadow-xs transition-colors"
             >
-              {language === 'hi' ? 'सत्यापित करें' : 'Verify'}
+              {uiText(language, 'verify')}
             </button>
           )}
         </div>
@@ -184,7 +173,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
 
       {/* 3. DISTANCE FILTER PILLS */}
       <div className="flex items-center justify-between text-xs text-slate-600 px-1">
-        <span className="font-bold">{language === 'hi' ? 'दूरी दायरा:' : 'Distance Radius:'}</span>
+        <span className="font-bold">{uiText(language, 'distanceRadius')}</span>
         <div className="flex items-center gap-1.5">
           {[2, 3.5, 5].map((dist) => (
             <button
@@ -208,16 +197,16 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
           <div className="bg-white rounded-3xl p-8 text-center space-y-2 shadow-sm">
             <span className="text-3xl block">🔍</span>
             <span className="text-sm font-black text-neutral-900 block">
-              {language === 'hi' ? `${tradeDisplayName} का कोई नया काम नहीं मिला` : `No ${tradeDisplayName} jobs in range`}
+              {uiText(language, 'noTradeJobs').replace('{trade}', tradeDisplayName)}
             </span>
             <span className="text-xs text-slate-500 block">
-              {language === 'hi' ? 'दूरी का दायरा 5 km तक बढ़ाएं' : 'Try expanding distance radius to 5 km'}
+              {uiText(language, 'expandRadius')}
             </span>
             <button
               onClick={() => setMaxDistance(5)}
               className="mt-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold shadow-xs"
             >
-              {language === 'hi' ? '5 km तक देखें' : 'View within 5 km'}
+              {uiText(language, 'show5km')}
             </button>
           </div>
         ) : (
@@ -250,7 +239,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                     )}
 
                     <h3 className="text-sm font-black text-neutral-900 leading-snug">
-                      {language === 'hi' ? job.titleHi : job.title}
+                      {localizeJobTitle(job, language)}
                     </h3>
                     {job.postedByType && job.postedByType !== 'contractor' && (
                       <span className="inline-flex rounded-md bg-violet-50 px-2 py-1 text-[10px] font-black uppercase text-violet-800">{job.postedByType === 'homeowner' ? 'Home · direct request' : 'Office · direct request'}</span>
@@ -271,7 +260,7 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                 <div className="flex items-center gap-2 text-xs flex-wrap">
                   <span className="bg-slate-100 text-slate-800 font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 shadow-xs">
                     <MapPin className="w-3 h-3 text-slate-400" />
-                    <span>{job.distanceKm} km</span>
+                    <span>{job.distanceKm} {uiText(language, 'kmUnit')}</span>
                   </span>
 
                   <span className="bg-slate-100 text-slate-800 font-bold px-2.5 py-1 rounded-xl flex items-center gap-1 shadow-xs">
@@ -287,20 +276,16 @@ export const JobsFeedScreen: React.FC<JobsFeedScreenProps> = ({
                   )}
                 </div>
 
-                {/* Action Buttons: Listen & Smart Accept / Queue / Booked Logic */}
+                {/* AI help & Smart Accept / Queue / Booked Logic */}
                 <div className="flex items-center gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={(e) => handleSpeakJob(e, job)}
-                    className={`h-11 px-3.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs ${
-                      playingJobId === job.id
-                        ? 'bg-blue-600 text-white font-black'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
-                    }`}
-                    aria-label="Listen"
+                    className="h-11 px-3.5 rounded-xl bg-slate-100 text-xs font-bold text-slate-800 flex items-center gap-1.5 transition-colors shadow-xs hover:bg-slate-200"
+                    aria-label={aiLabel(language).title}
                   >
-                    <Volume2 className="w-4 h-4" />
-                    <span>{playingJobId === job.id ? uiText(language, 'speaking') : uiText(language, 'listen')}</span>
+                    <Bot className="w-4 h-4" />
+                    <span>{aiLabel(language).open}</span>
                   </button>
 
                   {/* SMART WORK STATE BUTTON */}

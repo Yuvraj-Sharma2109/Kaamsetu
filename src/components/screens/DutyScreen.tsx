@@ -3,8 +3,7 @@ import { animate, motion, useMotionValue } from 'motion/react';
 import { Job, Language, WorkerProfile } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
-import { localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
-import { speakText } from '../../utils/speech';
+import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
 import { MapPin, Clock3, CircleCheck } from 'lucide-react';
 
@@ -83,12 +82,6 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   const handleGoClick = () => {
     if (!isOnline && !worker.isKycVerified) {
       onOpenAadhaarModal?.();
-      speakText(
-        language === 'hi'
-          ? 'कृपया पहले आधार कार्ड सत्यापित करें।'
-          : 'Please verify your Aadhaar card first to go online.',
-        language,
-      );
       return;
     }
 
@@ -209,7 +202,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           <div className="mx-auto flex w-full max-w-[390px] md:max-w-xl flex-col gap-[10px]">
             {availableJobs.length > 0 ? availableJobs.map((job) => {
               const jobTradeName = localizeTradeName(job.trade, language);
-              const title = language === 'hi' ? job.titleHi : job.title;
+              const title = localizeJobTitle(job, language);
               const rateUnit = uiText(language, job.wageType === 'hourly' ? 'hourlyRate' : job.wageType === 'daily' ? 'dailyRate' : 'totalRate');
               return (
                 <motion.article key={job.id} layout initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="relative min-h-[208px] rounded-[22px] bg-white px-[15px] pt-[15px] pb-[10px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
@@ -227,7 +220,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                   </div>
                   <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5] sm:gap-[10px]">
                     <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[#f1f1f1] px-1.5">
-                      <MapPin className="h-3 w-3 fill-[#b5b5b5]" />{job.distanceKm} km
+                      <MapPin className="h-3 w-3 fill-[#b5b5b5]" />{job.distanceKm} {uiText(language, 'kmUnit')}
                     </span>
                     <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[#f1f1f1] px-1.5">
                       <Clock3 className="h-3 w-3" />{job.startTime} - {job.endTime}

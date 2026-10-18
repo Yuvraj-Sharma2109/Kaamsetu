@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Job, Language } from '../types';
 import { getTranslation } from '../utils/i18n';
-import { speakText, stopSpeech } from '../utils/speech';
-import { localizePlaceText, uiText } from '../utils/uiText';
+import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../utils/uiText';
+import { aiLabel } from '../utils/aiLabels';
 import { 
   MapPin, 
   Clock, 
   ShieldCheck, 
-  Volume2, 
-  X, 
+  Bot,
+  X,
   CheckCircle2, 
   Building,
   AlertTriangle,
@@ -47,18 +47,8 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   onOpenAadhaarModal,
 }) => {
   const t = getTranslation(language);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  const handlePlayVoice = () => {
-    const textToSpeak = `${job.title}. Agreed task amount is ${job.agreedAmount} rupees. Site: ${job.siteName}.`;
-    setIsPlayingAudio(true);
-    speakText(
-      textToSpeak,
-      language,
-      () => setIsPlayingAudio(true),
-      () => setIsPlayingAudio(false)
-    );
-  };
+  const handlePlayVoice = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-3 font-sans select-none">
@@ -67,7 +57,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
         <div className="bg-slate-50 p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-wider text-neutral-900 font-black">
-              {language === 'hi' ? job.categoryNameHi : job.categoryName}
+              {localizeTradeName(job.trade, language)}
             </span>
             <span className="text-slate-400">·</span>
             <span className="text-xs text-slate-600 font-semibold">{job.durationDays} {uiText(language, 'days')}</span>
@@ -77,14 +67,13 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
             <button
               onClick={handlePlayVoice}
               className="p-2 bg-white hover:bg-slate-100 text-neutral-800 rounded-xl text-xs flex items-center gap-1 transition-colors shadow-xs"
-              title="Voice readout"
+              title={aiLabel(language).title}
             >
-              <Volume2 className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-bold">{isPlayingAudio ? '...' : uiText(language, 'listen')}</span>
+              <Bot className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-bold">{aiLabel(language).open}</span>
             </button>
             <button
               onClick={() => {
-                stopSpeech();
                 onClose();
               }}
               className="p-2 text-slate-400 hover:text-neutral-900 rounded-xl hover:bg-slate-100"
@@ -98,7 +87,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
         <div className="p-5 overflow-y-auto space-y-3.5 text-neutral-900">
           <div>
             <h3 className="text-base font-black text-neutral-900 leading-snug">
-              {language === 'hi' ? job.titleHi : job.title}
+              {localizeJobTitle(job, language)}
             </h3>
             <span className="text-xs text-blue-900 font-bold mt-0.5 block">
               {job.spotsAvailable} {uiText(language, 'vacancies')}
@@ -123,7 +112,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-3 text-[11px] text-slate-500 pl-6">
-              <span className="font-mono text-blue-900 font-bold">{job.distanceKm} km away</span>
+              <span className="font-mono text-blue-900 font-bold">{job.distanceKm} {uiText(language, 'kmAway')}</span>
               <span>·</span>
               <span>~{job.travelTimeMin} min walk</span>
             </div>
@@ -144,15 +133,13 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           </div>
 
           {job.postedByType && job.postedByType !== 'contractor' && (
-            <a href={`tel:${job.contractorPhone}`} className="block rounded-xl bg-blue-700 px-4 py-3 text-center text-sm font-black text-white">Call the {job.postedByType === 'homeowner' ? 'homeowner' : 'office requester'}</a>
+            <a href={`tel:${job.contractorPhone}`} className="block rounded-xl bg-blue-700 px-4 py-3 text-center text-sm font-black text-white">{job.postedByType === 'homeowner' ? uiText(language, 'contactHomeowner') : uiText(language, 'contactOffice')}</a>
           )}
 
           {/* Active Job Exclusivity Notice */}
           {hasActiveJob && !isCurrentActive && !isCurrentQueued && (
             <div className="bg-blue-50/80 rounded-2xl p-3 text-xs text-blue-900 leading-tight">
-              ℹ️ {hasQueuedJob 
-                ? (language === 'hi' ? 'आपकी कतार पहले से भरी हुई है। यह काम लेने के लिए वर्तमान काम पूरा करें।' : 'Your upcoming queue is full. Complete current shift to take more work.')
-                : (language === 'hi' ? 'आपका 1 काम चालू है। यह काम वर्तमान शिफ्ट खत्म होने के बाद शुरू करने के लिए कतार में जुड़ेगा।' : 'You already have an active job. This will be queued to start right after you punch out.')}
+              ℹ️ {hasQueuedJob ? uiText(language, 'queueFullNotice') : uiText(language, 'queueAfterNotice')}
             </div>
           )}
         </div>
@@ -161,7 +148,6 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
         <div className="p-4 bg-slate-50 flex items-center gap-2.5">
           <button
             onClick={() => {
-              stopSpeech();
               onClose();
             }}
             className="min-h-[48px] px-4 rounded-xl bg-white hover:bg-slate-100 text-neutral-700 text-xs font-bold shadow-xs"
@@ -187,7 +173,6 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
           ) : hasActiveJob && !hasQueuedJob ? (
             <button
               onClick={() => {
-                stopSpeech();
                 if (!isAadhaarVerified) {
                   if (onOpenAadhaarModal) {
                     onClose();
@@ -213,7 +198,6 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               disabled={!isOnline}
               title={!isOnline ? 'Go online to accept this job' : undefined}
               onClick={() => {
-                stopSpeech();
                 if (!isAadhaarVerified) {
                   if (onOpenAadhaarModal) {
                     onClose();

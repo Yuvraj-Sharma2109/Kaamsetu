@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Language } from '../types';
 import { speakText } from '../utils/speech';
+import { uiText } from '../utils/uiText';
+import { aiLabel } from '../utils/aiLabels';
 import { 
   ShieldCheck, 
   X, 
@@ -10,8 +12,7 @@ import {
   Check, 
   User, 
   Lock, 
-  Volume2,
-  VolumeX,
+  Bot,
   AlertTriangle
 } from 'lucide-react';
 
@@ -45,6 +46,8 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
   if (!isOpen) return null;
 
   const handleSpeak = () => {
+    window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
+    return;
     const text = language === 'hi'
       ? 'काम स्वीकार करने के लिए आधार कार्ड सत्यापन जरूरी है। अपना 12 अंकों का आधार नंबर डालें या फोटो लें।'
       : 'Aadhaar verification is required to accept work. Enter 12-digit number or take card photo.';
@@ -94,10 +97,10 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
             <span className="text-2xl">🏛️</span>
             <div>
               <h3 className="text-sm font-black text-neutral-900">
-                {language === 'hi' ? 'आधार कार्ड सत्यापन' : 'Aadhaar Verification'}
+                {uiText(language, 'aadhaarTitle')}
               </h3>
               <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded font-bold block mt-0.5">
-                {language === 'hi' ? 'काम स्वीकारने के लिए अनिवार्य' : 'Required to accept jobs'}
+                {uiText(language, 'requiredAcceptJobs')}
               </span>
             </div>
           </div>
@@ -107,11 +110,11 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
               type="button"
               onClick={handleSpeak}
               className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl shadow-xs"
-              title="Listen"
+              title={aiLabel(language).title}
             >
-              <Volume2 className="w-4 h-4 text-blue-600" />
+              <Bot className="w-4 h-4 text-blue-600" />
             </button>
-            <button type="button" onClick={onToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} title={audioActive ? 'Mute audio' : 'Unmute audio'} className="rounded-xl bg-slate-100 p-2 text-blue-700 hover:bg-slate-200">{audioActive ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}</button>
+            <button type="button" onClick={onToggleAudio} aria-label={aiLabel(language).title} title={aiLabel(language).title} className="rounded-xl bg-slate-100 p-2 text-blue-700 hover:bg-slate-200"><Bot className="h-4 w-4" /></button>
             <button
               type="button"
               onClick={onClose}
@@ -158,7 +161,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
             }`}
           >
             <KeyRound className="w-3.5 h-3.5" />
-            <span>{language === 'hi' ? 'नंबर + OTP' : 'Aadhaar OTP'}</span>
+            <span>{uiText(language, 'numberOtp')}</span>
           </button>
 
           <button
@@ -171,7 +174,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
             }`}
           >
             <Camera className="w-3.5 h-3.5" />
-            <span>{language === 'hi' ? 'कार्ड की फोटो' : 'Card Photo'}</span>
+            <span>{uiText(language, 'photoTab')}</span>
           </button>
         </div>
 
@@ -182,7 +185,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
               <div className="space-y-2.5">
                 <div>
                   <label className="text-xs font-bold text-slate-600 block mb-1">
-                    {language === 'hi' ? '12 अंकों का आधार नंबर डालें' : 'Enter 12-Digit Aadhaar'}
+                    {uiText(language, 'aadhaarPlaceholder')}
                   </label>
                   <input
                     type="text"
@@ -200,7 +203,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
                   className="w-full min-h-[46px] rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-black text-xs flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-xs"
                 >
                   <KeyRound className="w-4 h-4 text-blue-300" />
-                  <span>{language === 'hi' ? 'UIDAI OTP प्राप्त करें' : 'Get UIDAI OTP'}</span>
+                  <span>{uiText(language, 'requestUidaiOtp')}</span>
                 </button>
               </div>
             ) : (
@@ -208,14 +211,14 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-bold text-slate-600 block">
-                      {language === 'hi' ? '4 अंकों का OTP कोड डालें' : 'Enter 4-Digit OTP'}
+                      {uiText(language, 'otpPlaceholder')}
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowOtpInput(false)}
                       className="text-xs text-blue-700 hover:underline font-semibold"
                     >
-                      {language === 'hi' ? 'बदलें' : 'Change'}
+                      {uiText(language, 'change')}
                     </button>
                   </div>
 
@@ -238,7 +241,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
                   className="w-full min-h-[48px] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center justify-center gap-2 shadow-xs active:scale-95 transition-transform"
                 >
                   <Check className="w-4 h-4 stroke-[3]" />
-                  <span>{language === 'hi' ? 'सत्यापित करें और काम अनलॉक करें' : 'Verify & Unlock Work'}</span>
+                  <span>{uiText(language, 'verifyUnlock')}</span>
                 </button>
               </div>
             )}
@@ -249,7 +252,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
         {mode === 'photo' && (
           <div className="space-y-3 bg-slate-50 rounded-2xl p-4 shadow-xs">
             <span className="text-xs text-slate-600 font-bold block">
-              {language === 'hi' ? 'कार्ड की दोनों तरफ की फोटो लें:' : 'Capture both sides:'}
+              {uiText(language, 'captureBothSides')}
             </span>
 
             <div className="grid grid-cols-2 gap-2.5">
@@ -297,7 +300,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
               }`}
             >
               <Check className="w-4 h-4 stroke-[3]" />
-              <span>{language === 'hi' ? 'फोटो जमा करें और सत्यापित करें' : 'Submit Photos & Verify'}</span>
+              <span>{uiText(language, 'submitPhotos')}</span>
             </button>
           </div>
         )}
@@ -309,7 +312,7 @@ export const AadhaarVerifyModal: React.FC<AadhaarVerifyModalProps> = ({
             onClick={onClose}
             className="text-xs text-slate-500 hover:text-neutral-900 underline"
           >
-            {language === 'hi' ? 'बंद करें (बाद में करें)' : 'Close (Verify Later)'}
+            {uiText(language, 'verifyLater')}
           </button>
         </div>
       </motion.div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Transaction, Language, WorkerProfile } from '../../types';
 import { getTranslation } from '../../utils/i18n';
-import { speakText } from '../../utils/speech';
+import { aiLabel } from '../../utils/aiLabels';
+import { localizeDate, localizeTransactionTitle, uiText } from '../../utils/uiText';
 import { 
   Wallet, 
   ArrowUpRight, 
@@ -12,7 +13,7 @@ import {
   CheckCircle2, 
   CreditCard,
   Building,
-  Volume2,
+  Bot,
   X
 } from 'lucide-react';
 
@@ -42,12 +43,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
   const [withdrawMethod, setWithdrawMethod] = useState<'bank' | 'upi' | 'post_office'>('bank');
   const [withdrawSuccess, setWithdrawSuccess] = useState<boolean>(false);
 
-  const handleSpeakEarnings = () => {
-    const text = language === 'hi'
-      ? `आपके खाते में कुल ${walletBalance} रुपये हैं। बैंक खाते में ट्रांसफर करने के लिए निकासी बटन दबाएं।`
-      : `Your available balance is ${walletBalance} rupees. Tap withdraw to transfer to your bank.`;
-    speakText(text, language);
-  };
+  const handleSpeakEarnings = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
 
   const handleExecuteWithdraw = () => {
     const amt = parseFloat(withdrawAmount) || 0;
@@ -71,16 +67,16 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
               <Wallet className="w-4 h-4 text-blue-300" />
             </div>
             <span className="text-xs font-bold text-slate-400 uppercase">
-              {language === 'hi' ? 'कुल बचत (वॉलेट)' : 'Available Balance'}
+              {uiText(language, 'availableBalance')}
             </span>
           </div>
 
           <button
             onClick={handleSpeakEarnings}
             className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs transition-colors shadow-xs"
-            title="Read balance"
+            title={aiLabel(language).title}
           >
-            <Volume2 className="w-4 h-4 text-blue-600" />
+            <Bot className="w-4 h-4 text-blue-600" />
           </button>
         </div>
 
@@ -90,7 +86,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
             ₹{walletBalance.toLocaleString('en-IN')}
           </div>
           <span className="text-xs font-bold text-blue-900 mt-0.5 block">
-            ✓ {language === 'hi' ? 'तुरंत बैंक निकासी योग्य (0% कटौती)' : 'Ready for Instant Bank Transfer (0% fees)'}
+            ✓ {uiText(language, 'instantTransferReady')}
           </span>
         </div>
 
@@ -101,7 +97,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
             className="min-h-[46px] rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-transform"
           >
             <ArrowUpRight className="w-4 h-4 text-blue-300" />
-            <span>{language === 'hi' ? 'पैसे निकालें' : 'Withdraw Money'}</span>
+            <span>{uiText(language, 'withdraw')}</span>
           </button>
 
           <button
@@ -109,7 +105,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
             className="min-h-[46px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-transform shadow-xs"
           >
             <FileText className="w-4 h-4 text-slate-600" />
-            <span>{language === 'hi' ? 'कमाई पर्ची' : 'Income Slip'}</span>
+            <span>{uiText(language, 'incomeSlip')}</span>
           </button>
         </div>
       </div>
@@ -118,25 +114,25 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
       <div className="grid grid-cols-2 gap-2">
         <div className="bg-white rounded-2xl p-3.5 shadow-sm">
           <span className="text-[10px] text-slate-400 font-bold uppercase block">
-            {language === 'hi' ? 'महीने की कमाई' : 'This Month'}
+            {uiText(language, 'thisMonth')}
           </span>
           <span className="text-lg font-black text-neutral-900 font-mono mt-0.5 block">
             ₹{monthlyEarnings.toLocaleString('en-IN')}
           </span>
           <span className="text-[10px] text-blue-900 font-bold block">
-            {daysWorked} {language === 'hi' ? 'दिन काम किया' : 'days worked'}
+            {daysWorked} {uiText(language, 'daysWorked')}
           </span>
         </div>
 
         <div className="bg-white rounded-2xl p-3.5 shadow-sm">
           <span className="text-[10px] text-slate-400 font-bold uppercase block">
-            {language === 'hi' ? 'सीधा भुगतान' : 'Escrow Direct'}
+            {uiText(language, 'escrowDirect')}
           </span>
           <span className="text-lg font-black text-blue-900 font-mono mt-0.5 block">
             100%
           </span>
           <span className="text-[10px] text-slate-400 font-semibold block">
-            {language === 'hi' ? '0% बिचौलिया' : 'No commission'}
+            {uiText(language, 'noCommission')}
           </span>
         </div>
       </div>
@@ -144,7 +140,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
       {/* 3. RECENT PAYOUTS LIST (Borderless) */}
       <div className="space-y-2 md:col-span-2">
         <span className="text-xs font-black text-neutral-900 px-1 block">
-          {language === 'hi' ? 'हाल की दिहाड़ी (पासबुक)' : 'Recent Payouts'}
+          {uiText(language, 'recentPayouts')}
         </span>
 
         <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
@@ -167,10 +163,10 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
                 </div>
                 <div>
                   <span className="text-xs font-black text-neutral-900 block truncate max-w-[170px]">
-                    {language === 'hi' ? tx.titleHi : tx.title}
+                    {localizeTransactionTitle(tx.id, tx.title, tx.titleHi, language)}
                   </span>
                   <span className="text-[10px] text-slate-400 block">
-                    {tx.date} · {tx.status === 'settled' ? (language === 'hi' ? 'सफल' : 'Completed') : 'Pending'}
+                    {localizeDate(tx.date, language)} · {tx.status === 'settled' ? uiText(language, 'completed') : uiText(language, 'pending')}
                   </span>
                 </div>
               </div>
@@ -196,7 +192,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
           <div className="bg-white rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-1">
               <h3 className="text-base font-black text-neutral-900">
-                {language === 'hi' ? 'बैंक खाते में पैसे भेजें' : 'Withdraw to Bank'}
+                {uiText(language, 'withdrawToBank')}
               </h3>
               <button
                 onClick={() => setShowWithdrawModal(false)}
@@ -212,15 +208,15 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
                   <CheckCircle2 className="w-8 h-8" />
                 </div>
                 <h4 className="text-base font-black text-neutral-900">
-                  {language === 'hi' ? 'पैसे बैंक में भेजे गए!' : 'Transfer Successful!'}
+                  {uiText(language, 'transferSuccess')}
                 </h4>
-                <p className="text-xs text-slate-500">₹{withdrawAmount} sent to State Bank of India</p>
+                <p className="text-xs text-slate-500">₹{withdrawAmount} {uiText(language, 'sentToBank')}</p>
               </div>
             ) : (
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-bold text-slate-600 block mb-1">
-                    {language === 'hi' ? 'निकासी राशि (₹)' : 'Withdraw Amount (₹)'}
+                    {uiText(language, 'withdrawAmount')}
                   </label>
                   <input
                     type="number"
@@ -230,7 +226,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
                     className="w-full bg-slate-100 rounded-xl px-4 py-2.5 text-2xl font-black font-mono text-neutral-900 focus:outline-none"
                   />
                   <span className="text-[11px] text-slate-500 block mt-1">
-                    Balance: <strong className="text-neutral-900">₹{walletBalance}</strong>
+                    {uiText(language, 'balance')} <strong className="text-neutral-900">₹{walletBalance}</strong>
                   </span>
                 </div>
 
@@ -253,7 +249,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
                   onClick={handleExecuteWithdraw}
                   className="w-full min-h-[48px] rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm active:scale-95 transition-transform shadow-xs"
                 >
-                  {language === 'hi' ? 'तुरंत बैंक में ट्रांसफर करें' : 'Confirm Instant Transfer'}
+                  {uiText(language, 'confirmTransfer')}
                 </button>
               </div>
             )}
@@ -267,7 +263,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
           <div className="bg-white rounded-3xl p-5 max-w-sm w-full space-y-3 shadow-2xl">
             <div className="flex items-center justify-between pb-1">
               <h3 className="text-sm font-black text-neutral-900">
-                {language === 'hi' ? 'सरकारी आय प्रमाण पर्ची' : 'Verified Income Proof'}
+                {uiText(language, 'verifiedIncome')}
               </h3>
               <button onClick={() => setShowCertificateModal(false)}>
                 <X className="w-5 h-5 text-slate-400" />
@@ -275,20 +271,20 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
             </div>
             <div className="p-3.5 bg-slate-50 rounded-xl space-y-1 text-xs">
               <span className="font-bold text-neutral-900 block">{worker.name}</span>
-              <span className="text-slate-500 block">Labour Registry ID: {worker.id}</span>
+              <span className="text-slate-500 block">{uiText(language, 'registryId')} {worker.id}</span>
               <div className="mt-3 space-y-2 border-t border-slate-200 pt-3">
-                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Completed jobs</span><strong className="text-neutral-900">{worker.totalJobsCompleted}</strong></div>
-                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Days worked this month</span><strong className="text-neutral-900">{daysWorked}</strong></div>
-                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Earnings this month</span><strong className="font-mono text-blue-900">₹{monthlyEarnings.toLocaleString('en-IN')}</strong></div>
-                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">Available balance</span><strong className="font-mono text-neutral-900">₹{walletBalance.toLocaleString('en-IN')}</strong></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">{uiText(language, 'jobsCompleted')}</span><strong className="text-neutral-900">{worker.totalJobsCompleted}</strong></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">{uiText(language, 'daysThisMonth')}</span><strong className="text-neutral-900">{daysWorked}</strong></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">{uiText(language, 'earningsThisMonth')}</span><strong className="font-mono text-blue-900">₹{monthlyEarnings.toLocaleString('en-IN')}</strong></div>
+                <div className="flex items-center justify-between gap-3"><span className="text-slate-500">{uiText(language, 'availableBalance')}</span><strong className="font-mono text-neutral-900">₹{walletBalance.toLocaleString('en-IN')}</strong></div>
               </div>
-              {worker.totalJobsCompleted === 0 && <p className="pt-2 text-[11px] font-medium text-slate-500">No completed jobs yet. This slip will update when your first job payout is recorded.</p>}
+              {worker.totalJobsCompleted === 0 && <p className="pt-2 text-[11px] font-medium text-slate-500">{uiText(language, 'noJobsYet')}</p>}
             </div>
             <button
               onClick={() => setShowCertificateModal(false)}
               className="w-full min-h-[44px] rounded-xl bg-neutral-900 text-white font-bold text-xs"
             >
-              Close
+              {uiText(language, 'close')}
             </button>
           </div>
         </div>

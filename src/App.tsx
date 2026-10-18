@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'motion/react';
-import { ArrowLeft, Settings, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Bot, Settings } from 'lucide-react';
 import { MobileFrame } from './components/MobileFrame';
 import { TopHeader } from './components/TopHeader';
 import { BottomNav, TabType } from './components/BottomNav';
@@ -36,9 +36,13 @@ import {
   TRADES 
 } from './data/mockData';
 import { speakText, stopSpeech } from './utils/speech';
+import { aiLabel } from './utils/aiLabels';
+import { localizeJobTitle, localizePlaceText, localizeTradeName } from './utils/uiText';
+import type { AssistantScreenContext } from './components/AiAssistant';
 
 const DEMO_ACCOUNTS_KEY = 'kaamsetu_demo_accounts';
 const DEMO_SESSION_KEY = 'kaamsetu_demo_session';
+const APP_LANGUAGE_KEY = 'kaamsetu_app_language';
 type DemoAccount = {
   contact: string; worker: WorkerProfile; walletBalance?: number; transactions?: Transaction[];
   todayEarnings?: number; monthlyEarnings?: number; daysWorked?: number; jobs?: Job[];
@@ -58,6 +62,12 @@ const readDemoSession = (): DemoSession | null => {
   try { return JSON.parse(localStorage.getItem(DEMO_SESSION_KEY) || 'null') as DemoSession | null; }
   catch { return null; }
 };
+const readAppLanguage = (): Language => {
+  const storedLanguage = localStorage.getItem(APP_LANGUAGE_KEY);
+  return storedLanguage === 'hi' || storedLanguage === 'bn' || storedLanguage === 'mr' || storedLanguage === 'te' || storedLanguage === 'en'
+    ? storedLanguage
+    : 'en';
+};
 
 export default function App() {
   const [savedSession] = useState<DemoSession | null>(readDemoSession);
@@ -74,7 +84,10 @@ export default function App() {
 
   // Core app states
   const [isOnline, setIsOnline] = useState<boolean>(savedSession?.isOnline ?? false);
-  const [language, setLanguage] = useState<Language>(savedSession?.language || 'en');
+  const [language, setLanguage] = useState<Language>(savedSession?.language || readAppLanguage());
+  useEffect(() => {
+    try { localStorage.setItem(APP_LANGUAGE_KEY, language); } catch { /* storage may be unavailable */ }
+  }, [language]);
   const [currentTab, setCurrentTab] = useState<TabType>(savedSession?.currentTab || 'radar');
   const [profileReturnTab, setProfileReturnTab] = useState<TabType>('radar');
   const [isWorkListExpanded, setIsWorkListExpanded] = useState(false);
@@ -116,16 +129,14 @@ export default function App() {
   const [incomingJob, setIncomingJob] = useState<Job | null>(null);
   const [inspectingJob, setInspectingJob] = useState<Job | null>(null);
   const [showSosModal, setShowSosModal] = useState<boolean>(false);
-  const [audioActive, setAudioActive] = useState<boolean>(() => localStorage.getItem('kaamsetu_audio_enabled') !== 'false');
+  // Automatic voice announcements are retired in favor of the app-wide AI helper.
+  const audioActive = false;
   const [showAadhaarModal, setShowAadhaarModal] = useState<boolean>(false);
   const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState(false);
   const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
 
   const handleToggleAudio = () => {
-    const next = !audioActive;
-    if (!next) stopSpeech();
-    setAudioActive(next);
-    try { localStorage.setItem('kaamsetu_audio_enabled', String(next)); } catch {}
+    window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
   };
 
   const handleVerifyAadhaarSuccess = () => {
@@ -447,7 +458,7 @@ export default function App() {
 
   if (!isLoggedIn) {
     return (
-      <MobileFrame
+      <MobileFrame language={language} screenContext={{ screen: 'login' }}
       >
         <LoginScreen
           language={language}
@@ -463,7 +474,7 @@ export default function App() {
   // 2. FLOW STAGE: LOGGED IN BUT FIRST TIME SIGNUP -> SHOW ONBOARDING SCREEN
   if (!hasCompletedOnboarding) {
     return (
-      <MobileFrame
+      <MobileFrame language={language} screenContext={{ screen: 'onboarding', aadhaarVerified: worker.isKycVerified }}
       >
         <OnboardingScreen
           language={language}
@@ -509,9 +520,44 @@ export default function App() {
 
   // 3. MAIN WORKER PORTAL APP
   const suggestedTradeJob = jobs.find((j) => j.trade === worker.primaryTrade && j.id !== shift.job?.id && j.id !== shift.queuedJob?.id) || jobs[0];
+  const selectedContextJob = incomingJob || inspectingJob;
+  const assistantScreenContext: AssistantScreenContext = {
+    screen: incomingJob ? 'incomingJob'
+      : showAadhaarModal ? 'aadhaar'
+        : showSosModal ? 'sos'
+          : inspectingJob ? 'jobDetails'
+            : currentTab === 'profile' && isProfileSettingsOpen ? 'settings'
+              : currentTab === 'radar' ? 'duty'
+                : currentTab === 'feed' ? 'jobs'
+                  : currentTab === 'active' ? 'active'
+                    : currentTab === 'passbook' ? 'earnings'
+                      : 'profile',
+    isOnline,
+    availableJobs: jobs.filter((job) => job.trade === worker.primaryTrade).length,
+    suggestedJobTitle: suggestedTradeJob ? localizeJobTitle(suggestedTradeJob, language) : undefined,
+    suggestedJobPay: suggestedTradeJob?.agreedAmount,
+    suggestedJobSite: suggestedTradeJob ? localizePlaceText(suggestedTradeJob.siteName, language) : undefined,
+    activeJobTitle: shift.job ? localizeJobTitle(shift.job, language) : undefined,
+    activeJobSite: shift.job ? localizePlaceText(shift.job.siteName, language) : undefined,
+    activeJobPay: shift.job?.agreedAmount,
+    activeJobStep: shift.status,
+    queuedJobTitle: shift.queuedJob ? localizeJobTitle(shift.queuedJob, language) : undefined,
+    targetJobTitle: selectedContextJob ? localizeJobTitle(selectedContextJob, language) : undefined,
+    targetJobPay: selectedContextJob?.agreedAmount,
+    targetJobSite: selectedContextJob ? localizePlaceText(selectedContextJob.siteName, language) : undefined,
+    targetJobSchedule: selectedContextJob ? `${selectedContextJob.startTime}–${selectedContextJob.endTime}` : undefined,
+    targetJobDistance: selectedContextJob?.distanceKm,
+    balance: walletBalance,
+    monthlyEarnings,
+    aadhaarVerified: worker.isKycVerified,
+    workerName: worker.name,
+    primaryTrade: localizeTradeName(worker.primaryTrade, language),
+    jobsCompleted: worker.totalJobsCompleted,
+    rating: worker.rating,
+  };
 
   return (
-    <MobileFrame
+    <MobileFrame language={language} screenContext={assistantScreenContext}
       bottomOverlay={(
         <BottomNav
           currentTab={currentTab}
@@ -537,8 +583,8 @@ export default function App() {
           <button type="button" onClick={() => isProfileSettingsOpen ? setIsProfileSettingsOpen(false) : setCurrentTab(profileReturnTab)} aria-label={isProfileSettingsOpen ? 'Back to profile' : 'Back'} className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
             <ArrowLeft className="h-6 w-6" />
           </button>
-          <button type="button" onClick={handleToggleAudio} aria-label={audioActive ? 'Mute audio assistance' : 'Unmute audio assistance'} className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-blue-700">
-            {audioActive ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          <button type="button" onClick={handleToggleAudio} aria-label={aiLabel(language).title} title={aiLabel(language).title} className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-blue-700">
+            <Bot className="h-5 w-5" />
           </button>
           <button type="button" onClick={() => setIsProfileSettingsOpen(true)} aria-label="Open settings" className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
             <Settings className="h-6 w-6" />

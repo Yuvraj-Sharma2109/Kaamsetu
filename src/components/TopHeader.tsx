@@ -1,10 +1,9 @@
 import React from 'react';
 import { WorkerProfile, Language } from '../types';
-import { stopSpeech, isSpeaking } from '../utils/speech';
 import { uiText } from '../utils/uiText';
+import { aiLabel } from '../utils/aiLabels';
 import { 
-  Volume2, 
-  VolumeX, 
+  Bot,
   AlertTriangle,
   Menu,
   X,
@@ -28,7 +27,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   worker,
   isOnline,
   language,
-  audioActive,
   onToggleAudio,
   onOpenSosModal,
   onOpenProfile,
@@ -83,24 +81,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Audio toggle + SOS */}
+      {/* Right: AI assistance + SOS */}
       <div className="flex items-center gap-2 shrink-0">
         <button
-          onClick={() => {
-            if (isSpeaking()) {
-              stopSpeech();
-            }
-            onToggleAudio();
-          }}
-          className={`w-8 h-8 flex items-center justify-center rounded-xl text-xs transition-colors ${
-            audioActive
-              ? 'bg-blue-600 text-white font-bold shadow-xs'
-              : 'bg-slate-100 text-slate-600 hover:text-neutral-900 shadow-xs'
-          }`}
-          title={uiText(language, 'voiceReader')}
-          aria-label={uiText(language, 'voiceAssistance')}
+          onClick={onToggleAudio}
+          className="w-8 h-8 flex items-center justify-center rounded-xl bg-blue-50 text-blue-700 transition-colors hover:bg-blue-100 shadow-xs"
+          title={aiLabel(language).title}
+          aria-label={aiLabel(language).title}
         >
-          {audioActive ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          <Bot className="w-4 h-4" />
         </button>
 
         {/* SOS Emergency button in Pastel Rose */}

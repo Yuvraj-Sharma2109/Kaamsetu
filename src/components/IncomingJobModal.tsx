@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Job, Language } from '../types';
 import { getTranslation } from '../utils/i18n';
-import { speakText, stopSpeech } from '../utils/speech';
-import { localizePlaceText, uiText } from '../utils/uiText';
+import { localizePlaceText, localizeTradeName, uiText } from '../utils/uiText';
+import { aiLabel } from '../utils/aiLabels';
 import { 
   MapPin, 
   Clock, 
   ShieldCheck, 
-  Volume2, 
-  X, 
+  Bot,
+  X,
   CheckCircle2, 
   Utensils, 
   ListPlus,
@@ -43,7 +43,6 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
 }) => {
   const t = getTranslation(language);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(30);
-  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
 
   // Auto countdown (~30s timeout)
   useEffect(() => {
@@ -61,18 +60,7 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
     return () => clearInterval(timer);
   }, [onDecline]);
 
-  const handlePlayVoice = () => {
-    const textToSpeak = hasActiveJob
-      ? `Next job for your queue at ${job.siteName}. Agreed task amount is ${job.agreedAmount} rupees.`
-      : `New job offer at ${job.siteName}. Agreed task amount is ${job.agreedAmount} rupees. Distance ${job.distanceKm} km.`;
-    setIsPlayingAudio(true);
-    speakText(
-      textToSpeak,
-      language,
-      () => setIsPlayingAudio(true),
-      () => setIsPlayingAudio(false)
-    );
-  };
+  const handlePlayVoice = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
 
   const progressPercent = (secondsRemaining / 30) * 100;
 
@@ -105,13 +93,12 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
               onClick={handlePlayVoice}
               className="px-2.5 py-1 bg-slate-100 text-neutral-800 font-bold text-xs rounded-xl flex items-center gap-1 shadow-xs active:scale-95"
             >
-              <Volume2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>{isPlayingAudio ? '...' : uiText(language, 'listen')}</span>
+              <Bot className="w-3.5 h-3.5 text-blue-600" />
+              <span>{aiLabel(language).open}</span>
             </button>
 
             <button
               onClick={() => {
-                stopSpeech();
                 onDecline();
               }}
               className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors"
@@ -125,7 +112,7 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
         <div className="px-5 text-center space-y-2">
           <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">AGREED TASK AMOUNT</span>
           <strong className="block text-2xl font-black text-blue-900">{String.fromCharCode(8377)}{job.agreedAmount}</strong>
-          <span className="text-xs text-slate-600 font-bold block">{job.categoryName} ? {job.distanceKm} km away</span>
+          <span className="text-xs text-slate-600 font-bold block">{localizeTradeName(job.trade, language)} · {job.distanceKm} {uiText(language, 'kmAway')}</span>
         </div>
         
 {/* Location & Landmark Card */}
@@ -152,9 +139,7 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
         {/* Notice if worker is already active */}
         {hasActiveJob && (
           <div className="mx-4 bg-emerald-50 rounded-xl p-2.5 text-[11px] text-emerald-950 font-bold">
-            {language === 'hi'
-              ? '✓ आप अभी काम पर हैं। यह काम आपके वर्तमान काम खत्म होते ही कतार में सक्रिय होगा।'
-              : '✓ You are on shift. This will activate right after your current punch-out.'}
+            ✓ {uiText(language, 'activeNotice')}
           </div>
         )}
 
@@ -163,7 +148,6 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
           {hasActiveJob ? (
             <button
               onClick={() => {
-                stopSpeech();
                 if (!isAadhaarVerified) {
                   if (onOpenAadhaarModal) {
                     onDecline();
@@ -189,7 +173,6 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
               disabled={!isOnline}
               title={!isOnline ? 'Go online to accept this job' : undefined}
               onClick={() => {
-                stopSpeech();
                 if (!isAadhaarVerified) {
                   if (onOpenAadhaarModal) {
                     onDecline();

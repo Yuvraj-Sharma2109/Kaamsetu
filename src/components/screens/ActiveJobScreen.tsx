@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { JobListingCard } from '../JobListingCard';
 import { ShiftState, Language, Job } from '../../types';
-import { speakText } from '../../utils/speech';
-import { localizePlaceText, uiText } from '../../utils/uiText';
+import { aiLabel } from '../../utils/aiLabels';
+import { localizeJobTitle, localizePlaceText, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
 import { 
   Navigation, 
@@ -10,7 +10,7 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   Check, 
-  Volume2, 
+  Bot, 
   MapPin, 
   ShieldCheck,
   ListPlus,
@@ -83,15 +83,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
     onLocationUpdate?.(job.siteName + ', ' + job.landmark);
   };
 
-  const handleVoiceNav = () => {
-    if (!job) return;
-    const msg = shift.status === 'punched_in'
-      ? 'Work is in progress at ' + job.siteName + '.'
-      : shift.status === 'arrived'
-        ? 'You have arrived at ' + job.siteName + '. Verify the site OTP to punch in.'
-        : 'Navigate to ' + job.siteName + '. Landmark is ' + job.landmark + '. Mark arrival when you reach the site.';
-    speakText(msg, language);
-  };
+  const handleVoiceNav = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
 
   const handlePunchOutClick = () => {
     onPunchOut();
@@ -105,17 +97,17 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
         </div>
         <div className="space-y-1.5">
           <h3 className="text-base font-black text-neutral-900">
-            {language === 'hi' ? 'अभी कोई चालू काम नहीं है' : 'No Active Job'}
+            {uiText(language, 'noActiveJob')}
           </h3>
           <p className="text-xs text-slate-500 max-w-xs">
-            {language === 'hi' ? 'ड्यूटी पर जाएं या पास का काम खोजें।' : 'Go on duty or browse nearby jobs to start working.'}
+            {uiText(language, 'noActiveJobSub')}
           </p>
         </div>
         <button
           onClick={onBrowseJobs}
           className="min-h-[48px] px-6 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-black text-xs active:scale-95 transition-transform shadow-xs"
         >
-          {language === 'hi' ? 'काम खोजें' : 'Browse Jobs'}
+          {uiText(language, 'browseJobs')}
         </button>
       </div>
     );
@@ -139,10 +131,10 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           <div className="text-xs min-w-0">
             <span className="font-black block leading-tight truncate">
               {shift.status === 'punched_in'
-                ? (language === 'hi' ? 'काम जारी है (हाजिरी दर्ज)' : 'Shift In Progress')
+                ? uiText(language, 'shiftInProgress')
                 : isArrivedAtSite
-                  ? (language === 'hi' ? '✓ साइट पर पहुंच चुके हैं' : '✓ Arrived at Site')
-                  : (language === 'hi' ? 'साइट की तरफ जाएं' : 'Head to Work Site')}
+                  ? uiText(language, 'arrivedAtSite')
+                  : uiText(language, 'headToSite')}
             </span>
             <span className="text-[11px] opacity-90 block truncate">
               {isArrivedAtSite
@@ -157,9 +149,9 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           className={`w-8 h-8 rounded-full text-white flex items-center justify-center font-bold shrink-0 ${
             isArrivedAtSite ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-blue-700 hover:bg-blue-800'
           }`}
-          aria-label="Voice Directions"
+          aria-label={aiLabel(language).title}
         >
-          <Volume2 className="w-4 h-4" />
+          <Bot className="w-4 h-4" />
         </button>
       </div>
 
@@ -273,7 +265,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                       ✓ {uiText(language, 'nextJobLocked')}
                     </span>
                     <span className="text-xs font-black text-emerald-950 truncate block">
-                      {language === 'hi' ? queuedJob.titleHi : queuedJob.title}
+                      {localizeJobTitle(queuedJob, language)}
                     </span>
                     <span className="text-[11px] font-mono text-emerald-900 font-bold block">{queuedJob.distanceKm} {uiText(language, 'kmAway')}</span>
                   </div>
@@ -304,7 +296,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
 
                   <div className="flex items-center justify-between bg-white rounded-xl p-2.5 shadow-xs">
                     <div className="min-w-0 flex-1 pr-2">
-                      <span className="text-xs font-black text-neutral-900 block truncate">{language === 'hi' ? suggestedNextJob.titleHi : suggestedNextJob.title}</span>
+                      <span className="text-xs font-black text-neutral-900 block truncate">{localizeJobTitle(suggestedNextJob, language)}</span>
                       <span className="text-[11px] text-slate-500 font-mono">{suggestedNextJob.distanceKm} {uiText(language, 'kmAway')}</span>
                     </div>
 
