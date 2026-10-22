@@ -16,12 +16,13 @@ import {
   ArrowLeft,
   Check
 } from 'lucide-react';
-import { FirebasePhoneConfirmation, FirebaseUserInfo, clearPhoneRecaptcha, isFirebaseConfigured, sendPhoneOtp, signInWithSocialProvider, signOutFirebase, watchFirebaseAuth } from '../../utils/firebaseAuth';
+import { FirebaseUserInfo, isFirebaseConfigured, signInWithSocialProvider, signOutFirebase, watchFirebaseAuth } from '../../utils/firebaseAuth';
 
 interface LoginScreenProps {
   language: Language;
   onLanguageChange: (lang: Language) => void;
-  onFirebaseAuthSuccess: (method: 'phone' | 'google' | 'facebook', user: FirebaseUserInfo) => boolean;
+  onLoginSuccess: (method: 'phone' | 'google' | 'facebook', contact?: string, isNewUser?: boolean) => boolean;
+  onFirebaseAuthSuccess: (method: 'google' | 'facebook', user: FirebaseUserInfo) => boolean;
   audioActive: boolean;
   onToggleAudio: () => void;
 }
@@ -29,59 +30,39 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   language,
   onLanguageChange,
+  onLoginSuccess,
   onFirebaseAuthSuccess,
   audioActive,
   onToggleAudio,
 }) => {
   const t = getTranslation(language);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('9876543210');
   const [step, setStep] = useState<'phone_input' | 'otp_verify'>('phone_input');
   const [otp, setOtp] = useState('');
-  const [phoneConfirmation, setPhoneConfirmation] = useState<FirebasePhoneConfirmation | null>(null);
-  const [sendingPhoneOtp, setSendingPhoneOtp] = useState(false);
   const [authError, setAuthError] = useState('');
   const [socialLoading, setSocialLoading] = useState<'google' | 'facebook' | null>(null);
-  const [verifyingPhoneOtp, setVerifyingPhoneOtp] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(isFirebaseConfigured);
   const handledUidRef = useRef('');
 
-  const handleSendOtp = async (event: React.FormEvent) => {
+  const handleSendOtp = (event: React.FormEvent) => {
     event.preventDefault();
     if (phoneNumber.replace(/\D/g, '').length !== 10) return;
     setAuthError('');
-    setSendingPhoneOtp(true);
-    try {
-      const confirmation = await sendPhoneOtp(`+91${phoneNumber}`, language);
-      setPhoneConfirmation(confirmation);
-      setOtp('');
-      setStep('otp_verify');
-      if (audioActive) speakText(language === 'hi' ? 'आपके मोबाइल पर OTP भेजा गया है।' : 'An OTP was sent to your mobile number.', language);
-    } catch (error) {
-      setAuthError(socialErrorText(error));
-      clearPhoneRecaptcha();
-    } finally {
-      setSendingPhoneOtp(false);
-    }
+    setOtp('');
+    setStep('otp_verify');
+    if (audioActive) speakText('Your demo OTP is 4 8 1 2.', language);
   };
 
-  const handleVerifyOtp = async (event: React.FormEvent) => {
+  const handleVerifyOtp = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!phoneConfirmation || otp.length !== 6) {
+    if (otp !== '4812') {
       setAuthError(uiText(language, 'invalidOtpLogin'));
       return;
     }
     setAuthError('');
-    setVerifyingPhoneOtp(true);
-    try {
-      const result = await phoneConfirmation.confirm(otp);
-      handleOAuthUser('phone', result.user);
-      setPhoneConfirmation(null);
-      clearPhoneRecaptcha();
-    } catch (error) {
-      setAuthError(socialErrorText(error));
-    } finally {
-      setVerifyingPhoneOtp(false);
+    if (!onLoginSuccess('phone', `+91 ${phoneNumber}`, authMode === 'signup')) {
+      setAuthError(uiText(language, authMode === 'signup' ? 'accountExists' : 'accountMissing'));
     }
   };
 
@@ -108,7 +89,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     return code ? `${messages.generic} (${code})` : messages.generic;
   };
 
-  const handleOAuthUser = (method: 'phone' | 'google' | 'facebook', user: FirebaseUserInfo) => {
+  const handleOAuthUser = (method: 'google' | 'facebook', user: FirebaseUserInfo) => {
     if (handledUidRef.current === user.uid) return;
     handledUidRef.current = user.uid;
     setSocialLoading(null);
@@ -126,8 +107,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     let unsubscribe: (() => void) | undefined;
     watchFirebaseAuth((user) => {
       if (user) {
-        const provider = user.providerData.find((item) => item.providerId === 'google.com' || item.providerId === 'facebook.com' || item.providerId === 'phone');
-        if (provider) handleOAuthUser(provider.providerId === 'google.com' ? 'google' : provider.providerId === 'facebook.com' ? 'facebook' : 'phone', user);
+        const provider = user.providerData.find((item) => item.providerId === 'google.com' || item.providerId === 'facebook.com');
+        if (provider) handleOAuthUser(provider.providerId === 'google.com' ? 'google' : 'facebook', user);
       }
       if (!disposed) setCheckingAuth(false);
     }, (error) => {
@@ -177,7 +158,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <div className="flex items-center gap-2">
           <button type="button" onClick={onToggleAudio} aria-label={aiLabel(language).title} title={aiLabel(language).title} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-blue-700 shadow-xs"><Bot className="h-4 w-4" /></button>
           {step === 'otp_verify' && (
-            <button type="button" onClick={() => { setStep('phone_input'); setPhoneConfirmation(null); clearPhoneRecaptcha(); }} className="h-9 px-3 bg-white hover:bg-slate-100 rounded-xl text-xs font-bold text-neutral-800 flex items-center gap-1.5 shadow-xs" title={uiText(language, 'goBack')}>
+            <button type="button" onClick={() => { setStep('phone_input'); setOtp(''); }} className="h-9 px-3 bg-white hover:bg-slate-100 rounded-xl text-xs font-bold text-neutral-800 flex items-center gap-1.5 shadow-xs" title={uiText(language, 'goBack')}>
               <ArrowLeft className="w-4 h-4 text-slate-700" /><span>{uiText(language, 'back')}</span>
             </button>
           )}
@@ -254,12 +235,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 4. MAIN AUTH CARD */}
       <div className="w-full max-w-sm mx-auto space-y-3 text-left">
         <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3.5">
+          <p className="rounded-xl bg-blue-50 px-3 py-2 text-center text-[11px] font-semibold text-blue-800">{uiText(language, 'demoAccess')} <strong>4812</strong></p>
           {authError && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-center text-xs font-bold text-rose-700">{authError}</p>}
           {/* Direct 1-Tap Google Login Button */}
           <button
             type="button"
             onClick={() => void handleSocialLogin('google')}
-            disabled={socialLoading !== null || verifyingPhoneOtp || sendingPhoneOtp || checkingAuth}
+            disabled={socialLoading !== null || checkingAuth}
             className="w-full min-h-[48px] rounded-2xl bg-white hover:bg-slate-50 text-neutral-800 font-bold text-xs flex items-center justify-center gap-2.5 shadow-sm active:scale-98 transition-transform"
           >
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -280,7 +262,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <button
             type="button"
             onClick={() => void handleSocialLogin('facebook')}
-            disabled={socialLoading !== null || verifyingPhoneOtp || sendingPhoneOtp || checkingAuth}
+            disabled={socialLoading !== null || checkingAuth}
             className="w-full min-h-[48px] rounded-2xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs flex items-center justify-center gap-2.5 shadow-sm active:scale-98 transition-transform"
           >
             <svg className="w-5 h-5 fill-white shrink-0" viewBox="0 0 24 24">
@@ -308,10 +290,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   <span className="px-3.5 py-3 text-sm font-black text-slate-500 font-mono">+91</span>
                   <input type="tel" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="98765 43210" className="w-full bg-transparent px-3 py-3 text-base font-black font-mono text-neutral-900 placeholder-slate-400 focus:outline-none tracking-wider" maxLength={10} required />
                 </div>
-                <p className="mt-1 text-[10px] text-slate-500">{language === 'hi' ? 'SMS से सत्यापन कोड भेजा जाएगा। संदेश शुल्क लागू हो सकते हैं।' : 'We will send a verification code by SMS. Message rates may apply.'}</p>
               </div>
-              <button type="submit" disabled={sendingPhoneOtp} className="w-full min-h-[50px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-xs">
-                {sendingPhoneOtp ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <><span>{uiText(language, 'next')}</span><ArrowRight className="w-4 h-4" /></>}
+              <button type="submit" className="w-full min-h-[50px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-xs">
+                <span>{uiText(language, 'next')}</span><ArrowRight className="w-4 h-4" />
               </button>
             </motion.form>
           ) : (
@@ -319,17 +300,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-bold text-slate-600">{uiText(language, 'enterOtp')}</label>
-                  <button type="button" onClick={() => { setStep('phone_input'); setPhoneConfirmation(null); clearPhoneRecaptcha(); }} className="text-xs text-blue-700 hover:underline font-bold">{uiText(language, 'change')}</button>
+                  <button type="button" onClick={() => { setStep('phone_input'); setOtp(''); }} className="text-xs text-blue-700 hover:underline font-bold">{uiText(language, 'change')}</button>
                 </div>
-                <input type="text" inputMode="numeric" autoComplete="one-time-code" aria-label={uiText(language, 'enterOtp')} value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} className="w-full bg-slate-100 rounded-2xl px-4 py-3 text-center text-3xl font-black font-mono tracking-widest text-neutral-900 focus:outline-none shadow-xs" maxLength={6} required />
-                <span className="text-[11px] text-slate-400 block text-center mt-1">{language === 'hi' ? 'SMS द्वारा OTP भेजा गया' : 'Enter the SMS code sent to your phone'}</span>
+                <input type="text" inputMode="numeric" autoComplete="one-time-code" aria-label={uiText(language, 'enterOtp')} value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full bg-slate-100 rounded-2xl px-4 py-3 text-center text-3xl font-black font-mono tracking-widest text-neutral-900 focus:outline-none shadow-xs" maxLength={4} required />
               </div>
-              <button type="submit" disabled={verifyingPhoneOtp} className="w-full min-h-[50px] rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-xs">
-                {verifyingPhoneOtp ? <LoaderCircle className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5 stroke-[3]" />}<span>{authMode === 'signin' ? uiText(language, 'verifyOpenPortal') : uiText(language, 'verifySetProfile')}</span>
+              <button type="submit" className="w-full min-h-[50px] rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-black text-sm flex items-center justify-center gap-2 active:scale-98 transition-transform shadow-xs">
+                <Check className="w-5 h-5 stroke-[3]" /><span>{authMode === 'signin' ? uiText(language, 'verifyOpenPortal') : uiText(language, 'verifySetProfile')}</span>
               </button>
             </motion.form>
           )}
-          <div id="phone-recaptcha" />
+
 
           {/* Explanation badge about 1-time setup */}
           <div className="text-center pt-0.5">

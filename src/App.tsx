@@ -101,8 +101,8 @@ export default function App() {
   }, []);
 
   // Auth & Onboarding Flow states
-  // Firebase Auth in LoginScreen restores the persisted provider session before opening protected app screens.
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Restore a saved demo session after a reload; social sessions are also persisted in the demo app session.
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(savedSession));
   const [authMethod, setAuthMethod] = useState<'phone' | 'google' | 'facebook' | null>(null);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(() => Boolean(savedSession?.onboarded));
   const [tempUserContact, setTempUserContact] = useState<string>(() => savedSession?.contact || '');
@@ -516,6 +516,7 @@ export default function App() {
         <LoginScreen
           language={language}
           onLanguageChange={setLanguage}
+          onLoginSuccess={handleLoginSuccess}
           onFirebaseAuthSuccess={handleFirebaseAuthSuccess}
           audioActive={audioActive}
           onToggleAudio={handleToggleAudio}
