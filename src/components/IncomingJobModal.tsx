@@ -145,7 +145,11 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
 
         {/* ACTION BUTTON */}
         <div className="px-4 pt-1">
-          {hasActiveJob ? (
+          {hasActiveJob && hasQueuedJob ? (
+            <button type="button" disabled className="w-full min-h-[58px] rounded-2xl bg-slate-200 font-black text-sm text-slate-500 cursor-not-allowed">
+              {uiText(language, 'queueFullFinish')}
+            </button>
+          ) : hasActiveJob ? (
             <button
               onClick={() => {
                 if (!isAadhaarVerified) {
@@ -165,7 +169,7 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
             >
               <ListPlus className="w-5 h-5" />
               <span>
-                {uiText(language, 'queueAsNext')}
+                {uiText(language, 'queueNext')}
               </span>
             </button>
           ) : (

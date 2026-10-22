@@ -191,7 +191,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
               className="flex-1 min-h-[48px] rounded-xl font-black text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform"
             >
               <ListPlus className="w-4 h-4" />
-              <span>{uiText(language, 'queueAsNext')}</span>
+              <span>{uiText(language, 'queueNext')}</span>
             </button>
           ) : (
             <button

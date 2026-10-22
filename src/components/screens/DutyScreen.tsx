@@ -5,7 +5,7 @@ import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
 import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
-import { MapPin, Clock3, CircleCheck } from 'lucide-react';
+import { MapPin, Clock3, CircleCheck, ListPlus, Check } from 'lucide-react';
 
 interface DutyScreenProps {
   isOnline: boolean;
@@ -13,6 +13,8 @@ interface DutyScreenProps {
   worker: WorkerProfile;
   language: Language;
   jobs: Job[];
+  activeJob: Job | null;
+  queuedJob?: Job | null;
   onAcceptJob: (job: Job) => void;
   onExpandedChange?: (expanded: boolean) => void;
   onExpansionProgress?: (progress: number, settle?: boolean) => void;
@@ -32,6 +34,8 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   worker,
   language,
   jobs,
+  activeJob,
+  queuedJob,
   onAcceptJob,
   onExpandedChange,
   onExpansionProgress,
@@ -204,6 +208,9 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
               const jobTradeName = localizeTradeName(job.trade, language);
               const title = localizeJobTitle(job, language);
               const rateUnit = uiText(language, job.wageType === 'hourly' ? 'hourlyRate' : job.wageType === 'daily' ? 'dailyRate' : 'totalRate');
+              const isCurrentActive = activeJob?.id === job.id;
+              const isCurrentlyQueued = queuedJob?.id === job.id;
+              const queueIsFull = Boolean(activeJob && queuedJob);
               return (
                 <motion.article key={job.id} layout initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="relative min-h-[208px] rounded-[22px] bg-white px-[15px] pt-[15px] pb-[10px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
                   <span className="inline-flex h-[17px] max-w-[calc(100%-125px)] items-center gap-1 overflow-hidden text-ellipsis whitespace-nowrap rounded-[5px] bg-[rgba(3,192,60,0.22)] px-1 text-[10px] font-semibold leading-none text-[#03c03c]">
@@ -227,11 +234,22 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                     </span>
                   </div>
                   <button
+                    disabled={isCurrentActive || isCurrentlyQueued || (queueIsFull && !isCurrentActive && !isCurrentlyQueued)}
                     onClick={() => onAcceptJob(job)}
-                    className="mt-[10px] flex h-[55px] w-full items-center justify-center gap-[10px] rounded-[15px] bg-[#2d59f0] text-[18px] font-semibold leading-none text-white transition-transform active:scale-[0.98]"
+                    className={`mt-[10px] flex h-[55px] w-full items-center justify-center gap-[10px] rounded-[15px] text-[16px] font-semibold leading-none text-white transition-transform disabled:cursor-not-allowed active:scale-[0.98] ${
+                      isCurrentActive ? 'bg-blue-100 text-blue-900' : isCurrentlyQueued ? 'bg-emerald-100 text-emerald-800' : queueIsFull ? 'bg-slate-300' : activeJob ? 'bg-emerald-600' : 'bg-[#2d59f0]'
+                    }`}
                   >
-                    <CircleCheck className="h-6 w-6 fill-white text-[#2d59f0]" />
-                    {uiText(language, 'acceptJob')}
+                    {isCurrentActive ? <CircleCheck className="h-5 w-5" /> : isCurrentlyQueued ? <Check className="h-5 w-5 stroke-[3]" /> : activeJob ? <ListPlus className="h-5 w-5" /> : <CircleCheck className="h-5 w-5 fill-white text-[#2d59f0]" />}
+                    {isCurrentActive
+                      ? uiText(language, 'activeJob')
+                      : isCurrentlyQueued
+                        ? uiText(language, 'queuedAsNext')
+                        : queueIsFull
+                          ? uiText(language, 'queueFullFinish')
+                          : activeJob
+                            ? uiText(language, 'queueNext')
+                            : uiText(language, 'acceptJob')}
                   </button>
                 </motion.article>
               );

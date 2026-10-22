@@ -686,6 +686,8 @@ export default function App() {
             worker={worker}
             language={language}
             jobs={jobs}
+            activeJob={shift.isActive ? shift.job : null}
+            queuedJob={shift.queuedJob || null}
             onAcceptJob={handleAcceptJob}
             onExpandedChange={setIsWorkListExpanded}
             onExpansionProgress={(progress, settle) => {
