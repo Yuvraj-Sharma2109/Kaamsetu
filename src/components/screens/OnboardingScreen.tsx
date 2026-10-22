@@ -136,6 +136,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     setAadhaarOtpError('');
     setShowOtpModal(false);
     setIsAadhaarVerified(true);
+    setCurrentStep(5);
     if (language === 'hi' && audioActive) {
       speakText('आधार कार्ड सफलतापूर्वक सत्यापित हो गया है!', language);
     }
