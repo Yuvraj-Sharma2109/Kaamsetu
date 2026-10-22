@@ -23,6 +23,9 @@ interface OnboardingScreenProps {
   language: Language;
   onComplete: (profile: Partial<WorkerProfile>) => void;
   initialPhone?: string;
+  initialName?: string;
+  requirePhone?: boolean;
+  verifiedPhone?: string;
   onBackToLogin?: () => void;
   audioActive: boolean;
   onToggleAudio: () => void;
@@ -32,6 +35,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   language,
   onComplete,
   initialPhone = '+91 98765 43210',
+  initialName,
+  requirePhone = false,
+  verifiedPhone = '',
   onBackToLogin,
   audioActive,
   onToggleAudio,
@@ -41,8 +47,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   // Form fields
   const [selectedTrades, setSelectedTrades] = useState<TradeCategory[]>(['mason']);
-  const [name, setName] = useState<string>('Rameshwar Kumar');
+  const [name, setName] = useState<string>(initialName || 'Rameshwar Kumar');
   const [location, setLocation] = useState<string>('Indiranagar, Bangalore');
+  const [contactPhone, setContactPhone] = useState<string>(verifiedPhone || (requirePhone ? '' : initialPhone.replace(/\D/g, '').slice(-10)));
   const [experienceYears, setExperienceYears] = useState<number>(7);
 
   // Dedicated Aadhaar KYC State
@@ -135,8 +142,13 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   const handleFinish = () => {
+    if (requirePhone && contactPhone.replace(/\D/g, '').length !== 10) {
+      setCurrentStep(2);
+      return;
+    }
     onComplete({
       name: name.trim() || 'Rameshwar Kumar',
+      phone: contactPhone.trim(),
       primaryTrade: selectedTrade,
       secondaryTrades: selectedTrades.slice(1),
       experienceYears: experienceYears,
@@ -287,10 +299,21 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-between text-xs text-slate-500">
-                <span>{uiText(language, 'registeredPhone')}:</span>
-                <span className="font-mono text-neutral-900 font-bold">{initialPhone}</span>
-              </div>
+              {requirePhone ? (
+                <div>
+                  <label className="text-xs font-bold text-slate-600 block mb-1">{uiText(language, 'mobileNumber')}</label>
+                  <div className="flex items-center rounded-xl bg-slate-100">
+                    <span className="px-3.5 py-3 text-sm font-black text-slate-500 font-mono">+91</span>
+                    <input type="tel" inputMode="numeric" value={contactPhone} onChange={(event) => setContactPhone(event.target.value.replace(/\D/g, '').slice(-10))} placeholder="98765 43210" minLength={10} maxLength={10} required aria-label={uiText(language, 'mobileNumber')} className="w-full bg-transparent px-3 py-3 text-sm font-black font-mono tracking-wider text-neutral-900 outline-none" />
+                  </div>
+                  <p className="mt-1 text-[10px] text-slate-500">{uiText(language, 'registeredPhone')} — {initialPhone}</p>
+                </div>
+              ) : (
+                <div className="pt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
+                  <span>{uiText(language, 'registeredPhone')}:</span>
+                  <span className="truncate font-mono font-bold text-neutral-900">{verifiedPhone || initialPhone}</span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -592,7 +615,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         {currentStep < 5 ? (
           <button
             type="button"
-            disabled={currentStep === 4 && !isAadhaarVerified}
+            disabled={(currentStep === 2 && requirePhone && contactPhone.replace(/\D/g, '').length !== 10) || (currentStep === 4 && !isAadhaarVerified)}
             onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5)}
             className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
           >

@@ -11,7 +11,6 @@ import {
   AlertTriangle, 
   Check, 
   Bot, 
-  MapPin, 
   ShieldCheck,
   ListPlus,
   Sparkles,
@@ -22,7 +21,6 @@ interface ActiveJobScreenProps {
   shift: ShiftState;
   language: Language;
   onPunchIn: () => void;
-  onArriveAtSite: () => void;
   onPunchOut: () => void;
   onOpenSos: () => void;
   onBrowseJobs: () => void;
@@ -36,7 +34,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   shift,
   language,
   onPunchIn,
-  onArriveAtSite,
   onPunchOut,
   onOpenSos,
   onBrowseJobs,
@@ -46,7 +43,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   onLocationUpdate,
 }) => {
   const [showCallModal, setShowCallModal] = useState<boolean>(false);
-  const [otpSent, setOtpSent] = useState<boolean>(false);
   const [siteOtp, setSiteOtp] = useState<string>('');
   const [enteredOtp, setEnteredOtp] = useState<string>('');
   const [otpError, setOtpError] = useState<string>('');
@@ -55,18 +51,10 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const queuedJob = shift.queuedJob;
 
   useEffect(() => {
-    setOtpSent(false);
-    setSiteOtp('');
+    setSiteOtp(String(Math.floor(1000 + Math.random() * 9000)));
     setEnteredOtp('');
     setOtpError('');
   }, [job?.id]);
-
-  const handleRequestSiteOtp = () => {
-    setSiteOtp(String(Math.floor(1000 + Math.random() * 9000)));
-    setOtpSent(true);
-    setEnteredOtp('');
-    setOtpError('');
-  };
 
   const handleVerifySiteOtp = () => {
     if (enteredOtp !== siteOtp) {
@@ -75,12 +63,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
     }
     setOtpError('');
     onPunchIn();
-  };
-
-  const handleMarkArrived = () => {
-    if (!job) return;
-    onArriveAtSite();
-    onLocationUpdate?.(job.siteName + ', ' + job.landmark);
   };
 
   const handleVoiceNav = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
@@ -113,7 +95,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
     );
   }
 
-  // Arrival must be explicitly confirmed at the selected job site.
   const isArrivedAtSite = shift.status === 'arrived' || shift.status === 'punched_in';
 
   return (
@@ -192,31 +173,13 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
       <div className="relative z-20 -mt-8 shrink-0 px-4 pt-2 pb-[112px] lg:mt-0 lg:min-w-0 lg:px-0 lg:pt-0">
         <JobListingCard job={job} language={language}>
         {shift.status !== 'punched_in' ? (
-          /* ARRIVAL & PUNCH-IN STAGE */
+          /* OTP CHECK-IN STAGE */
           <div className="space-y-3.5">
-            {!isArrivedAtSite ? (
-              <div className="space-y-2">
-                <p className="text-[11px] text-slate-500 text-center">{uiText(language, 'travelBeforeCheckin')}</p>
-                <button
-                  onClick={handleMarkArrived}
-                  className="flex h-[55px] w-full items-center justify-center gap-[10px] rounded-[15px] bg-[#2d59f0] text-[14px] font-semibold leading-none text-white transition-transform active:scale-[0.98]"
-                >
-                  <MapPin className="w-4 h-4" />
-                  <span>{uiText(language, 'arrived')}</span>
-                </button>
-              </div>
-            ) : (
               <div className="space-y-2.5">
                 <div className="flex items-center gap-2 text-xs font-black text-neutral-900">
                   <ShieldCheck className="w-4 h-4 text-[#2d59f0]" />
                   <span>{uiText(language, 'verifyAttendanceOtp')}</span>
                 </div>
-                {!otpSent ? (
-                  <button onClick={handleRequestSiteOtp} className="flex h-[55px] w-full items-center justify-center rounded-[15px] bg-[#2d59f0] text-[14px] font-semibold text-white transition-transform active:scale-[0.98]">
-                    {uiText(language, 'requestSiteOtp')}
-                  </button>
-                ) : (
-                  <>
                     <p className="text-[11px] text-slate-600">{uiText(language, 'demoOtp')} <strong className="font-mono text-neutral-900">{siteOtp}</strong></p>
                     <input
                       inputMode="numeric"
@@ -232,10 +195,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                     <button onClick={handleVerifySiteOtp} disabled={enteredOtp.length !== 4} className="flex h-[55px] w-full items-center justify-center rounded-[15px] bg-[#2d59f0] text-[14px] font-semibold text-white transition-transform active:scale-[0.98] disabled:bg-slate-300">
                       {uiText(language, 'verifyOtpPunchIn')}
                     </button>
-                  </>
-                )}
               </div>
-            )}
           </div>
         ) : (
           /* WORK IN PROGRESS STAGE WITH BACK-TO-BACK QUEUE */

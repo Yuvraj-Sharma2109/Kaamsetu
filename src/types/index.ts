@@ -63,6 +63,8 @@ export interface WorkerProfile {
   id: string;
   name: string;
   phone: string;
+  authEmail?: string;
+  authPhotoURL?: string;
   primaryTrade: TradeCategory;
   secondaryTrades: TradeCategory[];
   experienceYears: number;

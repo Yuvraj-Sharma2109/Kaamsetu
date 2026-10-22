@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { ArrowLeft, Bot, Settings } from 'lucide-react';
 import { MobileFrame } from './components/MobileFrame';
@@ -39,6 +39,7 @@ import { speakText, stopSpeech } from './utils/speech';
 import { aiLabel } from './utils/aiLabels';
 import { localizeJobTitle, localizePlaceText, localizeTradeName } from './utils/uiText';
 import type { AssistantScreenContext } from './components/AiAssistant';
+import { FirebaseUserInfo, isFirebaseConfigured, signOutFirebase, watchFirebaseAuth } from './utils/firebaseAuth';
 
 const DEMO_ACCOUNTS_KEY = 'kaamsetu_demo_accounts';
 const DEMO_SESSION_KEY = 'kaamsetu_demo_session';
@@ -49,7 +50,7 @@ type DemoAccount = {
   shift?: ShiftState; isOnline?: boolean;
 };
 type DemoSession = {
-  contact: string; onboarded: boolean; worker: WorkerProfile; language: Language;
+  contact: string; authMethod?: 'phone' | 'google' | 'facebook'; onboarded: boolean; worker: WorkerProfile; language: Language;
   currentTab: TabType; isOnline: boolean; jobs: Job[]; walletBalance: number;
   transactions: Transaction[]; todayEarnings: number; monthlyEarnings: number; daysWorked: number; shift: ShiftState;
 };
@@ -72,15 +73,40 @@ const readAppLanguage = (): Language => {
 export default function App() {
   const [savedSession] = useState<DemoSession | null>(readDemoSession);
   const [showSplash, setShowSplash] = useState(true);
+  const firebaseSessionSeenRef = useRef(false);
   useEffect(() => {
     const timer = window.setTimeout(() => setShowSplash(false), 1100);
     return () => window.clearTimeout(timer);
   }, []);
+  useEffect(() => {
+    if (!isFirebaseConfigured()) return;
+    let disposed = false;
+    let unsubscribe: (() => void) | undefined;
+    void watchFirebaseAuth((user) => {
+      if (user) {
+        firebaseSessionSeenRef.current = true;
+      } else if (firebaseSessionSeenRef.current) {
+        firebaseSessionSeenRef.current = false;
+        localStorage.removeItem(DEMO_SESSION_KEY);
+        setIsLoggedIn(false);
+        setAuthMethod(null);
+        setHasCompletedOnboarding(false);
+        setIsOnline(false);
+      }
+    }, () => undefined).then((stopWatching) => {
+      if (disposed) stopWatching();
+      else unsubscribe = stopWatching;
+    }).catch(() => undefined);
+    return () => { disposed = true; unsubscribe?.(); };
+  }, []);
 
   // Auth & Onboarding Flow states
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(savedSession));
+  // Firebase Auth in LoginScreen restores the persisted provider session before opening protected app screens.
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authMethod, setAuthMethod] = useState<'phone' | 'google' | 'facebook' | null>(null);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(() => Boolean(savedSession?.onboarded));
   const [tempUserContact, setTempUserContact] = useState<string>(() => savedSession?.contact || '');
+  const [socialDisplayName, setSocialDisplayName] = useState('');
 
   // Core app states
   const [isOnline, setIsOnline] = useState<boolean>(savedSession?.isOnline ?? false);
@@ -115,7 +141,7 @@ export default function App() {
 
   useEffect(() => {
     if (!isLoggedIn || !hasCompletedOnboarding) return;
-    const session: DemoSession = { contact: tempUserContact, onboarded: true, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift };
+    const session: DemoSession = { contact: tempUserContact, authMethod: authMethod || undefined, onboarded: true, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift };
     try {
       localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(session));
       const accounts = readDemoAccounts();
@@ -123,7 +149,7 @@ export default function App() {
         ...account, worker, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, jobs, shift, isOnline,
       } : account)));
     } catch { /* storage may be unavailable */ }
-  }, [isLoggedIn, hasCompletedOnboarding, tempUserContact, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift]);
+  }, [isLoggedIn, authMethod, hasCompletedOnboarding, tempUserContact, worker, language, currentTab, isOnline, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift]);
 
   // Modals & Overlays
   const [incomingJob, setIncomingJob] = useState<Job | null>(null);
@@ -254,16 +280,6 @@ export default function App() {
     }
   };
 
-  // Confirm arrival before requesting the contractor's site OTP.
-  const handleArriveAtSite = () => {
-    if (!shift.job) return;
-    setShift((prev) => ({ ...prev, status: 'arrived' }));
-    setWorker((prev) => ({
-      ...prev,
-      currentLocation: `${shift.job!.siteName}, ${shift.job!.landmark}`,
-    }));
-  };
-
   // Punch in after verifying the site OTP.
   const handlePunchIn = () => {
     const now = new Date();
@@ -381,17 +397,21 @@ export default function App() {
 
   // Login handler
   const handleLoginSuccess = (
-    method: 'phone' | 'google' | 'facebook', 
-    contact?: string, 
+    method: 'phone' | 'google' | 'facebook',
+    contact?: string,
     isNewUser: boolean = false
   ): boolean => {
-    const resolvedContact = contact || (method === 'phone' ? '+91 98765 43210' : `${method}.user@kaamsetu.in`);
-    const accountKey = (value: string) => value.includes('@') ? value.trim().toLowerCase() : value.replace(/\D/g, '').slice(-10);
+    const resolvedContact = contact || (method === 'phone' ? '+91 9876543210' : `${method}.user@kaamsetu.in`);
+    const accountKey = (value: string) => {
+      const normalized = value.trim().toLowerCase();
+      return normalized.includes('@') || normalized.includes(':') ? normalized : normalized.replace(/\D/g, '').slice(-10);
+    };
     const accounts = readDemoAccounts();
     const existingAccount = accounts.find((account) => accountKey(account.contact) === accountKey(resolvedContact));
     if (isNewUser ? Boolean(existingAccount) : !existingAccount) return false;
 
     setIsLoggedIn(true);
+    setAuthMethod(method);
     setTempUserContact(resolvedContact);
 
     const isExistingAccount = !isNewUser;
@@ -443,6 +463,39 @@ export default function App() {
     return true;
   };
 
+  const handleFirebaseAuthSuccess = (method: 'phone' | 'google' | 'facebook', user: FirebaseUserInfo) => {
+    // Match by Firebase UID or a phone number already verified and linked to that same Firebase identity.
+    // Email is deliberately excluded: an email match alone never opens or merges a profile.
+    const accountKey = (value: string) => {
+      const normalized = value.trim().toLowerCase();
+      return normalized.includes('@') || normalized.startsWith('firebase:') || normalized.includes(':')
+        ? normalized
+        : normalized.replace(/\D/g, '').slice(-10);
+    };
+    const verifiedPhone = user.providerData.some(({ providerId }) => providerId === 'phone') ? user.phoneNumber : null;
+    const accountKeys = new Set([`firebase:${user.uid}`, ...(verifiedPhone ? [verifiedPhone] : [])].map(accountKey));
+    const accounts = readDemoAccounts();
+    let existingAccount = accounts.find((account) => accountKeys.has(accountKey(account.contact)));
+    const legacyEmailAccount = user.email
+      ? accounts.find((account) => account.contact.trim().toLowerCase() === user.email!.trim().toLowerCase())
+      : undefined;
+    if (!existingAccount && legacyEmailAccount) {
+      if (!user.emailVerified || !window.confirm('A saved KaamSetu profile uses this verified email. Link that profile to the Firebase account you just verified?')) return false;
+      existingAccount = { ...legacyEmailAccount, contact: `firebase:${user.uid}` };
+      try {
+        localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify([...accounts.filter((account) => account !== legacyEmailAccount), existingAccount]));
+      } catch {
+        return false;
+      }
+    }
+    const contact = existingAccount?.contact || (method === 'phone' && verifiedPhone ? verifiedPhone : `firebase:${user.uid}`);
+    const accountExists = Boolean(existingAccount);
+    setSocialDisplayName(user.displayName || '');
+    if (!handleLoginSuccess(method, contact, !accountExists)) return false;
+    setWorker((current) => ({ ...current, authEmail: user.email || undefined, authPhotoURL: user.photoURL || undefined }));
+    return true;
+  };
+
   // 1. FLOW STAGE: NOT LOGGED IN -> SHOW LOGIN SCREEN
   if (showSplash) {
     return (
@@ -463,7 +516,7 @@ export default function App() {
         <LoginScreen
           language={language}
           onLanguageChange={setLanguage}
-          onLoginSuccess={handleLoginSuccess}
+          onFirebaseAuthSuccess={handleFirebaseAuthSuccess}
           audioActive={audioActive}
           onToggleAudio={handleToggleAudio}
         />
@@ -480,15 +533,21 @@ export default function App() {
           language={language}
           audioActive={audioActive}
           onToggleAudio={handleToggleAudio}
-          initialPhone={tempUserContact}
+          initialPhone={authMethod === 'phone' ? tempUserContact : ''}
+          initialName={socialDisplayName}
+          requirePhone={authMethod !== 'phone'}
           onBackToLogin={() => {
-            setIsLoggedIn(false);
-            setHasCompletedOnboarding(false);
+            void signOutFirebase().finally(() => {
+              setIsLoggedIn(false);
+              setAuthMethod(null);
+              setHasCompletedOnboarding(false);
+            });
           }}
           onComplete={(newProfile) => {
             setWorker((prev) => ({
               ...prev,
               ...newProfile,
+              phone: newProfile.phone || (authMethod === 'phone' ? tempUserContact : prev.phone),
             }));
             setHasCompletedOnboarding(true);
             setCurrentTab('radar');
@@ -499,7 +558,7 @@ export default function App() {
               const accounts = readDemoAccounts();
               const nextAccounts = [...accounts.filter((account) => account.contact !== tempUserContact), { contact: tempUserContact, worker: { ...worker, ...newProfile } }];
               localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify(nextAccounts));
-              localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify({ contact: tempUserContact, onboarded: true, worker: { ...worker, ...newProfile }, language, currentTab: 'radar', isOnline: false, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift } satisfies DemoSession));
+              localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify({ contact: tempUserContact, authMethod: authMethod || undefined, onboarded: true, worker: { ...worker, ...newProfile }, language, currentTab: 'radar', isOnline: false, jobs, walletBalance, transactions, todayEarnings, monthlyEarnings, daysWorked, shift } satisfies DemoSession));
             } catch {}
 
             if (audioActive) {
@@ -667,7 +726,6 @@ export default function App() {
             shift={shift}
             language={language}
             onPunchIn={handlePunchIn}
-            onArriveAtSite={handleArriveAtSite}
             onPunchOut={handlePunchOut}
             onOpenSos={() => setShowSosModal(true)}
             onBrowseJobs={() => setCurrentTab('feed')}
@@ -702,15 +760,18 @@ export default function App() {
             onAddTrade={handleUpdateTrade}
             onLogout={() => {
               localStorage.removeItem(DEMO_SESSION_KEY);
-              setIsLoggedIn(false);
-              setIsOnline(false);
-              stopSpeech();
+              void signOutFirebase().finally(() => {
+                setIsLoggedIn(false);
+                setAuthMethod(null);
+                setIsOnline(false);
+                stopSpeech();
+              });
             }}
             onClearDemoData={() => {
               localStorage.removeItem(DEMO_SESSION_KEY);
               localStorage.removeItem(DEMO_ACCOUNTS_KEY);
               localStorage.removeItem('kaamsetu_onboarded_accounts');
-              setIsLoggedIn(false);
+              void signOutFirebase().finally(() => { setIsLoggedIn(false); setAuthMethod(null); });
               setHasCompletedOnboarding(false);
               setTempUserContact('');
               setWorker(INITIAL_WORKER);
