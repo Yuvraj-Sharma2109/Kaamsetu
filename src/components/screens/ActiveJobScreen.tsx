@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { JobListingCard } from '../JobListingCard';
-import { ShiftState, Language, Job } from '../../types';
+import { ShiftState, Language, Job, WorkerProfile } from '../../types';
 import { aiLabel } from '../../utils/aiLabels';
-import { localizeJobTitle, localizePlaceText, uiText } from '../../utils/uiText';
+import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
 import { 
   Navigation, 
@@ -15,11 +15,15 @@ import {
   ListPlus,
   Sparkles,
   X,
+  MapPin,
+  ChevronsRight,
 } from 'lucide-react';
 
 interface ActiveJobScreenProps {
   shift: ShiftState;
+  worker: WorkerProfile;
   language: Language;
+  onEnterOtp: () => void;
   onPunchIn: () => void;
   onPunchOut: () => void;
   onOpenSos: () => void;
@@ -32,7 +36,9 @@ interface ActiveJobScreenProps {
 
 export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   shift,
+  worker,
   language,
+  onEnterOtp,
   onPunchIn,
   onPunchOut,
   onOpenSos,
@@ -46,6 +52,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const [siteOtp, setSiteOtp] = useState<string>('');
   const [enteredOtp, setEnteredOtp] = useState<string>('');
   const [otpError, setOtpError] = useState<string>('');
+  const [slideProgress, setSlideProgress] = useState(0);
 
   const job = shift.job;
   const queuedJob = shift.queuedJob;
@@ -54,6 +61,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
     setSiteOtp(String(Math.floor(1000 + Math.random() * 9000)));
     setEnteredOtp('');
     setOtpError('');
+    setSlideProgress(0);
   }, [job?.id]);
 
   const handleVerifySiteOtp = () => {
@@ -91,6 +99,87 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
         >
           {uiText(language, 'browseJobs')}
         </button>
+      </div>
+    );
+  }
+
+  if (shift.status !== 'punched_in' && !shift.otpEntryStarted) {
+    return (
+      <div className="relative mx-auto h-full min-h-[560px] w-full max-w-[393px] flex-1 overflow-hidden bg-[#f1f1f1] font-sans select-none md:max-w-2xl lg:max-w-none">
+        <div className="absolute inset-0">
+          <UberMapView
+            language={language}
+            isOnline={true}
+            activeJob={job}
+            incomingJob={null}
+            workerTradeName={job.categoryName}
+            onPositionChange={onLocationUpdate}
+            hideLocationCard
+          />
+        </div>
+
+        <div className="absolute left-4 right-4 top-6 z-20 mx-auto flex min-h-[66px] max-w-[360px] items-center gap-3 rounded-[22px] bg-white px-4 py-2.5 shadow-[0_3px_18px_rgba(0,0,0,0.12)]">
+          <img
+            src={worker.authPhotoURL || '/figma/account_raw_1.jpeg'}
+            onError={(event) => { event.currentTarget.src = '/figma/account_raw_1.jpeg'; }}
+            alt=""
+            className="h-11 w-11 shrink-0 rounded-full object-cover"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-neutral-900">{worker.name}</p>
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-emerald-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{uiText(language, 'online')}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenSos}
+            aria-label={uiText(language, 'emergencySos')}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-300 text-rose-700 active:scale-95"
+          >
+            <AlertTriangle className="h-4 w-4" />
+          </button>
+        </div>
+
+        <article className="absolute bottom-[84px] left-4 right-4 z-20 mx-auto max-w-[360px] rounded-[24px] bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.12)]">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex max-w-[70%] items-center gap-1 rounded-md bg-emerald-100 px-2 py-1 text-[10px] font-semibold text-emerald-700">
+              {localizeTradeName(job.trade, language)}
+            </span>
+            <span className="rounded-xl bg-indigo-50 px-2.5 py-2 text-right text-[10px] font-black leading-tight text-blue-800">
+              {uiText(language, 'taskPay')}<br />₹{job.agreedAmount} {uiText(language, job.wageType === 'hourly' ? 'hourlyRate' : job.wageType === 'daily' ? 'dailyRate' : 'totalRate')}
+            </span>
+          </div>
+          <p className="mt-2 text-xs font-medium text-neutral-700">{job.contractorName}</p>
+          <h2 className="mt-1 line-clamp-2 text-[17px] font-bold leading-5 text-neutral-950">{localizeJobTitle(job, language)}</h2>
+          <p className="mt-3 flex min-w-0 items-center gap-1 text-[11px] text-slate-500">
+            <MapPin className="h-3.5 w-3.5 shrink-0 fill-slate-400 text-slate-400" />
+            <span className="truncate">{localizePlaceText(job.siteName, language)}</span>
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-500">
+            <span className="rounded-md bg-slate-100 px-2 py-1">{job.distanceKm} {uiText(language, 'kmUnit')}</span>
+            <span className="rounded-md bg-slate-100 px-2 py-1">{job.startTime} - {job.endTime}</span>
+          </div>
+          <div className="relative mt-3 h-[54px] overflow-hidden rounded-[15px] border border-dashed border-[#2d59f0] bg-white">
+            <span className="pointer-events-none absolute inset-0 flex items-center justify-center pl-10 text-[14px] font-semibold text-[#587cff]">{uiText(language, 'slideToEnterOtp')}</span>
+            <span style={{ left: `calc((100% - 52px) * ${slideProgress / 100})` }} className="pointer-events-none absolute top-0 z-10 flex h-[52px] w-[52px] items-center justify-center rounded-[14px] bg-[#2d59f0] text-white shadow-md transition-[left] duration-75">
+              <ChevronsRight className="h-7 w-7" />
+            </span>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={slideProgress}
+              onChange={(event) => {
+                const progress = Number(event.target.value);
+                setSlideProgress(progress);
+                if (progress >= 86) onEnterOtp();
+              }}
+              aria-label={uiText(language, 'slideToEnterOtp')}
+              className="absolute inset-0 z-20 h-full w-full cursor-grab appearance-none bg-transparent opacity-[0.01] active:cursor-grabbing"
+            />
+          </div>
+        </article>
       </div>
     );
   }

@@ -14,6 +14,7 @@ interface UberMapViewProps {
   hasArrived?: boolean;
   customLocationText?: string;
   onPositionChange?: (locationName: string) => void;
+  hideLocationCard?: boolean;
 }
 
 export const UberMapView: React.FC<UberMapViewProps> = ({
@@ -27,6 +28,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   hasArrived = false,
   customLocationText,
   onPositionChange,
+  hideLocationCard = false,
 }) => {
   const currentTargetJob = activeJob || incomingJob;
   const displayPreviewJob = suggestedJob || null;
@@ -160,7 +162,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
       </svg>
 
       {/* Floating Dynamic GPS Location Card */}
-      {(activeJob || incomingJob) && <div className="absolute top-3.5 left-4 z-10 flex items-center gap-2 bg-white px-3.5 py-1.5 rounded-full shadow-sm max-w-[270px] truncate animate-in fade-in">
+      {(activeJob || incomingJob) && !hideLocationCard && <div className="absolute top-3.5 left-4 z-10 flex items-center gap-2 bg-white px-3.5 py-1.5 rounded-full shadow-sm max-w-[270px] truncate animate-in fade-in">
         <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
           hasArrived 
             ? 'bg-emerald-500 animate-pulse' 

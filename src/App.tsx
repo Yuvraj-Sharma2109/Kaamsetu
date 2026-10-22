@@ -231,6 +231,7 @@ export default function App() {
       isActive: true,
       job: acceptedJob,
       status: 'traveling',
+      otpEntryStarted: false,
       punchInTime: null,
       punchInPhotoUrl: null,
       punchOutTime: null,
@@ -336,6 +337,7 @@ export default function App() {
       isActive: Boolean(nextJob),
       job: nextJob || null,
       status: nextJob ? 'traveling' : 'completed',
+      otpEntryStarted: false,
       punchInTime: null,
       punchInPhotoUrl: null,
       punchOutTime: timeStr,
@@ -650,7 +652,7 @@ export default function App() {
             <Settings className="h-6 w-6" />
           </button>
         </div>
-      ) : <motion.div
+      ) : currentTab === 'active' ? null : <motion.div
         aria-hidden={currentTab === 'radar' && isWorkListExpanded}
         style={{ y: currentTab === 'radar' ? headerY : 0, opacity: currentTab === 'radar' ? headerOpacity : 1, pointerEvents: currentTab === 'radar' && isWorkListExpanded ? 'none' : 'auto' }}
         className={currentTab === 'radar' ? 'absolute inset-x-0 top-3 z-30' : 'relative z-30'}
@@ -674,7 +676,7 @@ export default function App() {
       </motion.div>}
 
       {/* Screen Body Viewport */}
-      <main className={`${currentTab === 'radar' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : currentTab === 'profile' ? 'absolute inset-x-0 top-[90px] bottom-0 z-10 overflow-hidden' : currentTab === 'active' ? 'absolute inset-x-0 top-[90px] bottom-0 z-10 overflow-x-hidden overflow-y-auto overscroll-contain' : 'relative flex-1 overflow-y-auto'} flex min-h-0 flex-col select-none bg-[#f1f1f1]`}>
+      <main className={`${currentTab === 'radar' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : currentTab === 'profile' ? 'absolute inset-x-0 top-[90px] bottom-0 z-10 overflow-hidden' : currentTab === 'active' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : 'relative flex-1 overflow-y-auto'} flex min-h-0 flex-col select-none bg-[#f1f1f1]`}>
         <AnimatePresence mode="wait" initial={false}>
         {currentTab === 'radar' && (
           <motion.div key="radar" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
@@ -722,10 +724,12 @@ export default function App() {
         )}
 
         {currentTab === 'active' && (
-          <motion.div key="active" className="flex min-h-max flex-none flex-col" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
+          <motion.div key="active" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
           <ActiveJobScreen
             shift={shift}
+            worker={worker}
             language={language}
+            onEnterOtp={() => setShift((prev) => ({ ...prev, otpEntryStarted: true }))}
             onPunchIn={handlePunchIn}
             onPunchOut={handlePunchOut}
             onOpenSos={() => setShowSosModal(true)}
