@@ -51,8 +51,8 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   const handlePlayVoice = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-xs p-3 font-sans select-none">
-      <motion.div initial={{ y: 32, scale: 0.98 }} animate={{ y: 0, scale: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-black/75 backdrop-blur-xs p-3 font-sans select-none">
+      <motion.div initial={{ y: 32, scale: 0.98 }} animate={{ y: 0, scale: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="my-auto w-full max-w-md rounded-3xl bg-white shadow-2xl flex flex-col max-h-[calc(100dvh-1.5rem)] overflow-hidden">
         {/* Header */}
         <div className="bg-slate-50 p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">

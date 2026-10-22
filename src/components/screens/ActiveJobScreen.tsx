@@ -376,8 +376,8 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
 
       {/* Contractor Phone Modal */}
       {showCallModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-xs w-full text-center space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 backdrop-blur-xs p-4">
+          <div className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-xs space-y-4 overflow-y-auto rounded-3xl bg-white p-6 text-center shadow-2xl">
             <div className="w-12 h-12 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center mx-auto shadow-xs">
               <Phone className="w-6 h-6" />
             </div>

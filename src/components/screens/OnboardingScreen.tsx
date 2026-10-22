@@ -641,8 +641,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
       {/* UIDAI OTP BOTTOM SHEET MODAL (Borderless) */}
       {showOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-xs p-3">
-          <div className="w-full max-w-sm bg-white rounded-3xl p-5 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/70 backdrop-blur-xs p-3 sm:items-center">
+          <div className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 space-y-4 shadow-2xl">
             <div className="text-center space-y-1">
               <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center mx-auto shadow-xs">
                 <Lock className="w-6 h-6" />

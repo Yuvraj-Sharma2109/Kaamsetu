@@ -58,9 +58,9 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
   };
 
   return (
-    <div className="mx-auto grid w-full max-w-[393px] flex-1 grid-cols-1 content-start gap-3 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans md:max-w-2xl md:grid-cols-2 md:gap-4 lg:max-w-5xl">
+    <div className="mx-auto grid w-full max-w-[393px] flex-1 grid-cols-1 content-start gap-3 p-4 pb-[112px] select-none bg-[#f1f1f1] font-sans md:max-w-2xl md:grid-cols-2 md:gap-4 lg:max-w-5xl lg:grid-cols-4">
       {/* 1. HERO BALANCE CARD (Borderless White Card) */}
-      <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3 md:h-full">
+      <div className="bg-white rounded-3xl p-5 shadow-sm space-y-3 md:col-span-2 md:h-full lg:col-span-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-neutral-900 text-white flex items-center justify-center font-bold shadow-xs">
@@ -111,7 +111,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
       </div>
 
       {/* 2. STATS STRIP (Borderless) */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 md:col-span-2 lg:col-span-2">
         <div className="bg-white rounded-2xl p-3.5 shadow-sm">
           <span className="text-[10px] text-slate-400 font-bold uppercase block">
             {uiText(language, 'thisMonth')}
@@ -138,7 +138,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
       </div>
 
       {/* 3. RECENT PAYOUTS LIST (Borderless) */}
-      <div className="space-y-2 md:col-span-2">
+      <div className="space-y-2 md:col-span-2 lg:col-span-4">
         <span className="text-xs font-black text-neutral-900 px-1 block">
           {uiText(language, 'recentPayouts')}
         </span>
@@ -188,8 +188,8 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
 
       {/* WITHDRAW MODAL (Borderless) */}
       {showWithdrawModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
-          <div className="bg-white rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/70 backdrop-blur-xs p-3 sm:items-center">
+          <div className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-sm space-y-4 overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 shadow-2xl">
             <div className="flex items-center justify-between pb-1">
               <h3 className="text-base font-black text-neutral-900">
                 {uiText(language, 'withdrawToBank')}
@@ -259,8 +259,8 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
 
       {/* INCOME CERTIFICATE MODAL */}
       {showCertificateModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3">
-          <div className="bg-white rounded-3xl p-5 max-w-sm w-full space-y-3 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 backdrop-blur-xs p-3">
+          <div className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-sm space-y-3 overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 shadow-2xl">
             <div className="flex items-center justify-between pb-1">
               <h3 className="text-sm font-black text-neutral-900">
                 {uiText(language, 'verifiedIncome')}

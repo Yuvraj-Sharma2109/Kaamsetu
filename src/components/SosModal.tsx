@@ -20,8 +20,8 @@ export const SosModal: React.FC<SosModalProps> = ({
   onClose,
 }) => {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 font-sans select-none">
-      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl p-6 space-y-4.5">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 backdrop-blur-xs p-4 font-sans select-none">
+      <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-3xl bg-white shadow-2xl p-6 space-y-4.5">
         {/* Header */}
         <div className="flex items-center justify-between pb-1">
           <div className="flex items-center gap-2.5">

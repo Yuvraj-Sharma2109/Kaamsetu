@@ -676,7 +676,7 @@ export default function App() {
       </motion.div>}
 
       {/* Screen Body Viewport */}
-      <main className={`${currentTab === 'radar' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : currentTab === 'profile' ? 'absolute inset-x-0 top-[90px] bottom-0 z-10 overflow-hidden' : currentTab === 'active' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : 'relative flex-1 overflow-y-auto'} flex min-h-0 flex-col select-none bg-[#f1f1f1]`}>
+      <main className={`${currentTab === 'radar' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-hidden' : currentTab === 'profile' ? 'absolute inset-x-0 top-[90px] bottom-0 z-10 overflow-hidden' : currentTab === 'active' ? 'absolute inset-x-0 top-0 bottom-0 z-10 overflow-x-hidden overflow-y-auto overscroll-contain' : 'relative flex-1 min-h-0 overflow-y-auto overscroll-contain'} flex min-h-0 flex-col select-none bg-[#f1f1f1]`}>
         <AnimatePresence mode="wait" initial={false}>
         {currentTab === 'radar' && (
           <motion.div key="radar" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>

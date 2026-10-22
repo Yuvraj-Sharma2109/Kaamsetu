@@ -172,11 +172,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   return (
     <div id="profile-scroll" className="mx-auto grid min-h-0 w-full max-w-[393px] flex-1 grid-cols-1 content-start gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] font-sans scrollbar-none md:max-w-2xl md:grid-cols-2 lg:max-w-5xl">
-      <section className="relative h-[285px] w-full shrink-0 rounded-[20px] bg-white md:col-span-2 md:flex md:h-auto md:min-h-[180px] md:items-center md:gap-8 md:px-8 md:py-6">
-        <img src={worker.authPhotoURL || '/figma/account_raw_1.jpeg'} onError={(event) => { event.currentTarget.src = '/figma/account_raw_1.jpeg'; }} alt="Worker profile" className="absolute left-1/2 top-[26px] h-[92px] w-[92px] -translate-x-1/2 rounded-full object-cover shadow-md md:static md:shrink-0 md:translate-x-0" />
-        <h2 className="absolute inset-x-3 top-[134px] text-center text-lg font-bold text-black md:static md:inset-auto md:min-w-0 md:flex-1 md:text-left">{worker.name}</h2>
-        <div className="absolute inset-x-[15px] top-[171px] min-h-[97px] rounded-[20px] bg-[#f1f1f1] px-[5px] md:static md:h-auto md:min-w-0 md:flex-1">
-          <div className="flex h-[57px] items-center gap-3 border-b border-[#b5b5b5] px-1.5">
+      <section className="flex w-full shrink-0 flex-col items-center gap-3 rounded-[20px] bg-white p-4 md:col-span-2 md:flex-row md:items-center md:gap-6 md:px-8 md:py-6">
+        <img src={worker.authPhotoURL || '/figma/account_raw_1.jpeg'} onError={(event) => { event.currentTarget.src = '/figma/account_raw_1.jpeg'; }} alt="Worker profile" className="h-[92px] w-[92px] shrink-0 rounded-full object-cover shadow-md" />
+        <h2 className="w-full break-words text-center text-lg font-bold text-black md:min-w-0 md:flex-1 md:text-left">{worker.name}</h2>
+        <div className="w-full min-w-0 rounded-[20px] bg-[#f1f1f1] px-[5px] md:max-w-md">
+          <div className="flex min-h-[57px] items-center gap-3 border-b border-[#b5b5b5] px-1.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white"><Phone className="h-5 w-5 text-black" /></span>
             <span className="text-sm font-medium text-black">{worker.phone}</span>
           </div>
@@ -184,10 +184,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       </section>
 
-      <section className="grid h-[119px] w-full shrink-0 grid-cols-3 gap-[15px] rounded-[20px] bg-white p-[15px] text-center md:col-span-2 md:h-auto">
-        <div className="flex h-[89px] flex-col items-center rounded-lg bg-[#f1f1f1] pt-[11px]"><History className="mb-1 h-6 w-6 text-black" /><span className="text-[12px] font-semibold text-[#8a8a8a]">{copy.experience}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.experienceYears}+</span></div>
-        <div className="flex h-[89px] flex-col items-center rounded-lg bg-[#f1f1f1] pt-[11px]"><Hammer className="mb-1 h-6 w-6 text-black" /><span className="text-[12px] font-semibold text-[#8a8a8a]">{copy.jobs}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.totalJobsCompleted}</span></div>
-        <div className="flex h-[89px] flex-col items-center rounded-lg bg-[#f1f1f1] pt-[11px]"><Star className="mb-1 h-6 w-6 fill-black text-black" /><span className="text-[12px] font-semibold text-[#8a8a8a]">{copy.rating}</span><span className="mt-1 flex items-center gap-1 text-sm font-bold text-[#2d59f0]">{worker.rating}</span></div>
+      <section className="grid w-full shrink-0 grid-cols-3 gap-2 rounded-[20px] bg-white p-3 text-center sm:gap-[15px] sm:p-[15px] md:col-span-2">
+        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><History className="mb-1 h-6 w-6 shrink-0 text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a] sm:text-[12px]">{copy.experience}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.experienceYears}+</span></div>
+        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><Hammer className="mb-1 h-6 w-6 shrink-0 text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a] sm:text-[12px]">{copy.jobs}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.totalJobsCompleted}</span></div>
+        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><Star className="mb-1 h-6 w-6 shrink-0 fill-black text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a] sm:text-[12px]">{copy.rating}</span><span className="mt-1 flex items-center gap-1 text-sm font-bold text-[#2d59f0]">{worker.rating}</span></div>
       </section>
 
       <section aria-label="Registered work trades" className="min-h-[197px] w-full shrink-0 rounded-[20px] bg-white p-[15px]">

@@ -65,8 +65,8 @@ export const IncomingJobModal: React.FC<IncomingJobModalProps> = ({
   const progressPercent = (secondsRemaining / 30) * 100;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 backdrop-blur-xs p-3 select-none font-sans">
-      <motion.div initial={{ y: 40 }} animate={{ y: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col space-y-3 pb-4">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/75 backdrop-blur-xs p-3 select-none font-sans sm:items-center">
+      <motion.div initial={{ y: 40 }} animate={{ y: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-3xl bg-white shadow-2xl flex flex-col space-y-3 pb-4">
         {/* Countdown Bar */}
         <div className="w-full h-2 bg-slate-100">
           <div
