@@ -144,9 +144,17 @@ export async function linkVerifiedPhone(verificationId: string, smsCode: string)
 export async function signInWithSocialProvider(method: 'google' | 'facebook', language: Language): Promise<FirebaseUserInfo | null> {
   const { auth, sdk } = await getFirebaseAuth();
   auth.languageCode = localeFor(language);
-  const provider = method === 'google' ? new sdk.GoogleAuthProvider() : new sdk.FacebookAuthProvider();
-  provider.addScope('email');
-  if (method === 'google') provider.setCustomParameters({ prompt: 'select_account' });
+  let provider: unknown;
+  if (method === 'google') {
+    const googleProvider = new sdk.GoogleAuthProvider();
+    googleProvider.addScope('email');
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
+    provider = googleProvider;
+  } else {
+    const facebookProvider = new sdk.FacebookAuthProvider();
+    facebookProvider.addScope('email');
+    provider = facebookProvider;
+  }
 
   // Redirect sign-in is more reliable than a popup in installed PWAs and mobile browsers.
   const isMobile = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -173,9 +181,14 @@ export async function watchFirebaseAuth(
   onError: (error: unknown) => void,
 ): Promise<() => void> {
   const { auth, sdk } = await getFirebaseAuth();
-  const unsubscribe = sdk.onAuthStateChanged(auth, onUser, onError);
-  void sdk.getRedirectResult(auth).then((result) => { if (result?.user) onUser(result.user); }).catch(onError);
-  return unsubscribe;
+  return sdk.onAuthStateChanged(auth, onUser, onError);
+}
+
+/** Completes the one-time OAuth redirect in the login screen that initiated sign-in. */
+export async function getFirebaseRedirectUser(): Promise<FirebaseUserInfo | null> {
+  const { auth, sdk } = await getFirebaseAuth();
+  const result = await sdk.getRedirectResult(auth);
+  return result?.user ?? null;
 }
 
 export async function signOutFirebase() {
@@ -205,9 +218,17 @@ export async function linkSocialProvider(method: 'google' | 'facebook', language
   const { auth, sdk } = await getFirebaseAuth();
   if (!auth.currentUser) throw new Error('kaamsetu/firebase-user-required');
   auth.languageCode = localeFor(language);
-  const provider = method === 'google' ? new sdk.GoogleAuthProvider() : new sdk.FacebookAuthProvider();
-  provider.addScope('email');
-  if (method === 'google') provider.setCustomParameters({ prompt: 'select_account' });
+  let provider: unknown;
+  if (method === 'google') {
+    const googleProvider = new sdk.GoogleAuthProvider();
+    googleProvider.addScope('email');
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
+    provider = googleProvider;
+  } else {
+    const facebookProvider = new sdk.FacebookAuthProvider();
+    facebookProvider.addScope('email');
+    provider = facebookProvider;
+  }
   const isMobile = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isMobile) {
     await sdk.linkWithRedirect(auth.currentUser, provider);

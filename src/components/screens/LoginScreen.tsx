@@ -16,7 +16,7 @@ import {
   ArrowLeft,
   Check
 } from 'lucide-react';
-import { FirebaseUserInfo, isFirebaseConfigured, signInWithSocialProvider, signOutFirebase, watchFirebaseAuth } from '../../utils/firebaseAuth';
+import { FirebaseUserInfo, getFirebaseRedirectUser, isFirebaseConfigured, signInWithSocialProvider, signOutFirebase, watchFirebaseAuth } from '../../utils/firebaseAuth';
 
 interface LoginScreenProps {
   language: Language;
@@ -119,6 +119,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }).then((stopWatching) => {
       if (disposed) stopWatching();
       else unsubscribe = stopWatching;
+    }).catch((error) => {
+      if (!disposed) {
+        setAuthError(socialErrorText(error));
+        setCheckingAuth(false);
+      }
+    });
+    void getFirebaseRedirectUser().then((user) => {
+      if (disposed || !user) return;
+      const provider = user.providerData.find((item) => item.providerId === 'google.com' || item.providerId === 'facebook.com');
+      if (provider) handleOAuthUser(provider.providerId === 'google.com' ? 'google' : 'facebook', user);
     }).catch((error) => {
       if (!disposed) {
         setAuthError(socialErrorText(error));
