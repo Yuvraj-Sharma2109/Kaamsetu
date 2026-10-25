@@ -50,17 +50,17 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
 
   // Form fields
-  const [selectedTrades, setSelectedTrades] = useState<TradeCategory[]>(['mason']);
-  const [name, setName] = useState<string>(initialName || 'Rameshwar Kumar');
-  const [location, setLocation] = useState<string>('Indiranagar, Bangalore');
+  const [selectedTrades, setSelectedTrades] = useState<TradeCategory[]>(requirePhone ? [] : ['mason']);
+  const [name, setName] = useState<string>(initialName || (requirePhone ? '' : 'Rameshwar Kumar'));
+  const [location, setLocation] = useState<string>(requirePhone ? '' : 'Indiranagar, Bangalore');
   const [contactPhone, setContactPhone] = useState<string>(verifiedPhone || (requirePhone ? '' : initialPhone.replace(/\D/g, '').slice(-10)));
-  const [experienceYears, setExperienceYears] = useState('7');
+  const [experienceYears, setExperienceYears] = useState(requirePhone ? '' : '7');
 
   // Dedicated Aadhaar KYC State
-  const [aadhaarNumber, setAadhaarNumber] = useState<string>('5421 8904 9012');
+  const [aadhaarNumber, setAadhaarNumber] = useState<string>(requirePhone ? '' : '5421 8904 9012');
   const [aadhaarMode, setAadhaarMode] = useState<'otp' | 'photo'>('otp');
   const [showOtpModal, setShowOtpModal] = useState<boolean>(false);
-  const [enteredOtp, setEnteredOtp] = useState<string>('6184');
+  const [enteredOtp, setEnteredOtp] = useState<string>(requirePhone ? '' : '6184');
   const [aadhaarOtpError, setAadhaarOtpError] = useState('');
   const [isAadhaarVerified, setIsAadhaarVerified] = useState<boolean>(false);
   const [hasFrontPhoto, setHasFrontPhoto] = useState<boolean>(false);
@@ -147,8 +147,20 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   const handleFinish = () => {
+    if (!selectedTrades.length) {
+      setCurrentStep(1);
+      return;
+    }
+    if (!name.trim() || !location.trim()) {
+      setCurrentStep(2);
+      return;
+    }
     if (requirePhone && contactPhone.replace(/\D/g, '').length !== 10) {
       setCurrentStep(2);
+      return;
+    }
+    if (experienceYears === '') {
+      setCurrentStep(3);
       return;
     }
     onComplete({
@@ -643,7 +655,12 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         {currentStep < 5 ? (
           <button
             type="button"
-            disabled={(currentStep === 2 && requirePhone && contactPhone.replace(/\D/g, '').length !== 10) || (currentStep === 4 && !isAadhaarVerified)}
+            disabled={
+              (currentStep === 1 && selectedTrades.length === 0)
+              || (currentStep === 2 && (!name.trim() || !location.trim() || (requirePhone && contactPhone.replace(/\D/g, '').length !== 10)))
+              || (currentStep === 3 && experienceYears === '')
+              || (currentStep === 4 && !isAadhaarVerified)
+            }
             onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5)}
             className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
           >
