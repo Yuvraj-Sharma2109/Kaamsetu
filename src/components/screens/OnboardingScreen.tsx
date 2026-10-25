@@ -24,6 +24,8 @@ interface OnboardingScreenProps {
   onComplete: (profile: Partial<WorkerProfile>) => void;
   initialPhone?: string;
   initialName?: string;
+  initialEmail?: string;
+  initialPhotoURL?: string;
   requirePhone?: boolean;
   verifiedPhone?: string;
   onBackToLogin?: () => void;
@@ -36,6 +38,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onComplete,
   initialPhone = '+91 98765 43210',
   initialName,
+  initialEmail = '',
+  initialPhotoURL = '',
   requirePhone = false,
   verifiedPhone = '',
   onBackToLogin,
@@ -50,7 +54,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [name, setName] = useState<string>(initialName || 'Rameshwar Kumar');
   const [location, setLocation] = useState<string>('Indiranagar, Bangalore');
   const [contactPhone, setContactPhone] = useState<string>(verifiedPhone || (requirePhone ? '' : initialPhone.replace(/\D/g, '').slice(-10)));
-  const [experienceYears, setExperienceYears] = useState<number>(7);
+  const [experienceYears, setExperienceYears] = useState('7');
 
   // Dedicated Aadhaar KYC State
   const [aadhaarNumber, setAadhaarNumber] = useState<string>('5421 8904 9012');
@@ -149,10 +153,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     }
     onComplete({
       name: name.trim() || 'Rameshwar Kumar',
-      phone: contactPhone.trim(),
+      phone: requirePhone ? `+91 ${contactPhone.replace(/\D/g, '')}` : contactPhone.trim(),
       primaryTrade: selectedTrade,
       secondaryTrades: selectedTrades.slice(1),
-      experienceYears: experienceYears,
+      experienceYears: Number(experienceYears) || 0,
       currentLocation: location,
       isKycVerified: isAadhaarVerified,
     });
@@ -338,9 +342,27 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                   {uiText(language, 'selectedExperience')}:
                 </span>
                 <span className="font-mono text-neutral-900 font-black text-sm bg-slate-100 px-3 py-1 rounded-xl">
-                  {experienceYears} {uiText(language, 'years')}
+                  {experienceYears || '0'} {uiText(language, 'years')}
                 </span>
               </div>
+
+              <label className="block pt-1 text-xs font-bold text-slate-600" htmlFor="experience-years">
+                {uiText(language, 'workExperience')} ({uiText(language, 'years')})
+                <div className="mt-1.5 flex items-center rounded-xl bg-slate-100 px-3.5 focus-within:ring-2 focus-within:ring-blue-500">
+                  <input
+                    id="experience-years"
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    max="60"
+                    value={experienceYears}
+                    onChange={(event) => setExperienceYears(event.target.value.replace(/\\D/g, '').slice(0, 2))}
+                    placeholder="Enter years of experience"
+                    className="h-12 min-w-0 flex-1 bg-transparent text-base font-black text-neutral-900 outline-none"
+                  />
+                  <span className="text-xs font-bold text-slate-500">{uiText(language, 'years')}</span>
+                </div>
+              </label>
 
               <div className="grid grid-cols-2 gap-2.5 pt-1">
                 {[
@@ -349,12 +371,12 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                   { yr: 5, labelEn: '5 Years', labelHi: '5 साल' },
                   { yr: 8, labelEn: '8+ Years', labelHi: '8+ साल' },
                 ].map(({ yr }) => {
-                  const isSelected = experienceYears === yr;
+                  const isSelected = Number(experienceYears) === yr;
                   return (
                     <motion.button
                       key={yr}
                       type="button"
-                      onClick={() => setExperienceYears(yr)}
+                      onClick={() => setExperienceYears(String(yr))}
                       layout
                       whileTap={{ scale: 0.97 }}
                       transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}
@@ -566,11 +588,16 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             {/* Ready Worker Card (Borderless) */}
             <div className="bg-white rounded-3xl p-5 space-y-3 shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white font-black text-xl flex items-center justify-center shadow-xs">
-                  {name.charAt(0) || 'R'}
-                </div>
-                <div>
+                {initialPhotoURL ? (
+                  <img src={initialPhotoURL} alt="Account profile" referrerPolicy="no-referrer" className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-xs" />
+                ) : (
+                  <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white font-black text-xl flex items-center justify-center shadow-xs">
+                    {name.charAt(0) || 'R'}
+                  </div>
+                )}
+                <div className="min-w-0">
                   <h3 className="text-base font-black text-neutral-900">{name}</h3>
+                  {initialEmail && <p className="truncate text-[11px] font-medium text-slate-500">{initialEmail}</p>}
                   <div className="flex items-center gap-1.5 text-xs text-slate-500">
                     <MapPin className="w-3.5 h-3.5 text-slate-400" />
                     <span>{location}</span>
@@ -591,7 +618,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                     {uiText(language, 'workExperience')}
                   </span>
                   <span className="text-sm font-black text-blue-900 font-mono">
-                    {experienceYears} {uiText(language, 'years')}
+                    {experienceYears || '0'} {uiText(language, 'years')}
                   </span>
                 </div>
               </div>

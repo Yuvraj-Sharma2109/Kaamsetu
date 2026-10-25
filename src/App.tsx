@@ -538,6 +538,8 @@ export default function App() {
           onToggleAudio={handleToggleAudio}
           initialPhone={authMethod === 'phone' ? tempUserContact : ''}
           initialName={socialDisplayName}
+          initialEmail={worker.authEmail || ''}
+          initialPhotoURL={worker.authPhotoURL || ''}
           requirePhone={authMethod !== 'phone'}
           onBackToLogin={() => {
             void signOutFirebase().finally(() => {

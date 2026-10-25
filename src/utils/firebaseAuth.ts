@@ -47,7 +47,10 @@ interface FirebaseAuthSdk {
   getAuth: (app: unknown) => FirebaseAuthInstance;
   setPersistence: (auth: FirebaseAuthInstance, persistence: unknown) => Promise<void>;
   browserLocalPersistence: unknown;
-  GoogleAuthProvider: new () => { addScope: (scope: string) => void };
+  GoogleAuthProvider: new () => {
+    addScope: (scope: string) => void;
+    setCustomParameters: (parameters: Record<string, string>) => void;
+  };
   FacebookAuthProvider: new () => { addScope: (scope: string) => void };
   RecaptchaVerifier: new (auth: FirebaseAuthInstance, container: string, parameters: { size: 'invisible' }) => FirebaseRecaptchaVerifier;
   signInWithPhoneNumber: (auth: FirebaseAuthInstance, phoneNumber: string, verifier: FirebaseRecaptchaVerifier) => Promise<FirebasePhoneConfirmation>;
@@ -143,6 +146,7 @@ export async function signInWithSocialProvider(method: 'google' | 'facebook', la
   auth.languageCode = localeFor(language);
   const provider = method === 'google' ? new sdk.GoogleAuthProvider() : new sdk.FacebookAuthProvider();
   provider.addScope('email');
+  if (method === 'google') provider.setCustomParameters({ prompt: 'select_account' });
 
   // Redirect sign-in is more reliable than a popup in installed PWAs and mobile browsers.
   const isMobile = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -203,6 +207,7 @@ export async function linkSocialProvider(method: 'google' | 'facebook', language
   auth.languageCode = localeFor(language);
   const provider = method === 'google' ? new sdk.GoogleAuthProvider() : new sdk.FacebookAuthProvider();
   provider.addScope('email');
+  if (method === 'google') provider.setCustomParameters({ prompt: 'select_account' });
   const isMobile = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   if (isMobile) {
     await sdk.linkWithRedirect(auth.currentUser, provider);

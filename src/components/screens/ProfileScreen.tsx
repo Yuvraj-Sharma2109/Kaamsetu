@@ -4,7 +4,7 @@ import { TRADES } from '../../data/mockData';
 import { LanguageDropdown } from '../LanguageDropdown';
 import { localizeTradeName } from '../../utils/uiText';
 import { getLinkedSocialProviders, hasLinkedPhoneProvider, isFirebaseConfigured, linkSocialProvider, linkVerifiedPhone, sendPhoneLinkOtp } from '../../utils/firebaseAuth';
-import { Star, LogOut, Languages, Phone, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot } from 'lucide-react';
+import { Star, LogOut, Languages, Phone, Mail, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot } from 'lucide-react';
 
 const PROFILE_COPY: Record<Language, { settings: string; appLanguage: string; assistant: string; assistantHelp: string; aadhaar: string; verified: string; verify: string; experience: string; jobs: string; rating: string; workType: string; logout: string; clearDemo: string; socialMethods: string; connectGoogle: string; connectFacebook: string; connected: string; connect: string; connecting: string }> = {
   en: { settings: 'Settings', appLanguage: 'App language', assistant: 'AI assistance', assistantHelp: 'Ask about jobs, payments, or your account', aadhaar: 'Aadhaar', verified: 'Verified', verify: 'Not verified · Verify', experience: 'Experience', jobs: 'Jobs', rating: 'Rating', workType: 'Work Type', logout: 'Log Out / Switch Worker', clearDemo: 'Clear Demo Data', socialMethods: 'Social sign-in methods', connectGoogle: 'Connect Google', connectFacebook: 'Connect Facebook', connected: 'Connected', connect: 'Connect', connecting: 'Connecting…' },
@@ -178,8 +178,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <div className="w-full min-w-0 rounded-[20px] bg-[#f1f1f1] px-[5px] md:max-w-md">
           <div className="flex min-h-[57px] items-center gap-3 border-b border-[#b5b5b5] px-1.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white"><Phone className="h-5 w-5 text-black" /></span>
-            <span className="text-sm font-medium text-black">{worker.phone}</span>
+            <span className="min-w-0 break-all text-sm font-medium text-black">{worker.phone}</span>
           </div>
+          {worker.authEmail && <div className="flex min-h-[48px] items-center gap-3 border-b border-[#b5b5b5] px-1.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white"><Mail className="h-4 w-4 text-black" /></span>
+            <span className="min-w-0 break-all text-xs font-medium text-black">{worker.authEmail}</span>
+          </div>}
           <button type="button" onClick={onOpenAadhaarModal} className="flex min-h-10 w-full items-center gap-2 rounded-lg px-1.5 text-left hover:bg-white/70"><IdCard className="h-4 w-4 shrink-0 text-slate-700" /><span className="flex-1 text-xs font-bold text-slate-900">{copy.aadhaar}</span>{worker.isKycVerified ? <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700"><CheckCircle2 className="h-3 w-3" />{copy.verified}</span> : <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700"><AlertCircle className="h-3 w-3" />{copy.verify}</span>}</button>
         </div>
       </section>
