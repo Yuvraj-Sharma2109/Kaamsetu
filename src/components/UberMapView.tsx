@@ -192,6 +192,10 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
 
   useEffect(() => {
     let active = true;
+    if (mapJob?.locationCoordinates) {
+      setJobPosition(mapJob.locationCoordinates);
+      return () => { active = false; };
+    }
     const address = mapJob
       ? [mapJob.locationAddress, mapJob.siteName, 'Bengaluru, India'].join(', ')
       : workerLocation;
@@ -203,7 +207,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
       else setFallbackPosition({ lat: place.lat, lon: place.lon });
     });
     return () => { active = false; };
-  }, [mapJob?.id, workerLocation]);
+  }, [mapJob?.id, mapJob?.locationCoordinates?.lat, mapJob?.locationCoordinates?.lon, workerLocation]);
 
   useEffect(() => {
     const map = mapInstance.current;

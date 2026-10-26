@@ -36,6 +36,9 @@ export interface Job {
   contractorPhone: string;
   siteName: string;
   locationAddress: string;
+  locationCoordinates?: GeoPoint;
+  isDemo?: boolean;
+  demoSourceId?: string;
   landmark: string;
   distanceKm: number;
   travelTimeMin: number;
