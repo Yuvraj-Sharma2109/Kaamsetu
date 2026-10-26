@@ -112,7 +112,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             isOnline={true}
             activeJob={job}
             incomingJob={null}
-            workerTradeName={job.categoryName}
+            workerLocation={worker.currentLocation}
             onPositionChange={onLocationUpdate}
             hideLocationCard
           />
@@ -232,7 +232,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           isOnline={true}
           activeJob={job}
           incomingJob={null}
-          workerTradeName={job.categoryName}
+          workerLocation={worker.currentLocation}
           hasArrived={isArrivedAtSite}
           customLocationText={isArrivedAtSite ? localizePlaceText(job.siteName, language) : undefined}
           onPositionChange={onLocationUpdate}

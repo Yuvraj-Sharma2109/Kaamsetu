@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { animate, motion, useMotionValue } from 'motion/react';
 import { Job, Language, WorkerProfile } from '../../types';
-import { TRADES } from '../../data/mockData';
 import { getTranslation } from '../../utils/i18n';
 import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
@@ -52,8 +51,6 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   const previewHeight = Math.min(337, Math.max(compactPanelHeight, screenHeight * 0.52));
   const searchHeight = Math.min(226, Math.max(150, screenHeight * 0.28));
   const expandedHeight = Math.max(previewHeight, screenHeight - 124);
-  const trade = TRADES.find((item) => item.id === worker.primaryTrade) || TRADES[0];
-  const tradeName = localizeTradeName(trade.id, language);
   const availableJobs = jobs.filter((job) =>
     job.trade === worker.primaryTrade || worker.secondaryTrades.includes(job.trade),
   );
@@ -158,7 +155,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           activeJob={null}
           incomingJob={null}
           suggestedJob={null}
-          workerTradeName={tradeName}
+          workerLocation={worker.currentLocation}
         />
       </div>
 

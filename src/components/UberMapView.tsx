@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Job, Language } from '../types';
 import { localizeJobTitle, localizePlaceText, uiText } from '../utils/uiText';
-import { MapPin, Navigation, Radio, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { geocodePlace } from '../utils/places';
+import { MapPin, Navigation } from 'lucide-react';
 
 interface UberMapViewProps {
   language: Language;
@@ -10,12 +11,15 @@ interface UberMapViewProps {
   incomingJob: Job | null;
   suggestedJob?: Job | null;
   onSelectSite?: (job: Job) => void;
-  workerTradeName: string;
+  workerLocation?: string;
   hasArrived?: boolean;
   customLocationText?: string;
   onPositionChange?: (locationName: string) => void;
   hideLocationCard?: boolean;
 }
+
+interface Coordinates { lat: number; lon: number }
+const BENGALURU: Coordinates = { lat: 12.9716, lon: 77.5946 };
 
 export const UberMapView: React.FC<UberMapViewProps> = ({
   language,
@@ -24,176 +28,103 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   incomingJob,
   suggestedJob,
   onSelectSite,
-  workerTradeName,
+  workerLocation = '',
   hasArrived = false,
   customLocationText,
-  onPositionChange,
   hideLocationCard = false,
 }) => {
   const currentTargetJob = activeJob || incomingJob;
   const displayPreviewJob = suggestedJob || null;
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const onPositionChangeRef = useRef(onPositionChange);
-  useEffect(() => { onPositionChangeRef.current = onPositionChange; }, [onPositionChange]);
+  const mapJob = currentTargetJob || (isOnline ? displayPreviewJob : null);
+  const [workerPosition, setWorkerPosition] = useState<Coordinates | null>(null);
+  const [jobPosition, setJobPosition] = useState<Coordinates | null>(null);
 
-  // This is a schematic map, so derive a stable, job-specific destination from its site name.
-  const siteHash = Array.from(currentTargetJob?.siteName || 'Work Site').reduce(
-    (hash, character) => (hash * 31 + character.charCodeAt(0)) >>> 0,
-    7,
-  );
-  const destination = {
-    x: 70 + (siteHash % 250),
-    y: 75 + (Math.floor(siteHash / 251) % 165),
-  };
-
-  // Route from the worker's schematic origin to this job's distinct site marker.
-  const [dotPos, setDotPos] = useState<{ x: number; y: number }>(
-    hasArrived ? { x: 260, y: 140 } : { x: 200, y: 310 }
-  );
-  const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
-  const [liveStreetName, setLiveStreetName] = useState<string>('');
-
-  // Route labels and turns are tied to the selected job's landmark/address.
-  const routeWaypoints = [
-    { x: 200, y: 310, street: uiText(language, 'departedBase') },
-    { x: 200 + (destination.x - 200) * 0.28, y: 310 + (destination.y - 310) * 0.28, street: currentTargetJob ? localizePlaceText(currentTargetJob.locationAddress.split(',')[0], language) : uiText(language, 'alongRoute') },
-    { x: 200 + (destination.x - 200) * 0.58, y: 310 + (destination.y - 310) * 0.58, street: currentTargetJob ? localizePlaceText(currentTargetJob.landmark, language) : uiText(language, 'approachingSite') },
-    { x: destination.x - 12, y: destination.y + 18, street: currentTargetJob ? localizePlaceText(currentTargetJob.landmark, language) : uiText(language, 'nearJobSite') },
-    { x: destination.x, y: destination.y, street: currentTargetJob ? localizePlaceText(currentTargetJob.siteName, language) : uiText(language, 'workSitePoint') },
-  ];
-
-  // AUTOMATIC DOT MOVEMENT TO WORK SITE WHEN JOB IS SELECTED
   useEffect(() => {
-    if (!activeJob) {
-      // No active job: stay at base
-      setDotPos({ x: 200, y: 310 });
-      setLiveStreetName('');
-      setCurrentStepIndex(0);
-      return;
-    }
+    if (!navigator.geolocation) return;
+    const watchId = navigator.geolocation.watchPosition(
+      ({ coords }) => setWorkerPosition({ lat: coords.latitude, lon: coords.longitude }),
+      () => undefined,
+      { enableHighAccuracy: true, maximumAge: 15000, timeout: 12000 },
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
 
-    if (hasArrived) {
-      // Already arrived on site: lock to site point
-      setDotPos(destination);
-      setLiveStreetName(localizePlaceText(activeJob.siteName, language));
-      return;
-    }
-
-    setDotPos({ x: 200, y: 310 });
-    setCurrentStepIndex(0);
-    setLiveStreetName(uiText(language, 'departedBase'));
-
-    // When job is active and en route: automatically advance dot step-by-step to the work site
-    const moveTimer = setInterval(() => {
-      setCurrentStepIndex((prevIndex) => {
-        // Keep the worker en route until they explicitly confirm arrival.
-        if (prevIndex >= routeWaypoints.length - 2) return prevIndex;
-        const nextIndex = Math.min(prevIndex + 1, routeWaypoints.length - 2);
-        const nextWp = routeWaypoints[nextIndex];
-        setDotPos({ x: nextWp.x, y: nextWp.y });
-        setLiveStreetName(nextWp.street);
-        onPositionChangeRef.current?.(nextWp.street);
-        return nextIndex;
+  useEffect(() => {
+    let active = true;
+    setJobPosition(null);
+    const address = mapJob
+      ? [mapJob.locationAddress, mapJob.siteName, 'Bengaluru, India'].join(', ')
+      : workerLocation;
+    if (address) {
+      void geocodePlace(address).then((place) => {
+        if (active && place) setJobPosition({ lat: place.lat, lon: place.lon });
       });
-    }, 1400);
+    }
+    return () => { active = false; };
+  }, [mapJob?.id, workerLocation]);
 
-    return () => clearInterval(moveTimer);
-  }, [activeJob?.id, hasArrived, language]);
+  const mapCenter = jobPosition || workerPosition || BENGALURU;
+  const embedUrl = useMemo(() => {
+    const otherPoint = jobPosition && workerPosition ? workerPosition : null;
+    const latPadding = otherPoint ? Math.max(0.018, Math.abs(jobPosition!.lat - otherPoint.lat) * 0.25) : 0.018;
+    const lonPadding = otherPoint ? Math.max(0.018, Math.abs(jobPosition!.lon - otherPoint.lon) * 0.25) : 0.018;
+    const latMin = Math.min(mapCenter.lat, otherPoint?.lat ?? mapCenter.lat) - latPadding;
+    const latMax = Math.max(mapCenter.lat, otherPoint?.lat ?? mapCenter.lat) + latPadding;
+    const lonMin = Math.min(mapCenter.lon, otherPoint?.lon ?? mapCenter.lon) - lonPadding;
+    const lonMax = Math.max(mapCenter.lon, otherPoint?.lon ?? mapCenter.lon) + lonPadding;
+    const params = new URLSearchParams({
+      bbox: `${lonMin},${latMin},${lonMax},${latMax}`,
+      layer: 'mapnik',
+      marker: `${mapCenter.lat},${mapCenter.lon}`,
+    });
+    return `https://www.openstreetmap.org/export/embed.html?${params.toString()}`;
+  }, [mapCenter.lat, mapCenter.lon, jobPosition, workerPosition]);
 
-  // Determine current location chip text
-  const locationLabel = customLocationText 
-    ? customLocationText
-    : hasArrived && activeJob
-          ? localizePlaceText(activeJob.siteName, language)
-      : liveStreetName
-        ? liveStreetName
-        : activeJob
-          ? `${uiText(language, 'movingTo')} ${localizePlaceText(activeJob.siteName, language)}`
-          : uiText(language, 'departedBase');
+  const locationLabel = customLocationText || (hasArrived && activeJob
+    ? localizePlaceText(activeJob.siteName, language)
+    : mapJob ? localizePlaceText(mapJob.locationAddress, language) : workerLocation || uiText(language, 'departedBase'));
+  const navigateUrl = useMemo(() => {
+    const destination = mapJob
+      ? `${mapJob.locationAddress}, ${mapJob.siteName}, Bengaluru, India`
+      : workerLocation || 'Bengaluru, India';
+    const params = new URLSearchParams({ api: '1', destination, travelmode: 'driving' });
+    if (workerPosition) params.set('origin', `${workerPosition.lat},${workerPosition.lon}`);
+    else if (workerLocation) params.set('origin', workerLocation);
+    return `https://www.google.com/maps/dir/?${params.toString()}`;
+  }, [mapJob?.id, workerLocation, workerPosition]);
 
   return (
-    <div className="relative w-full h-full min-h-0 overflow-hidden select-none bg-[#f1f1f1]" style={{ backgroundImage: "url('/figma/map_raw_1.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-      {/* Route, worker position, and destination are drawn over the Figma map asset. */}
-      <svg
-        ref={svgRef}
-        className="w-full h-full absolute inset-0"
-        viewBox="0 0 400 500"
-        preserveAspectRatio="xMidYMid slice"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {currentTargetJob && (
-          <polyline
-            points={routeWaypoints.map(({ x, y }) => `${x},${y}`).join(' ')}
-            fill="none"
-            stroke="#2563eb"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="7 7"
-            opacity="0.8"
-          />
-        )}
+    <div className="relative h-full min-h-0 w-full overflow-hidden bg-slate-100">
+      <iframe
+        title={`OpenStreetMap near ${locationLabel}`}
+        src={embedUrl}
+        className="absolute inset-0 h-full w-full border-0"
+        loading="lazy"
+        referrerPolicy="no-referrer"
+      />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/70 to-transparent" />
 
-        {/* Job-specific destination pin */}
-        {currentTargetJob && (
-          <g transform={`translate(${destination.x}, ${destination.y})`}>
-            <circle cx="0" cy="0" r="16" fill={hasArrived ? "#10b981" : "#2563eb"} opacity="0.2" className="animate-ping" />
-            <circle cx="0" cy="0" r="10" fill={hasArrived ? "#10b981" : "#2563eb"} opacity="0.25" />
-            <circle cx="0" cy="0" r="5.5" fill={hasArrived ? "#10b981" : "#2563eb"} stroke="#ffffff" strokeWidth="2" />
-          </g>
-        )}
-
-        {/* AUTOMATIC MOVING WORKER POSITION DOT (Glides along route to site point) */}
-        <g 
-          transform={`translate(${dotPos.x}, ${dotPos.y})`} 
-          className="transition-transform duration-1000 ease-in-out"
-        >
-          {isOnline ? (
-            <>
-              <circle cx="0" cy="0" r="26" fill={hasArrived ? "#10b981" : "#3b82f6"} opacity="0.2" className="animate-ping" />
-              <circle cx="0" cy="0" r="16" fill={hasArrived ? "#10b981" : "#3b82f6"} opacity="0.3" />
-              <circle cx="0" cy="0" r="9" fill={hasArrived ? "#10b981" : "#2563eb"} stroke="#ffffff" strokeWidth="2.5" />
-              <polygon points="0,-14 4,-8 -4,-8" fill={hasArrived ? "#10b981" : "#2563eb"} />
-            </>
-          ) : (
-            <circle cx="0" cy="0" r="9" fill="#94a3b8" stroke="#ffffff" strokeWidth="2.5" />
-          )}
-        </g>
-      </svg>
-
-      {/* Floating Dynamic GPS Location Card */}
-      {(activeJob || incomingJob) && !hideLocationCard && <div className="absolute top-3.5 left-4 z-10 flex items-center gap-2 bg-white px-3.5 py-1.5 rounded-full shadow-sm max-w-[270px] truncate animate-in fade-in">
-        <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-          hasArrived 
-            ? 'bg-emerald-500 animate-pulse' 
-            : activeJob 
-              ? 'bg-blue-600 animate-pulse' 
-              : isOnline
-                ? 'bg-emerald-500 animate-pulse'
-                : 'bg-slate-300'
-        }`} />
-        <span className="text-[11px] font-bold text-neutral-800 truncate">
-          {hasArrived ? `📍 ${locationLabel}` : activeJob ? `🚗 ${locationLabel}` : locationLabel}
-        </span>
+      {!hideLocationCard && <div className="absolute left-3 top-3 z-10 flex max-w-[min(70%,320px)] items-center gap-2 truncate rounded-full bg-white px-3 py-2 shadow-md">
+        <MapPin className="h-4 w-4 shrink-0 text-blue-600" />
+        <span className="truncate text-[11px] font-bold text-neutral-800">{locationLabel}</span>
+        {workerPosition && <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" title="Live location" />}
       </div>}
 
-      {/* Floating Job Match Pin Card */}
+      {mapJob && <a href={navigateUrl} target="_blank" rel="noreferrer" className="absolute left-3 top-[58px] z-10 inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-700 px-4 text-xs font-black text-white shadow-lg hover:bg-blue-800">
+        <Navigation className="h-4 w-4" /> Navigate
+      </a>}
+
       {isOnline && !currentTargetJob && displayPreviewJob && (
-        <div 
-          onClick={() => onSelectSite?.(displayPreviewJob)}
-          className="absolute top-14 right-4 z-10 bg-white shadow-md rounded-2xl p-3 max-w-[170px] animate-in fade-in cursor-pointer hover:shadow-lg transition-shadow"
-        >
-          <div className="flex items-center justify-between text-[10px] text-slate-500 font-semibold mb-1">
-            <span>{displayPreviewJob.distanceKm} {uiText(language, 'kmAway')}</span>
-            <span className="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md font-bold">{uiText(language, 'matched')}</span>
-          </div>
-          <span className="text-xs font-black text-neutral-900 block truncate">{localizeJobTitle(displayPreviewJob, language)}</span>
-          <div className="mt-1.5 flex items-center justify-between text-xs">
-            <span className="font-black text-blue-900 font-mono">₹{displayPreviewJob.agreedAmount} {uiText(language, 'taskPay')}</span>
-            <span className="text-[10px] font-bold bg-neutral-900 text-white px-2 py-0.5 rounded-md">{uiText(language, 'view')}</span>
-          </div>
-        </div>
+        <button type="button" onClick={() => onSelectSite?.(displayPreviewJob)} className="absolute right-3 top-3 z-10 max-w-[min(48%,220px)] rounded-2xl bg-white p-3 text-left shadow-lg transition-shadow hover:shadow-xl">
+          <span className="mb-1 block text-[10px] font-semibold text-emerald-700">{displayPreviewJob.distanceKm} {uiText(language, 'kmAway')} · {uiText(language, 'matched')}</span>
+          <span className="block truncate text-xs font-black text-neutral-900">{localizeJobTitle(displayPreviewJob, language)}</span>
+          <span className="mt-1 block text-xs font-black text-blue-900">₹{displayPreviewJob.agreedAmount} {uiText(language, 'taskPay')}</span>
+        </button>
       )}
+
+      <div className="absolute bottom-2 right-2 rounded bg-white/90 px-2 py-1 text-[9px] text-slate-600">
+        © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline">OpenStreetMap contributors</a>
+      </div>
     </div>
   );
 };

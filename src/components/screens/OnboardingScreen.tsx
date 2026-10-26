@@ -8,6 +8,7 @@ import { localizeTradeName, uiText } from '../../utils/uiText';
 import { aiLabel } from '../../utils/aiLabels';
 import { clearPhoneRecaptcha } from '../../utils/firebaseAuth';
 import { readProfilePhoto } from '../../utils/profilePhoto';
+import { LocationAutocomplete } from '../LocationAutocomplete';
 import { 
   Wrench, 
   Check, 
@@ -392,14 +393,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 <label className="text-xs font-bold text-slate-600 block mb-1">
                   {uiText(language, 'preferredArea')}
                 </label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Indiranagar, Bangalore"
-                  className="w-full bg-slate-100 rounded-xl px-4 py-3 text-sm font-black text-neutral-900 focus:outline-none"
-                  required
-                />
+                <LocationAutocomplete value={location} onChange={setLocation} language={language} placeholder="e.g. Indiranagar, Bangalore" className="w-full bg-slate-100 rounded-xl px-4 py-3 text-sm font-black text-neutral-900 focus:outline-none" required ariaLabel={uiText(language, 'preferredArea')} />
               </div>
 
               {requirePhone ? (

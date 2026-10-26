@@ -4,6 +4,7 @@ import { TRADES } from '../../data/mockData';
 import { LanguageDropdown } from '../LanguageDropdown';
 import { localizeTradeName, uiText } from '../../utils/uiText';
 import { readProfilePhoto } from '../../utils/profilePhoto';
+import { LocationAutocomplete } from '../LocationAutocomplete';
 import { getLinkedSocialProviders, hasLinkedPhoneProvider, isFirebaseConfigured, linkSocialProvider, linkVerifiedPhone, sendPhoneLinkOtp } from '../../utils/firebaseAuth';
 import { Star, LogOut, Languages, Phone, Mail, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot, ArrowLeft, Save, Pencil, Camera } from 'lucide-react';
 
@@ -208,7 +209,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </label>
             <label className="block text-xs font-bold text-slate-600">
               {uiText(language, 'preferredArea')}
-              <input required value={draftLocation} onChange={(event) => setDraftLocation(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500" />
+              <div className="mt-1.5"><LocationAutocomplete value={draftLocation} onChange={setDraftLocation} language={language} className="h-12 w-full rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500" required ariaLabel={uiText(language, 'preferredArea')} /></div>
             </label>
             <label className="block text-xs font-bold text-slate-600">
               {uiText(language, 'workExperience')} ({uiText(language, 'years')})
