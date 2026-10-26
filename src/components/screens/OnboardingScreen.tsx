@@ -6,7 +6,7 @@ import { getTranslation } from '../../utils/i18n';
 import { speakText } from '../../utils/speech';
 import { localizeTradeName, uiText } from '../../utils/uiText';
 import { aiLabel } from '../../utils/aiLabels';
-import { clearPhoneRecaptcha, linkVerifiedPhone, sendPhoneLinkOtp } from '../../utils/firebaseAuth';
+import { clearPhoneRecaptcha } from '../../utils/firebaseAuth';
 import { 
   Wrench, 
   Check, 
@@ -22,12 +22,13 @@ import {
 } from 'lucide-react';
 
 const PHONE_VERIFY_COPY: Record<Language, { title: string; continue: string; send: string; sending: string; enterCode: string; verify: string; verifying: string; sent: string; verified: string; invalid: string; error: string; conflict: string }> = {
-  en: { title: 'Verify mobile number', continue: 'Continue to phone verification', send: 'Send SMS code', sending: 'Sending…', enterCode: 'SMS verification code', verify: 'Verify phone', verifying: 'Verifying…', sent: 'Code sent by SMS.', verified: 'Mobile number verified.', invalid: 'Enter a valid 10-digit mobile number.', error: 'Could not verify this number. Check the code and try again.', conflict: 'This number is already linked to another account.' },
+  en: { title: 'Verify mobile number', continue: 'Continue to phone verification', send: 'Get demo OTP', sending: 'Preparing…', enterCode: 'Enter demo OTP', verify: 'Verify phone', verifying: 'Verifying…', sent: 'Demo OTP is ready.', verified: 'Mobile number verified for this demo.', invalid: 'Enter a valid 10-digit mobile number.', error: 'Incorrect demo OTP. Enter 4812 and try again.', conflict: 'This number is already linked to another account.' },
   hi: { title: 'मोबाइल नंबर सत्यापित करें', continue: 'फोन सत्यापन पर जाएँ', send: 'SMS कोड भेजें', sending: 'भेज रहे हैं…', enterCode: 'SMS सत्यापन कोड', verify: 'फोन सत्यापित करें', verifying: 'सत्यापित हो रहा है…', sent: 'SMS से कोड भेजा गया।', verified: 'मोबाइल नंबर सत्यापित है।', invalid: '10 अंकों का सही मोबाइल नंबर डालें।', error: 'नंबर सत्यापित नहीं हुआ। कोड जाँचकर फिर कोशिश करें।', conflict: 'यह नंबर किसी दूसरे खाते से जुड़ा है।' },
   bn: { title: 'মোবাইল নম্বর যাচাই করুন', continue: 'ফোন যাচাইকরণে এগিয়ে যান', send: 'SMS কোড পাঠান', sending: 'পাঠানো হচ্ছে…', enterCode: 'SMS যাচাইকরণ কোড', verify: 'ফোন যাচাই করুন', verifying: 'যাচাই হচ্ছে…', sent: 'SMS-এ কোড পাঠানো হয়েছে।', verified: 'মোবাইল নম্বর যাচাই হয়েছে।', invalid: 'সঠিক ১০ সংখ্যার মোবাইল নম্বর লিখুন।', error: 'নম্বর যাচাই করা যায়নি। কোড দেখে আবার চেষ্টা করুন।', conflict: 'এই নম্বরটি অন্য একটি অ্যাকাউন্টে যুক্ত আছে।' },
   mr: { title: 'मोबाइल क्रमांक पडताळा', continue: 'फोन पडताळणीसाठी पुढे जा', send: 'SMS कोड पाठवा', sending: 'पाठवत आहे…', enterCode: 'SMS पडताळणी कोड', verify: 'फोन पडताळा', verifying: 'पडताळत आहे…', sent: 'SMS ने कोड पाठवला.', verified: 'मोबाइल क्रमांक पडताळला आहे.', invalid: '१० अंकी योग्य मोबाइल क्रमांक टाका.', error: 'क्रमांक पडताळता आला नाही. कोड तपासून पुन्हा प्रयत्न करा.', conflict: 'हा क्रमांक दुसऱ्या खात्याशी जोडलेला आहे.' },
   te: { title: 'మొబైల్ నంబర్ ధృవీకరణ', continue: 'ఫోన్ ధృవీకరణకు కొనసాగండి', send: 'SMS కోడ్ పంపండి', sending: 'పంపుతోంది…', enterCode: 'SMS ధృవీకరణ కోడ్', verify: 'ఫోన్ ధృవీకరించండి', verifying: 'ధృవీకరిస్తోంది…', sent: 'SMS ద్వారా కోడ్ పంపబడింది.', verified: 'మొబైల్ నంబర్ ధృవీకరించబడింది.', invalid: 'సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి.', error: 'నంబర్ ధృవీకరించలేకపోయాం. కోడ్ తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.', conflict: 'ఈ నంబర్ ఇప్పటికే మరొక ఖాతాకు లింక్ చేయబడింది.' },
 };
+const DEMO_PHONE_OTP = '4812';
 
 interface OnboardingScreenProps {
   language: Language;
@@ -151,17 +152,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     }
     setPhoneVerifyBusy(true);
     setPhoneVerifyMessage('');
-    try {
-      const verificationId = await sendPhoneLinkOtp(`+91${digits}`, language, 'onboarding-phone-recaptcha');
-      setPhoneVerificationId(verificationId);
-      setPhoneOtp('');
-      setPhoneVerifyMessage(PHONE_VERIFY_COPY[language].sent);
-    } catch (error) {
-      const code = (error as { code?: string })?.code;
-      setPhoneVerifyMessage(code ? `${PHONE_VERIFY_COPY[language].error} (${code})` : PHONE_VERIFY_COPY[language].error);
-    } finally {
-      setPhoneVerifyBusy(false);
-    }
+    setPhoneVerificationId('demo');
+    setPhoneOtp('');
+    setPhoneVerifyMessage(PHONE_VERIFY_COPY[language].sent);
+    setPhoneVerifyBusy(false);
   };
 
   const handleVerifyPhoneOtp = async () => {
@@ -169,21 +163,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     setPhoneVerifyBusy(true);
     setPhoneVerifyMessage('');
     try {
-      await linkVerifiedPhone(phoneVerificationId, phoneOtp);
+      if (phoneVerificationId !== 'demo' || phoneOtp !== DEMO_PHONE_OTP) {
+        setPhoneVerifyMessage(PHONE_VERIFY_COPY[language].error);
+        return;
+      }
       setPhoneVerified(true);
       setPhoneVerificationId('');
       setPhoneOtp('');
       setPhoneVerifyMessage(PHONE_VERIFY_COPY[language].verified);
       setCurrentStep(experienceStep);
-    } catch (error) {
-      const code = (error as { code?: string })?.code;
-      const message = code === 'auth/credential-already-in-use'
-        ? PHONE_VERIFY_COPY[language].conflict
-        : code === 'auth/invalid-verification-code'
-          ? PHONE_VERIFY_COPY[language].error
-          : code ? `${PHONE_VERIFY_COPY[language].error} (${code})` : PHONE_VERIFY_COPY[language].error;
-      setPhoneVerifyMessage(message);
-      clearPhoneRecaptcha();
     } finally {
       setPhoneVerifyBusy(false);
     }
@@ -426,7 +414,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 <Phone className="h-4 w-4 shrink-0 text-slate-500" />
                 <span className="font-mono text-sm font-bold text-slate-900">+91 {contactPhone}</span>
               </div>
-              <div id="onboarding-phone-recaptcha" />
               {!phoneVerified && !phoneVerificationId && (
                 <button type="button" disabled={phoneVerifyBusy} onClick={() => void handleSendPhoneOtp()} className="min-h-12 w-full rounded-xl bg-blue-700 px-4 text-sm font-bold text-white disabled:opacity-50">
                   {phoneVerifyBusy ? PHONE_VERIFY_COPY[language].sending : PHONE_VERIFY_COPY[language].send}
@@ -434,9 +421,10 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               )}
               {!phoneVerified && phoneVerificationId && (
                 <div className="space-y-2">
+                  <p className="rounded-lg bg-blue-50 px-3 py-2 text-center text-xs font-semibold text-blue-800">Demo OTP: <strong>{DEMO_PHONE_OTP}</strong></p>
                   <label className="block text-xs font-bold text-slate-600">
                     {PHONE_VERIFY_COPY[language].enterCode}
-                    <input type="text" inputMode="numeric" autoComplete="one-time-code" value={phoneOtp} onChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="••••••" aria-label={PHONE_VERIFY_COPY[language].enterCode} className="mt-1.5 h-12 w-full rounded-xl bg-slate-100 px-3 text-center text-lg font-bold tracking-[0.35em] text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500" />
+                    <input type="text" inputMode="numeric" autoComplete="one-time-code" value={phoneOtp} onChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="••••" aria-label={PHONE_VERIFY_COPY[language].enterCode} className="mt-1.5 h-12 w-full rounded-xl bg-slate-100 px-3 text-center text-lg font-bold tracking-[0.35em] text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500" />
                   </label>
                   <button type="button" disabled={phoneVerifyBusy || phoneOtp.length < 4} onClick={() => void handleVerifyPhoneOtp()} className="min-h-12 w-full rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white disabled:opacity-50">
                     {phoneVerifyBusy ? PHONE_VERIFY_COPY[language].verifying : PHONE_VERIFY_COPY[language].verify}
