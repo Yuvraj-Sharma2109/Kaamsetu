@@ -355,6 +355,7 @@ export default function App() {
       job: nextJob || null,
       status: nextJob ? 'traveling' : 'completed',
       otpEntryStarted: false,
+      startedFromQueue: Boolean(nextJob),
       punchInTime: null,
       punchInPhotoUrl: null,
       punchOutTime: timeStr,

@@ -94,6 +94,7 @@ export interface ShiftState {
   job: Job | null;
   status: 'assigned' | 'traveling' | 'arrived' | 'punched_in' | 'completed';
   otpEntryStarted?: boolean;
+  startedFromQueue?: boolean;
   punchInTime: string | null;
   punchInPhotoUrl: string | null;
   punchOutTime: string | null;

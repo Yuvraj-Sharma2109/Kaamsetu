@@ -59,6 +59,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
 
   const job = shift.job;
   const queuedJob = shift.queuedJob;
+  const continueLabel = ({ en: 'Continue', hi: 'जारी रखें', bn: 'চালিয়ে যান', mr: 'पुढे चला', te: 'కొనసాగించండి' } as Record<Language, string>)[language];
 
   useEffect(() => {
     setSiteOtp(String(Math.floor(1000 + Math.random() * 9000)));
@@ -123,7 +124,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             hasArrived={workerAtWorksite}
             onWorkerAtDestination={() => {
               setWorkerAtWorksite(true);
-              setShowOtpSlideScreen(true);
+              if (!shift.startedFromQueue) setShowOtpSlideScreen(true);
             }}
           />
         </div>
@@ -193,6 +194,15 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                 className="absolute inset-0 z-20 h-full w-full cursor-grab appearance-none bg-transparent opacity-[0.01] active:cursor-grabbing"
               />
             </div>
+          ) : shift.startedFromQueue && workerAtWorksite ? (
+            <button
+              type="button"
+              onClick={() => setShowOtpSlideScreen(true)}
+              className="mt-3 flex min-h-[54px] w-full items-center justify-center gap-2 rounded-[15px] bg-[#2d59f0] px-4 text-sm font-bold text-white shadow-md transition-colors hover:bg-blue-700 active:scale-[0.99]"
+            >
+              <Navigation className="h-4 w-4" />
+              {continueLabel}
+            </button>
           ) : (
             <div className="mt-3 flex min-h-[54px] items-center justify-center gap-2 rounded-[15px] bg-blue-50 px-3 text-center text-sm font-bold text-blue-800">
               <Navigation className="h-4 w-4 shrink-0" />
