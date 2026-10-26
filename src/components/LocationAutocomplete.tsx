@@ -23,7 +23,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [failed, setFailed] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState(false);
-  const [permissionPromptOpen, setPermissionPromptOpen] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
 
   const currentLocationCopy: Record<Language, { action: string; error: string }> = {
@@ -75,8 +74,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setOpen(false);
   };
 
-  const requestCurrentLocation = () => {
-    setPermissionPromptOpen(false);
+  const selectCurrentLocation = () => {
     if (!navigator.geolocation || locating) {
       setLocationError(true);
       return;
@@ -95,11 +93,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setLocating(false);
       setLocationError(true);
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
-  };
-
-  const selectCurrentLocation = () => {
-    setLocationError(false);
-    setPermissionPromptOpen(true);
   };
 
   return (
@@ -137,17 +130,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           <p className="px-3 py-1.5 text-[10px] text-slate-400">Place results © OpenStreetMap contributors</p>
         </div>
       )}
-      {permissionPromptOpen && <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPermissionPromptOpen(false); }}>
-        <section role="dialog" aria-modal="true" aria-labelledby="location-permission-title" className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><LocateFixed className="h-6 w-6" /></div>
-          <h2 id="location-permission-title" className="text-base font-black text-slate-900">{language === 'hi' ? '\u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u0940 \u0905\u0928\u0941\u092e\u0924\u093f \u0926\u0947\u0902' : 'Allow location access'}</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{language === 'hi' ? 'KaamSetu \u0906\u092a\u0915\u093e \u090f\u0930\u093f\u092f\u093e \u092d\u0930\u0928\u0947 \u0914\u0930 \u092a\u093e\u0938 \u0915\u0947 \u0915\u093e\u092e \u0938\u0941\u091d\u093e\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0906\u092a\u0915\u0940 \u092e\u094c\u091c\u0942\u0926\u093e \u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u093e \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0947\u0917\u093e\u0964' : 'KaamSetu uses your current location to fill in your area and recommend nearby work.'}</p>
-          <div className="mt-5 flex gap-2">
-            <button type="button" onClick={() => setPermissionPromptOpen(false)} className="min-h-11 flex-1 rounded-xl bg-slate-100 px-4 text-sm font-bold text-slate-700">{language === 'hi' ? '\u0905\u092d\u0940 \u0928\u0939\u0940\u0902' : 'Not now'}</button>
-            <button type="button" onClick={requestCurrentLocation} className="min-h-11 flex-1 rounded-xl bg-[#2d59f0] px-4 text-sm font-bold text-white">{language === 'hi' ? '\u0906\u0917\u0947 \u092c\u0922\u093c\u0947\u0902' : 'Continue'}</button>
-          </div>
-        </section>
-      </div>}
     </div>
   );
 };
