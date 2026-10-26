@@ -36,11 +36,11 @@ const NEARBY_COPY: Record<Language, { title: string; radius: string; findingLoca
 };
 
 const EXTENDED_JOBS_COPY: Record<Language, { title: string; range: string }> = {
-  en: { title: 'Jobs a little farther away', range: '10–15 km away' },
-  hi: { title: '\u0925\u094b\u0921\u093c\u0940 \u0926\u0942\u0930\u0940 \u092a\u0930 \u0915\u093e\u092e', range: '10–15 \u0915\u093f\u092e\u0940 \u0926\u0942\u0930' },
-  bn: { title: '\u098f\u0995\u099f\u09c1 \u09a6\u09c2\u09b0\u09c7\u09b0 \u0995\u09be\u099c', range: '10–15 \u0995\u09bf\u09ae\u09bf \u09a6\u09c2\u09b0\u09c7' },
-  mr: { title: '\u0925\u094b\u0921\u0940 \u0932\u093e\u0902\u092c\u0935\u0930\u091a\u0940 \u0915\u093e\u092e\u0947', range: '10–15 \u0915\u093f\u092e\u0940 \u0932\u093e\u0902\u092c' },
-  te: { title: '\u0915\u094a\u0902\u091a\u0946\u0902 \u0926\u0942\u0930\u0902\u0932\u094b \u092a\u0928\u0941\u0932\u0941', range: '10–15 \u0915\u093f.\u092e\u0940 \u0926\u0942\u0930\u0902\u0932\u094b' },
+  en: { title: 'More matching jobs nearby', range: 'Over 5 km · up to 15 km' },
+  hi: { title: '\u092a\u093e\u0938 \u092e\u0947\u0902 \u0914\u0930 \u0915\u093e\u092e', range: '5 \u0915\u093f\u092e\u0940 \u0938\u0947 \u0906\u0917\u0947 · 15 \u0915\u093f\u092e\u0940 \u0924\u0915' },
+  bn: { title: '\u0995\u09be\u099b\u09be\u0995\u09be\u099b\u09bf \u0986\u09b0\u0993 \u0995\u09be\u099c', range: '5 \u0995\u09bf\u09ae\u09bf\u09b0 \u09ac\u09c7\u09b6\u09bf · 15 \u0995\u09bf\u09ae\u09bf\u09b0 \u09ae\u09a7\u09cd\u09af\u09c7' },
+  mr: { title: '\u091c\u0935\u0933\u091a\u0940 \u0906\u0923\u0916\u0940 \u0915\u093e\u092e\u0947', range: '5 \u0915\u093f\u092e\u0940\u092a\u0947\u0915\u094d\u0937\u093e \u091c\u093e\u0938\u094d\u0924 · 15 \u0915\u093f\u092e\u0940\u092a\u0930\u094d\u092f\u0902\u0924' },
+  te: { title: '\u0926\u0917\u094d\u0917\u0930\u0932\u094b \u092e\u0930\u093f\u0928\u094d\u0928\u093f \u092a\u0928\u0941\u0932\u0941', range: '5 \u0915\u093f.\u092e\u0940 \u092a\u093e\u0908\u0928 · 15 \u0915\u093f.\u092e\u0940 \u0932\u094b\u092a\u0941' },
 };
 
 export const DutyScreen: React.FC<DutyScreenProps> = ({
@@ -121,7 +121,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
       const position = jobPositions[job.id];
       if (!position) return [];
       const distance = distanceBetweenKm(workerPosition, position);
-      return distance >= 10 && distance <= 15 ? [{ ...job, distanceKm: Math.round(distance * 10) / 10 }] : [];
+      return distance > 5 && distance <= 15 ? [{ ...job, distanceKm: Math.round(distance * 10) / 10 }] : [];
     }).sort((a, b) => a.distanceKm - b.distanceKm)
     : [];
   const nearbyRecommendation = availableJobs[0] || null;
