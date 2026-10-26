@@ -49,7 +49,13 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       {/* Left: Worker profile summary */}
       <div role="button" tabIndex={0} onClick={onOpenProfile} onKeyDown={(event) => event.key === 'Enter' && onOpenProfile?.()} className="flex items-center gap-2.5 min-w-0 cursor-pointer">
         <div className="relative shrink-0">
-          <img src="/figma/account_raw_1.jpeg" alt="" className="w-[45px] h-[45px] rounded-full object-cover" />
+          <img
+            src={worker.authPhotoURL || '/figma/account_raw_1.jpeg'}
+            onError={(event) => { event.currentTarget.src = '/figma/account_raw_1.jpeg'; }}
+            alt={`${worker.name} profile`}
+            referrerPolicy="no-referrer"
+            className="w-[45px] h-[45px] rounded-full object-cover"
+          />
           {/* Status dot (Pastel green when online) */}
           <span
             className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${
