@@ -160,6 +160,15 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   }, [activeJob?.id]);
 
   useEffect(() => {
+    if (!hasArrived) return;
+    setNavigationActive(false);
+    setNavigationOrigin(null);
+    setRoute(null);
+    setRouteLoading(false);
+    if (activeJob?.isDemo && jobPosition) setDemoNavigationPosition(jobPosition);
+  }, [hasArrived, activeJob?.isDemo, jobPosition]);
+
+  useEffect(() => {
     if (!mapElement.current || mapInstance.current) return;
     const map = createMap(mapElement.current, { zoomControl: false, attributionControl: false, preferCanvas: true }).setView([DEFAULT_CENTER.lat, DEFAULT_CENTER.lon], 14);
     tileLayer(MAP_TILE_URL, {
@@ -440,7 +449,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
         {workerPosition && <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 ring-2 ring-emerald-100" title="Live location" />}
       </div>}
 
-      {mapJob && !navigationActive && <button type="button" onClick={handleStartNavigation} disabled={!workerPosition || !jobPosition || routeLoading} className="absolute left-3 top-[60px] z-[500] inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#2d59f0] px-4 text-xs font-black text-white shadow-lg transition-colors hover:bg-blue-800 disabled:cursor-wait disabled:bg-slate-400">
+      {mapJob && !navigationActive && !hasArrived && <button type="button" onClick={handleStartNavigation} disabled={!workerPosition || !jobPosition || routeLoading} className="absolute left-3 top-[60px] z-[500] inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#2d59f0] px-4 text-xs font-black text-white shadow-lg transition-colors hover:bg-blue-800 disabled:cursor-wait disabled:bg-slate-400">
         <Navigation className="h-4 w-4" />{routeLoading ? copy.starting : !workerPosition ? copy.locating : !jobPosition ? copy.findingDestination : copy.start}
       </button>}
 
