@@ -137,6 +137,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   const onWorkerAtDestinationRef = useRef(onWorkerAtDestination);
   const [workerPosition, setWorkerPosition] = useState<Coordinates | null>(null);
   const [demoNavigationPosition, setDemoNavigationPosition] = useState<Coordinates | null>(null);
+  const [demoRouteProgress, setDemoRouteProgress] = useState(0);
   const [fallbackPosition, setFallbackPosition] = useState<Coordinates | null>(null);
   const [jobPosition, setJobPosition] = useState<Coordinates | null>(null);
   const [navigationActive, setNavigationActive] = useState(false);
@@ -155,6 +156,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
 
   useEffect(() => {
     setDemoNavigationPosition(null);
+    setDemoRouteProgress(0);
   }, [activeJob?.id]);
 
   useEffect(() => {
@@ -217,14 +219,25 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   useEffect(() => {
     if (!autoNavigate || !activeJob?.isDemo || !navigationActive || !route || hasArrived || route.points.length < 2) return;
     const points = route.points;
-    const durationMs = 8000;
+    const durationMs = 24000;
     const startedAt = performance.now();
     setDemoNavigationPosition({ lat: points[0][0], lon: points[0][1] });
+    setDemoRouteProgress(0);
     const timer = window.setInterval(() => {
       const progress = Math.min(1, (performance.now() - startedAt) / durationMs);
-      const pointProgress = progress * (points.length - 1);
-      const index = Math.min(points.length - 2, Math.floor(pointProgress));
-      const segmentProgress = pointProgress - index;
+      setDemoRouteProgress(progress);
+      const segmentLengths = points.slice(1).map((point, index) => distanceKm(
+        { lat: points[index][0], lon: points[index][1] },
+        { lat: point[0], lon: point[1] },
+      ));
+      const totalLength = segmentLengths.reduce((sum, length) => sum + length, 0) || 1;
+      let remainingLength = progress * totalLength;
+      let index = 0;
+      while (index < segmentLengths.length - 1 && remainingLength > segmentLengths[index]) {
+        remainingLength -= segmentLengths[index];
+        index++;
+      }
+      const segmentProgress = segmentLengths[index] ? Math.min(1, remainingLength / segmentLengths[index]) : 0;
       const current = points[index];
       const next = points[index + 1];
       setDemoNavigationPosition({
@@ -235,7 +248,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
         window.clearInterval(timer);
         onWorkerAtDestinationRef.current?.();
       }
-    }, 200);
+    }, 50);
     return () => window.clearInterval(timer);
   }, [autoNavigate, activeJob?.id, activeJob?.isDemo, navigationActive, route, hasArrived]);
 
@@ -294,8 +307,30 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
     routeLayers.current.forEach((layer) => layer.remove());
     routeLayers.current = [];
     if (!map || !route) return;
-    const casing = polyline(route.points, { color: '#ffffff', weight: 11, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }).addTo(map);
-    const routeLine = polyline(route.points, { color: '#2d59f0', weight: 6, opacity: 0.96, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+    let visiblePoints = route.points;
+    if (activeJob?.isDemo && demoRouteProgress > 0 && demoRouteProgress < 1) {
+      const segmentLengths = route.points.slice(1).map((point, index) => distanceKm(
+        { lat: route.points[index][0], lon: route.points[index][1] },
+        { lat: point[0], lon: point[1] },
+      ));
+      const totalLength = segmentLengths.reduce((sum, length) => sum + length, 0) || 1;
+      let remainingLength = demoRouteProgress * totalLength;
+      let index = 0;
+      while (index < segmentLengths.length - 1 && remainingLength > segmentLengths[index]) {
+        remainingLength -= segmentLengths[index];
+        index++;
+      }
+      const segmentProgress = segmentLengths[index] ? Math.min(1, remainingLength / segmentLengths[index]) : 0;
+      const current = route.points[index];
+      const next = route.points[index + 1];
+      const currentPosition: [number, number] = [
+        current[0] + (next[0] - current[0]) * segmentProgress,
+        current[1] + (next[1] - current[1]) * segmentProgress,
+      ];
+      visiblePoints = [currentPosition, ...route.points.slice(index + 1)];
+    }
+    const casing = polyline(visiblePoints, { color: '#ffffff', weight: 11, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }).addTo(map);
+    const routeLine = polyline(visiblePoints, { color: '#2d59f0', weight: 6, opacity: 0.96, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     let remainingDistance = route.points.slice(1).reduce((total, point, index) => total + distanceKm(
       { lat: route.points[index][0], lon: route.points[index][1] },
       { lat: point[0], lon: point[1] },
@@ -320,7 +355,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
       map.fitBounds(routeLine.getBounds(), { padding: [48, 48], maxZoom: 16, animate: true });
       hasFitRoute.current = true;
     }
-  }, [route]);
+  }, [route, activeJob?.isDemo, demoRouteProgress]);
 
   useEffect(() => {
     if (!navigationActive || !navigationOrigin || !jobPosition) return;
