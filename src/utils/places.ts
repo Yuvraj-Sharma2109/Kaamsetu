@@ -66,3 +66,20 @@ export async function geocodePlace(query: string): Promise<PlaceSuggestion | nul
     return null;
   }
 }
+
+export async function reverseGeocodePlace(point: GeoPoint, language: Language): Promise<PlaceSuggestion | null> {
+  const params = new URLSearchParams({ lat: String(point.lat), lon: String(point.lon), lang: language });
+  try {
+    const response = await fetch(`${PHOTON_API}/reverse?${params}`);
+    if (!response.ok) return null;
+    const payload = await response.json() as PhotonResponse;
+    const feature = payload.features?.[0];
+    const coordinates = feature?.geometry?.coordinates;
+    if (!coordinates) return null;
+    const [lon, lat] = coordinates;
+    const label = getPlaceLabel(feature.properties);
+    return label && Number.isFinite(lat) && Number.isFinite(lon) ? { label, lat, lon } : null;
+  } catch {
+    return null;
+  }
+}
