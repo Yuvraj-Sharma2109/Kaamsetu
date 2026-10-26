@@ -16,6 +16,7 @@ interface UberMapViewProps {
   workerLocation?: string;
   onWorkerPositionChange?: (position: GeoPoint) => void;
   onWorkerPositionError?: () => void;
+  onWorkerAtDestination?: () => void;
   hasArrived?: boolean;
   customLocationText?: string;
   hideLocationCard?: boolean;
@@ -114,7 +115,7 @@ const describeStep = (step: RouteStep | undefined, arrived: boolean, copy: typeo
 
 export const UberMapView: React.FC<UberMapViewProps> = ({
   language, isOnline, activeJob, incomingJob, suggestedJob, onSelectSite,
-  workerLocation = '', onWorkerPositionChange, onWorkerPositionError, hasArrived = false,
+  workerLocation = '', onWorkerPositionChange, onWorkerPositionError, onWorkerAtDestination, hasArrived = false,
   customLocationText, hideLocationCard = false, autoNavigate = false,
 }) => {
   const copy = MAP_COPY[language];
@@ -133,6 +134,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   const firstGpsFix = useRef(false);
   const onWorkerPositionChangeRef = useRef(onWorkerPositionChange);
   const onWorkerPositionErrorRef = useRef(onWorkerPositionError);
+  const onWorkerAtDestinationRef = useRef(onWorkerAtDestination);
   const [workerPosition, setWorkerPosition] = useState<Coordinates | null>(null);
   const [fallbackPosition, setFallbackPosition] = useState<Coordinates | null>(null);
   const [jobPosition, setJobPosition] = useState<Coordinates | null>(null);
@@ -146,7 +148,8 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   useEffect(() => {
     onWorkerPositionChangeRef.current = onWorkerPositionChange;
     onWorkerPositionErrorRef.current = onWorkerPositionError;
-  }, [onWorkerPositionChange, onWorkerPositionError]);
+    onWorkerAtDestinationRef.current = onWorkerAtDestination;
+  }, [onWorkerPositionChange, onWorkerPositionError, onWorkerAtDestination]);
 
   useEffect(() => {
     if (!mapElement.current || mapInstance.current) return;
@@ -198,6 +201,11 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
     setNavigationOrigin(workerPosition);
     setNavigationActive(true);
   }, [autoNavigate, activeJob?.id, hasArrived, navigationActive, workerPosition, jobPosition]);
+
+  useEffect(() => {
+    if (!activeJob || hasArrived || !workerPosition || !jobPosition) return;
+    if (distanceKm(workerPosition, jobPosition) <= 0.1) onWorkerAtDestinationRef.current?.();
+  }, [activeJob?.id, hasArrived, workerPosition, jobPosition]);
 
   useEffect(() => {
     let active = true;

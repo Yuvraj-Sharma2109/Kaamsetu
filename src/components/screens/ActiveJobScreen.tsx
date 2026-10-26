@@ -55,6 +55,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const [otpError, setOtpError] = useState<string>('');
   const [slideProgress, setSlideProgress] = useState(0);
   const [showOtpSlideScreen, setShowOtpSlideScreen] = useState(false);
+  const [workerAtWorksite, setWorkerAtWorksite] = useState(false);
 
   const job = shift.job;
   const queuedJob = shift.queuedJob;
@@ -65,6 +66,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
     setOtpError('');
     setSlideProgress(0);
     setShowOtpSlideScreen(false);
+    setWorkerAtWorksite(false);
   }, [job?.id]);
 
   const handleVerifySiteOtp = () => {
@@ -118,6 +120,11 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             workerLocation={worker.currentLocation}
             hideLocationCard
             autoNavigate
+            hasArrived={workerAtWorksite}
+            onWorkerAtDestination={() => {
+              setWorkerAtWorksite(true);
+              setShowOtpSlideScreen(true);
+            }}
           />
         </div>
 
@@ -187,9 +194,10 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
               />
             </div>
           ) : (
-            <button type="button" onClick={() => setShowOtpSlideScreen(true)} className="mt-3 flex h-[54px] w-full items-center justify-center gap-2 rounded-[15px] bg-[#2d59f0] text-sm font-bold text-white shadow-md transition-colors hover:bg-blue-800">
-              {uiText(language, 'next')}<ChevronsRight className="h-5 w-5" />
-            </button>
+            <div className="mt-3 flex min-h-[54px] items-center justify-center gap-2 rounded-[15px] bg-blue-50 px-3 text-center text-sm font-bold text-blue-800">
+              <Navigation className="h-4 w-4 shrink-0" />
+              <span>{uiText(language, 'headToSite')}</span>
+            </div>
           )}
         </article>
       </div>
@@ -248,9 +256,13 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           activeJob={job}
           incomingJob={null}
           workerLocation={worker.currentLocation}
-          hasArrived={isArrivedAtSite}
+          hasArrived={isArrivedAtSite || workerAtWorksite}
           customLocationText={isArrivedAtSite ? localizePlaceText(job.siteName, language) : undefined}
           autoNavigate
+          onWorkerAtDestination={() => {
+            setWorkerAtWorksite(true);
+            setShowOtpSlideScreen(true);
+          }}
         />
 
         {/* Floating Quick Action Buttons on Map */}
