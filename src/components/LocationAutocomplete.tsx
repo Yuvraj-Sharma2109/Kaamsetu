@@ -23,7 +23,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [failed, setFailed] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState(false);
-  const [locationPermission, setLocationPermission] = useState<PermissionState | 'unknown'>('unknown');
   const requestRef = useRef<AbortController | null>(null);
 
   const currentLocationCopy: Record<Language, { action: string; error: string }> = {
@@ -68,22 +67,6 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
   useEffect(() => () => requestRef.current?.abort(), []);
 
-  useEffect(() => {
-    if (!navigator.permissions?.query) return;
-    let permissionStatus: PermissionStatus | undefined;
-    let active = true;
-    void navigator.permissions.query({ name: 'geolocation' }).then((status) => {
-      if (!active) return;
-      permissionStatus = status;
-      setLocationPermission(status.state);
-      status.onchange = () => setLocationPermission(status.state);
-    }).catch(() => setLocationPermission('unknown'));
-    return () => {
-      active = false;
-      if (permissionStatus) permissionStatus.onchange = null;
-    };
-  }, []);
-
   const selectPlace = (place: PlaceSuggestion) => {
     onChange(place.label);
     onSelect?.(place);
@@ -100,14 +83,9 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setLocationError(true);
       return;
     }
-    if (locationPermission === 'denied') {
-      setLocationError(true);
-      return;
-    }
     setLocating(true);
     setLocationError(false);
     navigator.geolocation.getCurrentPosition(async ({ coords }) => {
-      setLocationPermission('granted');
       const place = await reverseGeocodePlace({ lat: coords.latitude, lon: coords.longitude }, language);
       setLocating(false);
       if (!place) {
@@ -115,9 +93,8 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         return;
       }
       selectPlace(place);
-    }, (error) => {
+    }, () => {
       setLocating(false);
-      if (error.code === error.PERMISSION_DENIED) setLocationPermission('denied');
       setLocationError(true);
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
   };
