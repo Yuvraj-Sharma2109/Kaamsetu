@@ -42,6 +42,89 @@
   background: #eef1ff !important;
 }
 
+.kaamsetu-worker-marker-host,
+.kaamsetu-job-marker-host,
+.kaamsetu-route-arrow-host {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.kaamsetu-map-tiles {
+  filter: saturate(0.7) contrast(0.96) brightness(1.035);
+}
+
+.kaamsetu-worker-marker {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+}
+
+.kaamsetu-worker-marker__pulse {
+  position: absolute;
+  inset: 2px;
+  border: 2px solid rgb(45 89 240 / 34%);
+  border-radius: 999px;
+  background: rgb(45 89 240 / 12%);
+  animation: kaamsetu-location-pulse 1.8s ease-out infinite;
+}
+
+.kaamsetu-worker-marker__core {
+  position: relative;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: #2d59f0;
+  color: #fff;
+  box-shadow: 0 3px 10px rgb(15 23 42 / 30%);
+}
+
+.kaamsetu-worker-marker__core svg {
+  width: 15px;
+  height: 15px;
+  transform: rotate(0deg);
+}
+
+.kaamsetu-job-marker {
+  display: block;
+  width: 36px;
+  height: 44px;
+  color: #ef4757;
+  filter: drop-shadow(0 3px 4px rgb(15 23 42 / 24%));
+}
+
+.kaamsetu-job-marker svg {
+  display: block;
+  width: 36px;
+  height: 44px;
+}
+
+.kaamsetu-route-arrow {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #2d59f0;
+  color: #fff;
+  box-shadow: 0 2px 7px rgb(15 23 42 / 28%);
+}
+
+.kaamsetu-route-arrow svg {
+  width: 15px;
+  height: 15px;
+}
+
+@keyframes kaamsetu-location-pulse {
+  0% { transform: scale(0.76); opacity: 0.9; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
 /* Keep every screen scrollable while hiding scrollbar chrome. */
 * {
   scrollbar-width: none;
