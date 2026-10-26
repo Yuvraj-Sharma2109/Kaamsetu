@@ -136,6 +136,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   const onWorkerPositionErrorRef = useRef(onWorkerPositionError);
   const onWorkerAtDestinationRef = useRef(onWorkerAtDestination);
   const [workerPosition, setWorkerPosition] = useState<Coordinates | null>(null);
+  const [demoNavigationPosition, setDemoNavigationPosition] = useState<Coordinates | null>(null);
   const [fallbackPosition, setFallbackPosition] = useState<Coordinates | null>(null);
   const [jobPosition, setJobPosition] = useState<Coordinates | null>(null);
   const [navigationActive, setNavigationActive] = useState(false);
@@ -144,12 +145,17 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   const [routeLoading, setRouteLoading] = useState(false);
   const [routeError, setRouteError] = useState('');
   const [routeAttempt, setRouteAttempt] = useState(0);
+  const mapWorkerPosition = activeJob?.isDemo ? demoNavigationPosition || workerPosition : workerPosition;
 
   useEffect(() => {
     onWorkerPositionChangeRef.current = onWorkerPositionChange;
     onWorkerPositionErrorRef.current = onWorkerPositionError;
     onWorkerAtDestinationRef.current = onWorkerAtDestination;
   }, [onWorkerPositionChange, onWorkerPositionError, onWorkerAtDestination]);
+
+  useEffect(() => {
+    setDemoNavigationPosition(null);
+  }, [activeJob?.id]);
 
   useEffect(() => {
     if (!mapElement.current || mapInstance.current) return;
@@ -193,8 +199,9 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   // Recalculate after a meaningful GPS change so the route follows the worker.
   useEffect(() => {
     if (!navigationActive || !workerPosition || !navigationOrigin) return;
+    if (activeJob?.isDemo) return;
     if (distanceKm(navigationOrigin, workerPosition) >= 0.04) setNavigationOrigin(workerPosition);
-  }, [navigationActive, workerPosition, navigationOrigin]);
+  }, [activeJob?.id, activeJob?.isDemo, navigationActive, workerPosition, navigationOrigin]);
 
   useEffect(() => {
     if (!autoNavigate || !activeJob || hasArrived || navigationActive || !workerPosition || !jobPosition) return;
@@ -203,9 +210,34 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   }, [autoNavigate, activeJob?.id, hasArrived, navigationActive, workerPosition, jobPosition]);
 
   useEffect(() => {
-    if (!activeJob || hasArrived || !workerPosition || !jobPosition) return;
+    if (!activeJob || activeJob.isDemo || hasArrived || !workerPosition || !jobPosition) return;
     if (distanceKm(workerPosition, jobPosition) <= 0.1) onWorkerAtDestinationRef.current?.();
-  }, [activeJob?.id, hasArrived, workerPosition, jobPosition]);
+  }, [activeJob?.id, activeJob?.isDemo, hasArrived, workerPosition, jobPosition]);
+
+  useEffect(() => {
+    if (!autoNavigate || !activeJob?.isDemo || !navigationActive || !route || hasArrived || route.points.length < 2) return;
+    const points = route.points;
+    const durationMs = 8000;
+    const startedAt = performance.now();
+    setDemoNavigationPosition({ lat: points[0][0], lon: points[0][1] });
+    const timer = window.setInterval(() => {
+      const progress = Math.min(1, (performance.now() - startedAt) / durationMs);
+      const pointProgress = progress * (points.length - 1);
+      const index = Math.min(points.length - 2, Math.floor(pointProgress));
+      const segmentProgress = pointProgress - index;
+      const current = points[index];
+      const next = points[index + 1];
+      setDemoNavigationPosition({
+        lat: current[0] + (next[0] - current[0]) * segmentProgress,
+        lon: current[1] + (next[1] - current[1]) * segmentProgress,
+      });
+      if (progress >= 1) {
+        window.clearInterval(timer);
+        onWorkerAtDestinationRef.current?.();
+      }
+    }, 200);
+    return () => window.clearInterval(timer);
+  }, [autoNavigate, activeJob?.id, activeJob?.isDemo, navigationActive, route, hasArrived]);
 
   useEffect(() => {
     let active = true;
@@ -229,15 +261,15 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   useEffect(() => {
     const map = mapInstance.current;
     if (!map) return;
-    if (workerPosition) {
+    if (mapWorkerPosition) {
       if (!workerMarker.current) {
-        workerMarker.current = marker([workerPosition.lat, workerPosition.lon], {
+        workerMarker.current = marker([mapWorkerPosition.lat, mapWorkerPosition.lon], {
           icon: workerIcon(), zIndexOffset: 1000,
           title: copy.yourLocation,
         }).addTo(map).bindTooltip(markerCopy.worker, { direction: 'top', offset: [0, -18] });
-      } else workerMarker.current.setLatLng([workerPosition.lat, workerPosition.lon]);
+      } else workerMarker.current.setLatLng([mapWorkerPosition.lat, mapWorkerPosition.lon]);
       if (!firstGpsFix.current) {
-        map.setView([workerPosition.lat, workerPosition.lon], 15, { animate: true });
+        map.setView([mapWorkerPosition.lat, mapWorkerPosition.lon], 15, { animate: true });
         firstGpsFix.current = true;
       }
     }
@@ -254,8 +286,8 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
       destinationMarker.current = null;
     }
     if (!workerPosition && !jobPosition && fallbackPosition) map.setView([fallbackPosition.lat, fallbackPosition.lon], 14);
-    if (navigationActive && workerPosition) map.panTo([workerPosition.lat, workerPosition.lon], { animate: true, duration: 0.35 });
-  }, [workerPosition, jobPosition, fallbackPosition, navigationActive, copy.yourLocation, markerCopy.worker, markerCopy.workSite, mapJob?.id]);
+    if (navigationActive && mapWorkerPosition) map.panTo([mapWorkerPosition.lat, mapWorkerPosition.lon], { animate: true, duration: 0.35 });
+  }, [workerPosition, mapWorkerPosition, jobPosition, fallbackPosition, navigationActive, copy.yourLocation, markerCopy.worker, markerCopy.workSite, mapJob?.id]);
 
   useEffect(() => {
     const map = mapInstance.current;
@@ -310,7 +342,20 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
           steps: result.legs?.flatMap((leg) => leg.steps || []) || [],
         });
       })
-      .catch(() => { if (!controller.signal.aborted) setRouteError(copy.routeError); })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        if (activeJob?.isDemo) {
+          // Keep demo navigation usable offline or when the public router is unavailable.
+          const points: [number, number][] = Array.from({ length: 33 }, (_, index) => {
+            const progress = index / 32;
+            return [
+              navigationOrigin.lat + (jobPosition.lat - navigationOrigin.lat) * progress,
+              navigationOrigin.lon + (jobPosition.lon - navigationOrigin.lon) * progress,
+            ];
+          });
+          setRoute({ points, distance: distanceKm(navigationOrigin, jobPosition) * 1000, duration: 60, steps: [] });
+        } else setRouteError(copy.routeError);
+      })
       .finally(() => { if (!controller.signal.aborted) setRouteLoading(false); });
     return () => controller.abort();
   }, [navigationActive, navigationOrigin, jobPosition, copy.routeError, routeAttempt]);
@@ -334,9 +379,9 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   };
 
   const nextStep = useMemo(() => {
-    if (!route || !workerPosition) return route?.steps.find((step) => step.maneuver?.type !== 'depart');
+    if (!route || !mapWorkerPosition) return route?.steps.find((step) => step.maneuver?.type !== 'depart');
     const closestIndex = route.points.reduce((bestIndex, point, index) =>
-      distanceKm(workerPosition, { lat: point[0], lon: point[1] }) < distanceKm(workerPosition, { lat: route.points[bestIndex][0], lon: route.points[bestIndex][1] }) ? index : bestIndex, 0);
+      distanceKm(mapWorkerPosition, { lat: point[0], lon: point[1] }) < distanceKm(mapWorkerPosition, { lat: route.points[bestIndex][0], lon: route.points[bestIndex][1] }) ? index : bestIndex, 0);
     const maneuvers = route.steps.filter((step) => step.maneuver?.type && step.maneuver.type !== 'depart');
     return maneuvers.find((step) => {
       const point = step.maneuver?.location;
@@ -345,7 +390,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
         distanceKm({ lat: point[1], lon: point[0] }, { lat: routePoint[0], lon: routePoint[1] }) < distanceKm({ lat: point[1], lon: point[0] }, { lat: route.points[bestIndex][0], lon: route.points[bestIndex][1] }) ? index : bestIndex, 0);
       return stepIndex >= closestIndex;
     }) || maneuvers[maneuvers.length - 1];
-  }, [route, workerPosition]);
+  }, [route, mapWorkerPosition]);
 
   const locationLabel = customLocationText || (hasArrived && activeJob
     ? localizePlaceText(activeJob.siteName, language)
