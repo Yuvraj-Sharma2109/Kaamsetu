@@ -494,7 +494,7 @@ export default function App() {
     const accountExists = Boolean(existingAccount);
     setSocialDisplayName(user.displayName || '');
     if (!handleLoginSuccess(method, contact, !accountExists)) return false;
-    setWorker((current) => ({ ...current, authEmail: user.email || undefined, authPhotoURL: user.photoURL || undefined }));
+    setWorker((current) => ({ ...current, phone: verifiedPhone || current.phone, authEmail: user.email || undefined, authPhotoURL: user.photoURL || undefined }));
     return true;
   };
 
@@ -536,7 +536,8 @@ export default function App() {
           language={language}
           audioActive={audioActive}
           onToggleAudio={handleToggleAudio}
-          initialPhone={authMethod === 'phone' ? tempUserContact : ''}
+          initialPhone={authMethod === 'phone' ? tempUserContact : worker.phone.startsWith('firebase:') ? '' : worker.phone}
+          verifiedPhone={authMethod !== 'phone' && !worker.phone.startsWith('firebase:') ? worker.phone : ''}
           initialName={socialDisplayName}
           initialEmail={worker.authEmail || ''}
           initialPhotoURL={worker.authPhotoURL || ''}
@@ -764,6 +765,7 @@ export default function App() {
           <motion.div key="profile" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
           <ProfileScreen
             worker={worker}
+            onUpdateProfile={(updates) => setWorker((current) => ({ ...current, ...updates }))}
             language={language}
             onLanguageChange={setLanguage}
             onAddTrade={handleUpdateTrade}

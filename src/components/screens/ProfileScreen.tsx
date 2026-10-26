@@ -2,9 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { WorkerProfile, Language, TradeCategory } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { LanguageDropdown } from '../LanguageDropdown';
-import { localizeTradeName } from '../../utils/uiText';
+import { localizeTradeName, uiText } from '../../utils/uiText';
 import { getLinkedSocialProviders, hasLinkedPhoneProvider, isFirebaseConfigured, linkSocialProvider, linkVerifiedPhone, sendPhoneLinkOtp } from '../../utils/firebaseAuth';
-import { Star, LogOut, Languages, Phone, Mail, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot } from 'lucide-react';
+import { Star, LogOut, Languages, Phone, Mail, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot, ArrowLeft, Save, Pencil } from 'lucide-react';
+
+const PROFILE_EDIT_LABELS: Record<Language, { edit: string; title: string; save: string; cancel: string; phoneNote: string; chooseTrade: string }> = {
+  en: { edit: 'Edit profile', title: 'Edit profile details', save: 'Save changes', cancel: 'Cancel', phoneNote: 'Phone number is read-only here.', chooseTrade: 'Select your work types' },
+  hi: { edit: 'प्रोफ़ाइल संपादित करें', title: 'प्रोफ़ाइल विवरण बदलें', save: 'बदलाव सहेजें', cancel: 'रद्द करें', phoneNote: 'फोन नंबर यहाँ नहीं बदला जा सकता।', chooseTrade: 'अपने काम चुनें' },
+  bn: { edit: 'প্রোফাইল সম্পাদনা', title: 'প্রোফাইলের তথ্য সম্পাদনা', save: 'পরিবর্তন সংরক্ষণ', cancel: 'বাতিল', phoneNote: 'ফোন নম্বর এখানে পরিবর্তন করা যাবে না।', chooseTrade: 'আপনার কাজ নির্বাচন করুন' },
+  mr: { edit: 'प्रोफाइल संपादित करा', title: 'प्रोफाइल तपशील संपादित करा', save: 'बदल जतन करा', cancel: 'रद्द करा', phoneNote: 'फोन क्रमांक येथे बदलता येणार नाही.', chooseTrade: 'तुमची कामे निवडा' },
+  te: { edit: 'ప్రొఫైల్‌ను సవరించండి', title: 'ప్రొఫైల్ వివరాలను సవరించండి', save: 'మార్పులను సేవ్ చేయండి', cancel: 'రద్దు', phoneNote: 'ఫోన్ నంబర్‌ను ఇక్కడ మార్చలేరు.', chooseTrade: 'మీ పనులను ఎంచుకోండి' },
+};
 
 const PROFILE_COPY: Record<Language, { settings: string; appLanguage: string; assistant: string; assistantHelp: string; aadhaar: string; verified: string; verify: string; experience: string; jobs: string; rating: string; workType: string; logout: string; clearDemo: string; socialMethods: string; connectGoogle: string; connectFacebook: string; connected: string; connect: string; connecting: string }> = {
   en: { settings: 'Settings', appLanguage: 'App language', assistant: 'AI assistance', assistantHelp: 'Ask about jobs, payments, or your account', aadhaar: 'Aadhaar', verified: 'Verified', verify: 'Not verified · Verify', experience: 'Experience', jobs: 'Jobs', rating: 'Rating', workType: 'Work Type', logout: 'Log Out / Switch Worker', clearDemo: 'Clear Demo Data', socialMethods: 'Social sign-in methods', connectGoogle: 'Connect Google', connectFacebook: 'Connect Facebook', connected: 'Connected', connect: 'Connect', connecting: 'Connecting…' },
@@ -16,6 +24,7 @@ const PROFILE_COPY: Record<Language, { settings: string; appLanguage: string; as
 
 interface ProfileScreenProps {
   worker: WorkerProfile;
+  onUpdateProfile: (updates: Pick<WorkerProfile, 'name' | 'currentLocation' | 'experienceYears' | 'primaryTrade' | 'secondaryTrades'>) => void;
   language: Language;
   onLanguageChange: (lang: Language) => void;
   onAddTrade: (trade: TradeCategory) => void;
@@ -29,6 +38,7 @@ interface ProfileScreenProps {
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   worker,
+  onUpdateProfile,
   language,
   onLanguageChange,
   onAddTrade,
@@ -50,6 +60,32 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const copy = PROFILE_COPY[language];
   const primaryTrade = TRADES.find((trade) => trade.id === worker.primaryTrade) ?? TRADES[0];
   const registeredTrades = [worker.primaryTrade, ...worker.secondaryTrades];
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [draftName, setDraftName] = useState(worker.name);
+  const [draftLocation, setDraftLocation] = useState(worker.currentLocation);
+  const [draftExperience, setDraftExperience] = useState(String(worker.experienceYears));
+  const [draftTrades, setDraftTrades] = useState<TradeCategory[]>(registeredTrades);
+
+  const startEditingProfile = () => {
+    setDraftName(worker.name);
+    setDraftLocation(worker.currentLocation);
+    setDraftExperience(String(worker.experienceYears));
+    setDraftTrades([worker.primaryTrade, ...worker.secondaryTrades]);
+    setEditingProfile(true);
+  };
+
+  const saveProfile = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!draftName.trim() || !draftLocation.trim() || !draftTrades.length || draftExperience === '') return;
+    onUpdateProfile({
+      name: draftName.trim(),
+      currentLocation: draftLocation.trim(),
+      experienceYears: Number(draftExperience) || 0,
+      primaryTrade: draftTrades[0],
+      secondaryTrades: draftTrades.slice(1),
+    });
+    setEditingProfile(false);
+  };
 
   useEffect(() => {
     if (!showSettings || !isFirebaseConfigured()) return;
@@ -128,6 +164,57 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     }
   };
 
+  if (editingProfile) {
+    const editLabels = PROFILE_EDIT_LABELS[language];
+    return (
+      <div className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-3 overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] pt-2 font-sans md:max-w-2xl lg:max-w-5xl">
+        <header className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
+          <button type="button" onClick={() => setEditingProfile(false)} aria-label={editLabels.cancel} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-800"><ArrowLeft className="h-5 w-5" /></button>
+          <h2 className="min-w-0 flex-1 text-base font-black text-slate-900">{editLabels.title}</h2>
+        </header>
+
+        <form onSubmit={saveProfile} className="space-y-3">
+          <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm">
+            <label className="block text-xs font-bold text-slate-600">
+              {uiText(language, 'fullName')}
+              <input required value={draftName} onChange={(event) => setDraftName(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500" />
+            </label>
+            <label className="block text-xs font-bold text-slate-600">
+              {uiText(language, 'preferredArea')}
+              <input required value={draftLocation} onChange={(event) => setDraftLocation(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500" />
+            </label>
+            <label className="block text-xs font-bold text-slate-600">
+              {uiText(language, 'workExperience')} ({uiText(language, 'years')})
+              <input type="number" inputMode="numeric" min="0" max="60" required value={draftExperience} onChange={(event) => setDraftExperience(event.target.value)} className="mt-1.5 h-12 w-full rounded-xl bg-slate-100 px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500" />
+            </label>
+            <div className="rounded-xl bg-slate-100 p-3">
+              <p className="text-xs font-bold text-slate-700">{uiText(language, 'registeredPhone')}</p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">{worker.phone || '—'}</p>
+              <p className="mt-1 text-[10px] text-slate-500">{editLabels.phoneNote}</p>
+            </div>
+          </section>
+
+          <section className="rounded-2xl bg-white p-4 shadow-sm">
+            <p className="mb-3 text-xs font-bold text-slate-700">{editLabels.chooseTrade}</p>
+            <div className="flex flex-wrap gap-2">
+              {TRADES.map((trade) => {
+                const selected = draftTrades.includes(trade.id);
+                return <button key={trade.id} type="button" aria-pressed={selected} onClick={() => setDraftTrades((current) => selected ? current.filter((item) => item !== trade.id) : [...current, trade.id])} className={`min-h-10 rounded-xl px-3 text-xs font-bold ${selected ? 'bg-blue-700 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                  {localizeTradeName(trade.id, language)}
+                </button>;
+              })}
+            </div>
+          </section>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setEditingProfile(false)} className="min-h-12 rounded-xl bg-white text-sm font-bold text-slate-700 shadow-sm">{editLabels.cancel}</button>
+            <button type="submit" disabled={!draftName.trim() || !draftLocation.trim() || !draftTrades.length || draftExperience === ''} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-700 text-sm font-bold text-white shadow-sm disabled:opacity-50"><Save className="h-4 w-4" />{editLabels.save}</button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
   if (showSettings) {
     return (
       <div id="profile-scroll" className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] pt-[76px] font-sans scrollbar-none md:max-w-2xl lg:max-w-5xl">
@@ -175,6 +262,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       <section className="flex w-full shrink-0 flex-col items-center gap-3 rounded-[20px] bg-white p-4 md:col-span-2 md:flex-row md:items-center md:gap-6 md:px-8 md:py-6">
         <img src={worker.authPhotoURL || '/figma/account_raw_1.jpeg'} onError={(event) => { event.currentTarget.src = '/figma/account_raw_1.jpeg'; }} alt="Worker profile" className="h-[92px] w-[92px] shrink-0 rounded-full object-cover shadow-md" />
         <h2 className="w-full break-words text-center text-lg font-bold text-black md:min-w-0 md:flex-1 md:text-left">{worker.name}</h2>
+        <button type="button" onClick={startEditingProfile} className="flex min-h-10 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-50 px-3 text-xs font-bold text-blue-800 md:w-auto"><Pencil className="h-4 w-4" />{PROFILE_EDIT_LABELS[language].edit}</button>
         <div className="w-full min-w-0 rounded-[20px] bg-[#f1f1f1] px-[5px] md:max-w-md">
           <div className="flex min-h-[57px] items-center gap-3 border-b border-[#b5b5b5] px-1.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white"><Phone className="h-5 w-5 text-black" /></span>
