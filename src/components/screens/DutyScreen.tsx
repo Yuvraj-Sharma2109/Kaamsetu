@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { animate, motion, useMotionValue } from 'motion/react';
-import { Job, Language, WorkerProfile } from '../../types';
+import { GeoPoint, Job, Language, WorkerProfile } from '../../types';
 import { getTranslation } from '../../utils/i18n';
 import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
+import { distanceBetweenKm, geocodePlace } from '../../utils/places';
 import { MapPin, Clock3, CircleCheck, ListPlus, Check } from 'lucide-react';
 
 interface DutyScreenProps {
@@ -22,10 +23,17 @@ interface DutyScreenProps {
   onOpenEarnings: () => void;
   todayEarnings: number;
   onOpenAadhaarModal?: () => void;
-  suggestedJob?: Job | null;
 }
 
 type OnlineStage = 'offline' | 'transitioning' | 'searching' | 'preview' | 'expanded' | 'offlineTransition';
+
+const NEARBY_COPY: Record<Language, { title: string; radius: string; findingLocation: string; findingJobs: string; permission: string; locationDenied: string; empty: string; recommended: string }> = {
+  en: { title: 'Nearby jobs', radius: 'Within 5 km', findingLocation: 'Finding your location…', findingJobs: 'Finding jobs within 5 km…', permission: 'Allow location access for nearby job recommendations.', locationDenied: 'Location is off. Tap the map pin button to retry.', empty: 'No matching jobs found within 5 km.', recommended: 'Recommended' },
+  hi: { title: 'आस-पास के काम', radius: '5 किमी के अंदर', findingLocation: 'आपकी लोकेशन खोज रहे हैं…', findingJobs: '5 किमी के अंदर काम खोज रहे हैं…', permission: 'पास के काम देखने के लिए लोकेशन की अनुमति दें।', locationDenied: 'लोकेशन बंद है। फिर से कोशिश करने के लिए मैप पिन दबाएँ।', empty: '5 किमी के अंदर आपके काम का कोई जॉब नहीं मिला।', recommended: 'आपके लिए सुझाया' },
+  bn: { title: 'কাছাকাছি কাজ', radius: '৫ কিমির মধ্যে', findingLocation: 'আপনার অবস্থান খোঁজা হচ্ছে…', findingJobs: '৫ কিমির মধ্যে কাজ খোঁজা হচ্ছে…', permission: 'কাছের কাজ দেখতে লোকেশন অনুমতি দিন।', locationDenied: 'লোকেশন বন্ধ আছে। আবার চেষ্টা করতে ম্যাপ পিনে ট্যাপ করুন।', empty: '৫ কিমির মধ্যে আপনার কাজের কোনো চাকরি নেই।', recommended: 'আপনার জন্য সুপারিশ' },
+  mr: { title: 'जवळची कामे', radius: '५ किमीच्या आत', findingLocation: 'तुमचे स्थान शोधत आहे…', findingJobs: '५ किमीच्या आत कामे शोधत आहे…', permission: 'जवळची कामे पाहण्यासाठी स्थानाची परवानगी द्या.', locationDenied: 'स्थान बंद आहे. पुन्हा प्रयत्न करण्यासाठी नकाशावरील पिन दाबा.', empty: '५ किमीच्या आत जुळणारी कामे सापडली नाहीत.', recommended: 'तुमच्यासाठी शिफारस' },
+  te: { title: 'దగ్గరలోని పనులు', radius: '5 కి.మీ లోపు', findingLocation: 'మీ స్థానాన్ని కనుగొంటోంది…', findingJobs: '5 కి.మీ లోపు పనులను వెతుకుతోంది…', permission: 'దగ్గరలోని పనుల కోసం స్థాన అనుమతి ఇవ్వండి.', locationDenied: 'స్థానం ఆఫ్‌లో ఉంది. మళ్లీ ప్రయత్నించడానికి మ్యాప్ పిన్‌ను నొక్కండి.', empty: '5 కి.మీ లోపు సరిపడే పనులు కనబడలేదు.', recommended: 'మీకు సిఫార్సు' },
+};
 
 export const DutyScreen: React.FC<DutyScreenProps> = ({
   isOnline,
@@ -41,6 +49,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   onOpenAadhaarModal,
 }) => {
   const t = getTranslation(language);
+  const nearbyCopy = NEARBY_COPY[language];
   const screenRef = useRef<HTMLDivElement>(null);
   const [onlineStage, setOnlineStage] = useState<OnlineStage>(isOnline ? 'preview' : 'offline');
   const [screenHeight, setScreenHeight] = useState(() => typeof window === 'undefined' ? 917 : window.innerHeight);
@@ -51,9 +60,55 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   const previewHeight = Math.min(337, Math.max(compactPanelHeight, screenHeight * 0.52));
   const searchHeight = Math.min(226, Math.max(150, screenHeight * 0.28));
   const expandedHeight = Math.max(previewHeight, screenHeight - 124);
-  const availableJobs = jobs.filter((job) =>
-    job.trade === worker.primaryTrade || worker.secondaryTrades.includes(job.trade),
+  const workTypeJobs = jobs.filter((job) =>
+    (job.trade === worker.primaryTrade || worker.secondaryTrades.includes(job.trade))
+    && job.id !== activeJob?.id
+    && job.id !== queuedJob?.id,
   );
+  const workTypeJobKey = workTypeJobs.map((job) => job.id).sort().join('|');
+  const [devicePosition, setDevicePosition] = useState<GeoPoint | null>(null);
+  const [locationDenied, setLocationDenied] = useState(false);
+  const [jobPositions, setJobPositions] = useState<Record<string, GeoPoint>>({});
+  const [placesLoading, setPlacesLoading] = useState(true);
+  const workerPosition = devicePosition;
+  const handleWorkerPositionChange = useCallback((position: GeoPoint) => {
+    setLocationDenied(false);
+    setDevicePosition((previous) => previous && distanceBetweenKm(previous, position) < 0.02 ? previous : position);
+  }, []);
+  const handleWorkerPositionError = useCallback(() => setLocationDenied(true), []);
+
+  useEffect(() => {
+    let active = true;
+    if (!isOnline) {
+      setPlacesLoading(true);
+      return () => { active = false; };
+    }
+    setPlacesLoading(true);
+    const loadPositions = async () => {
+      const positions: Record<string, GeoPoint> = {};
+      for (const job of workTypeJobs) {
+        if (!active) return;
+        const place = await geocodePlace(`${job.locationAddress}, ${job.siteName}, Bengaluru, India`);
+        if (place) positions[job.id] = { lat: place.lat, lon: place.lon };
+      }
+      if (active) {
+        setJobPositions((current) => ({ ...current, ...positions }));
+        setPlacesLoading(false);
+      }
+    };
+    void loadPositions();
+    return () => { active = false; };
+  }, [workTypeJobKey, isOnline]);
+
+  const availableJobs = workerPosition
+    ? workTypeJobs.flatMap((job) => {
+      const position = jobPositions[job.id];
+      if (!position) return [];
+      const distance = distanceBetweenKm(workerPosition, position);
+      return distance <= 5 ? [{ ...job, distanceKm: Math.round(distance * 10) / 10 }] : [];
+    }).sort((a, b) => a.distanceKm - b.distanceKm)
+    : [];
+  const nearbyRecommendation = availableJobs[0] || null;
 
   useEffect(() => () => {
     flowTimers.current.forEach((timer) => window.clearTimeout(timer));
@@ -154,8 +209,10 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           isOnline={isOnline}
           activeJob={null}
           incomingJob={null}
-          suggestedJob={null}
+          suggestedJob={nearbyRecommendation}
           workerLocation={worker.currentLocation}
+          onWorkerPositionChange={handleWorkerPositionChange}
+          onWorkerPositionError={handleWorkerPositionError}
         />
       </div>
 
@@ -201,6 +258,10 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           {(onlineStage === 'preview' || onlineStage === 'expanded') && (
           <motion.div key="available-work-list" aria-label={uiText(language, 'availableWork')} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }} className="pb-[82px]">
           <div className="mx-auto flex w-full max-w-[390px] md:max-w-xl flex-col gap-[10px]">
+            <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2 shadow-sm">
+              <span className="text-xs font-black text-slate-900">{nearbyCopy.title}</span>
+              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-800">{nearbyCopy.radius} · {availableJobs.length}</span>
+            </div>
             {availableJobs.length > 0 ? availableJobs.map((job) => {
               const jobTradeName = localizeTradeName(job.trade, language);
               const title = localizeJobTitle(job, language);
@@ -214,6 +275,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                     <CircleCheck className="h-[12px] w-[12px] fill-[#03c03c] text-white" />
                     {jobTradeName}
                   </span>
+                  {job.id === nearbyRecommendation?.id && <span className="ml-1 rounded-md bg-blue-50 px-2 py-1 text-[9px] font-bold text-blue-800">{nearbyCopy.recommended}</span>}
                   <span className="ml-2 inline-flex max-w-[115px] shrink-0 rounded-[15px] bg-[rgba(45,89,240,0.16)] px-2 py-2.5 align-top text-[11px] font-bold leading-none text-[#2d59f0] sm:px-[9px] sm:text-[12px]">
                     ₹{job.agreedAmount}{rateUnit}
                   </span>
@@ -250,10 +312,14 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                   </button>
                 </motion.article>
               );
-            }) : (
+            }) : !workerPosition || placesLoading ? (
               <div className="rounded-[22px] bg-white px-5 py-7 text-center shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
-                <h2 className="text-[16px] font-bold text-black">{uiText(language, 'noWork')}</h2>
-                <p className="mt-1 text-[12px] text-[#b5b5b5]">{uiText(language, 'noWorkSub')}</p>
+                <h2 className="text-[16px] font-bold text-black">{!workerPosition ? locationDenied ? nearbyCopy.locationDenied : nearbyCopy.findingLocation : nearbyCopy.findingJobs}</h2>
+                <p className="mt-1 text-[12px] text-[#777]">{nearbyCopy.permission}</p>
+              </div>
+            ) : (
+              <div className="rounded-[22px] bg-white px-5 py-7 text-center shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
+                <h2 className="text-[16px] font-bold text-black">{nearbyCopy.empty}</h2>
               </div>
             )}
           </div>

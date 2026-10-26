@@ -1,9 +1,16 @@
-import { Language } from '../types';
+import { GeoPoint, Language } from '../types';
 
-export interface PlaceSuggestion {
+export interface PlaceSuggestion extends GeoPoint {
   label: string;
-  lat: number;
-  lon: number;
+}
+
+export function distanceBetweenKm(a: GeoPoint, b: GeoPoint): number {
+  const radians = (degrees: number) => degrees * Math.PI / 180;
+  const latDelta = radians(b.lat - a.lat);
+  const lonDelta = radians(b.lon - a.lon);
+  const value = Math.sin(latDelta / 2) ** 2
+    + Math.cos(radians(a.lat)) * Math.cos(radians(b.lat)) * Math.sin(lonDelta / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }
 
 interface PhotonFeature {
@@ -16,6 +23,7 @@ interface PhotonResponse {
 }
 
 const placeCache = new Map<string, PlaceSuggestion | null>();
+const PHOTON_API = (import.meta.env.VITE_PHOTON_API_URL || 'https://photon.komoot.io/api/').replace(/\/$/, '');
 
 function getPlaceLabel(properties: Record<string, string | undefined> = {}) {
   const main = properties.name || properties.street || properties.city || properties.state;
@@ -33,7 +41,7 @@ export async function searchPlaces(query: string, language: Language, signal?: A
     zoom: '5',
     lang: language,
   });
-  const response = await fetch(`https://photon.komoot.io/api/?${params}`, { signal });
+  const response = await fetch(`${PHOTON_API}/?${params}`, { signal });
   if (!response.ok) throw new Error('Place search is temporarily unavailable.');
   const payload = await response.json() as PhotonResponse;
   return (payload.features || []).flatMap((feature) => {

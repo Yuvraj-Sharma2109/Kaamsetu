@@ -31,7 +31,6 @@ interface ActiveJobScreenProps {
   suggestedNextJob?: Job | null;
   onQueueJob?: (job: Job) => void;
   onCancelQueuedJob?: () => void;
-  onLocationUpdate?: (newLocation: string) => void;
 }
 
 export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
@@ -46,7 +45,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   suggestedNextJob,
   onQueueJob,
   onCancelQueuedJob,
-  onLocationUpdate,
 }) => {
   const [showCallModal, setShowCallModal] = useState<boolean>(false);
   const [siteOtp, setSiteOtp] = useState<string>('');
@@ -113,7 +111,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             activeJob={job}
             incomingJob={null}
             workerLocation={worker.currentLocation}
-            onPositionChange={onLocationUpdate}
             hideLocationCard
           />
         </div>
@@ -235,7 +232,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           workerLocation={worker.currentLocation}
           hasArrived={isArrivedAtSite}
           customLocationText={isArrivedAtSite ? localizePlaceText(job.siteName, language) : undefined}
-          onPositionChange={onLocationUpdate}
         />
 
         {/* Floating Quick Action Buttons on Map */}

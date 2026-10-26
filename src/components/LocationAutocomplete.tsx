@@ -26,7 +26,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   useEffect(() => {
     const query = value.trim();
     setFailed(false);
-    if (query.length < 3) {
+    if (!open || query.length < 3) {
       setSuggestions([]);
       setLoading(false);
       return;
@@ -49,8 +49,11 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       }
     }, 500);
 
-    return () => window.clearTimeout(timer);
-  }, [value, language]);
+    return () => {
+      window.clearTimeout(timer);
+      requestRef.current?.abort();
+    };
+  }, [value, language, open]);
 
   useEffect(() => () => requestRef.current?.abort(), []);
 

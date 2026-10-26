@@ -10,6 +10,11 @@ export type TradeCategory =
   | 'welder'
   | 'loader';
 
+export interface GeoPoint {
+  lat: number;
+  lon: number;
+}
+
 export interface TradeInfo {
   id: TradeCategory;
   nameEn: string;

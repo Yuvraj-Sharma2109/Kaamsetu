@@ -7,6 +7,41 @@
   --color-slate-50: #f1f1f1;
 }
 
+/* Light, rounded Leaflet controls to match KaamSetu's card and button style. */
+.leaflet-container {
+  background: #e9eef6;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif;
+}
+
+.leaflet-tile {
+  filter: saturate(0.78) contrast(0.98);
+}
+
+.leaflet-control-zoom {
+  overflow: hidden;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  background: #fff;
+  box-shadow: 0 5px 18px rgb(15 23 42 / 16%) !important;
+}
+
+.leaflet-control-zoom a {
+  width: 38px !important;
+  height: 38px !important;
+  border: 0 !important;
+  color: #244bd1 !important;
+  font-weight: 700 !important;
+  line-height: 38px !important;
+}
+
+.leaflet-control-zoom-in {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: #eef1ff !important;
+}
+
 /* Keep every screen scrollable while hiding scrollbar chrome. */
 * {
   scrollbar-width: none;

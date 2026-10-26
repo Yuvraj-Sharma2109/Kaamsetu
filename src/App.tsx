@@ -723,7 +723,6 @@ export default function App() {
             onOpenEarnings={() => setCurrentTab('passbook')}
             todayEarnings={todayEarnings}
             onOpenAadhaarModal={() => setShowAadhaarModal(true)}
-            suggestedJob={suggestedTradeJob}
           />
           </motion.div>
         )}
@@ -759,7 +758,6 @@ export default function App() {
             suggestedNextJob={suggestedTradeJob}
             onQueueJob={handleQueueJob}
             onCancelQueuedJob={handleCancelQueuedJob}
-            onLocationUpdate={(newLoc) => setWorker((prev) => ({ ...prev, currentLocation: newLoc }))}
           />
           </motion.div>
         )}
