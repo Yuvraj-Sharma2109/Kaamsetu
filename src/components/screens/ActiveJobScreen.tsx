@@ -10,6 +10,7 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   Check, 
+  ArrowLeft,
   Bot, 
   ShieldCheck,
   ListPlus,
@@ -28,6 +29,7 @@ interface ActiveJobScreenProps {
   onPunchOut: () => void;
   onOpenSos: () => void;
   onBrowseJobs: () => void;
+  onBackToDuty: () => void;
   suggestedNextJob?: Job | null;
   onQueueJob?: (job: Job) => void;
   onCancelQueuedJob?: () => void;
@@ -42,6 +44,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   onPunchOut,
   onOpenSos,
   onBrowseJobs,
+  onBackToDuty,
   suggestedNextJob,
   onQueueJob,
   onCancelQueuedJob,
@@ -116,6 +119,9 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
         </div>
 
         <div className="absolute left-4 right-4 top-6 z-20 mx-auto flex min-h-[66px] max-w-[360px] items-center gap-3 rounded-[22px] bg-white px-4 py-2.5 shadow-[0_3px_18px_rgba(0,0,0,0.12)]">
+          <button type="button" onClick={onBackToDuty} aria-label={uiText(language, 'back')} title={uiText(language, 'back')} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <img
             src={worker.authPhotoURL || '/figma/account_raw_1.jpeg'}
             onError={(event) => { event.currentTarget.src = '/figma/account_raw_1.jpeg'; }}
@@ -189,7 +195,10 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
       <div className={`z-20 text-white px-4 py-3 shadow-md flex items-center justify-between shrink-0 transition-colors duration-500 ${
         isArrivedAtSite ? 'bg-emerald-600' : 'bg-blue-600'
       } lg:col-span-2`}>
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <button type="button" onClick={onBackToDuty} aria-label={uiText(language, 'back')} title={uiText(language, 'back')} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25">
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           {isArrivedAtSite ? (
             <CheckCircle2 className="w-5 h-5 shrink-0" />
           ) : (

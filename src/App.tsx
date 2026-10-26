@@ -755,6 +755,7 @@ export default function App() {
             onPunchOut={handlePunchOut}
             onOpenSos={() => setShowSosModal(true)}
             onBrowseJobs={() => setCurrentTab('feed')}
+            onBackToDuty={() => setCurrentTab('radar')}
             suggestedNextJob={suggestedTradeJob}
             onQueueJob={handleQueueJob}
             onCancelQueuedJob={handleCancelQueuedJob}
