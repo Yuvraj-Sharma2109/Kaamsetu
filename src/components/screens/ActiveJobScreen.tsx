@@ -115,6 +115,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             incomingJob={null}
             workerLocation={worker.currentLocation}
             hideLocationCard
+            autoNavigate
           />
         </div>
 
@@ -241,6 +242,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           workerLocation={worker.currentLocation}
           hasArrived={isArrivedAtSite}
           customLocationText={isArrivedAtSite ? localizePlaceText(job.siteName, language) : undefined}
+          autoNavigate
         />
 
         {/* Floating Quick Action Buttons on Map */}

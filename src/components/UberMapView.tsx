@@ -19,6 +19,7 @@ interface UberMapViewProps {
   hasArrived?: boolean;
   customLocationText?: string;
   hideLocationCard?: boolean;
+  autoNavigate?: boolean;
 }
 
 interface Coordinates extends GeoPoint {}
@@ -114,7 +115,7 @@ const describeStep = (step: RouteStep | undefined, arrived: boolean, copy: typeo
 export const UberMapView: React.FC<UberMapViewProps> = ({
   language, isOnline, activeJob, incomingJob, suggestedJob, onSelectSite,
   workerLocation = '', onWorkerPositionChange, onWorkerPositionError, hasArrived = false,
-  customLocationText, hideLocationCard = false,
+  customLocationText, hideLocationCard = false, autoNavigate = false,
 }) => {
   const copy = MAP_COPY[language];
   const markerCopy = MAP_MARKER_COPY[language];
@@ -191,6 +192,12 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
     if (!navigationActive || !workerPosition || !navigationOrigin) return;
     if (distanceKm(navigationOrigin, workerPosition) >= 0.12) setNavigationOrigin(workerPosition);
   }, [navigationActive, workerPosition, navigationOrigin]);
+
+  useEffect(() => {
+    if (!autoNavigate || !activeJob || hasArrived || navigationActive || !workerPosition || !jobPosition) return;
+    setNavigationOrigin(workerPosition);
+    setNavigationActive(true);
+  }, [autoNavigate, activeJob?.id, hasArrived, navigationActive, workerPosition, jobPosition]);
 
   useEffect(() => {
     let active = true;
@@ -338,7 +345,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
         <Navigation className="h-4 w-4" />{routeLoading ? copy.starting : !workerPosition ? copy.locating : !jobPosition ? copy.findingDestination : copy.start}
       </button>}
 
-      {navigationActive && <section aria-live="polite" className="absolute left-3 right-3 top-3 z-[500] overflow-hidden rounded-[20px] border border-white/90 bg-white/95 p-3.5 shadow-[0_8px_28px_rgba(15,23,42,0.2)] backdrop-blur-md sm:left-auto sm:right-3 sm:w-[min(360px,calc(100%-24px))]">
+      {navigationActive && <section aria-live="polite" className={`absolute left-3 right-3 ${hideLocationCard ? 'top-[86px]' : 'top-3'} z-[500] overflow-hidden rounded-[20px] border border-white/90 bg-white/95 p-3.5 shadow-[0_8px_28px_rgba(15,23,42,0.2)] backdrop-blur-md sm:left-auto sm:right-3 sm:w-[min(360px,calc(100%-24px))]`}>
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#2d59f0] text-white shadow-md shadow-blue-700/20"><Navigation className="h-5 w-5" /></div>
           <div className="min-w-0 flex-1">
