@@ -137,8 +137,12 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setLocationError(false);
     navigator.geolocation.getCurrentPosition(async ({ coords }) => {
       const point = { lat: coords.latitude, lon: coords.longitude };
-      const place = await reverseGeocodePlace(point, language) || { ...point, label: `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}` };
+      const place = await reverseGeocodePlace(point, language);
       setLocating(false);
+      if (!place) {
+        setLocationError(true);
+        return;
+      }
       setDeviceLocation(place);
       selectPlace(place);
     }, () => {

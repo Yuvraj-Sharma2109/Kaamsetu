@@ -23,7 +23,8 @@ interface PhotonResponse {
 }
 
 const placeCache = new Map<string, PlaceSuggestion | null>();
-const PHOTON_API = (import.meta.env.VITE_PHOTON_API_URL || 'https://photon.komoot.io/api/').replace(/\/$/, '');
+const PHOTON_BASE = (import.meta.env.VITE_PHOTON_API_URL || 'https://photon.komoot.io').replace(/\/$/, '').replace(/\/api$/, '');
+const PHOTON_API = `${PHOTON_BASE}/api`;
 
 function getPlaceLabel(properties: Record<string, string | undefined> = {}) {
   const main = properties.name || properties.street || properties.city || properties.state;
@@ -70,7 +71,7 @@ export async function geocodePlace(query: string): Promise<PlaceSuggestion | nul
 export async function reverseGeocodePlace(point: GeoPoint, language: Language): Promise<PlaceSuggestion | null> {
   const params = new URLSearchParams({ lat: String(point.lat), lon: String(point.lon), lang: language });
   try {
-    const response = await fetch(`${PHOTON_API}/reverse?${params}`);
+    const response = await fetch(`${PHOTON_BASE}/reverse?${params}`);
     if (!response.ok) return null;
     const payload = await response.json() as PhotonResponse;
     const feature = payload.features?.[0];
