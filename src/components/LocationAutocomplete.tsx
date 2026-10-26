@@ -23,10 +23,11 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [failed, setFailed] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState(false);
+  const [locationPermission, setLocationPermission] = useState<PermissionState | 'unknown'>('unknown');
   const requestRef = useRef<AbortController | null>(null);
 
   const currentLocationCopy: Record<Language, { action: string; error: string }> = {
-    en: { action: 'Use current location', error: 'Could not get your location. Check location permission and try again.' },
+    en: { action: 'Use current location', error: 'Location access is blocked. Enable it in your device or browser settings, then try again.' },
     hi: { action: '\u092e\u094c\u091c\u0942\u0926\u093e \u0932\u094b\u0915\u0947\u0936\u0928 \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0947\u0902', error: '\u0906\u092a\u0915\u0940 \u0932\u094b\u0915\u0947\u0936\u0928 \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u0940\u0964 \u0932\u094b\u0915\u0947\u0936\u0928 \u0905\u0928\u0941\u092e\u0924\u093f \u091c\u093e\u0901\u091a\u0915\u0930 \u092b\u093f\u0930 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964' },
     bn: { action: '\u09ac\u09b0\u09cd\u09a4\u09ae\u09be\u09a8 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09ac\u09cd\u09af\u09ac\u09b9\u09be\u09b0 \u0995\u09b0\u09c1\u09a8', error: '\u0986\u09aa\u09a8\u09be\u09b0 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09aa\u09be\u0993\u09af\u09bc\u09be \u09af\u09be\u09af\u09bc\u09a8\u09bf\u0964 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8\u09c7\u09b0 \u0985\u09a8\u09c1\u09ae\u09a4\u09bf \u09af\u09be\u099a\u09be\u0987 \u0995\u09b0\u09c7 \u0986\u09ac\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09c1\u09a8\u0964' },
     mr: { action: '\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0938\u094d\u0925\u093e\u0928 \u0935\u093e\u092a\u0930\u093e', error: '\u0924\u0941\u092e\u091a\u0947 \u0938\u094d\u0925\u093e\u0928 \u092e\u093f\u0933\u0935\u0924\u093e \u0906\u0932\u0947 \u0928\u093e\u0939\u0940. \u0938\u094d\u0925\u093e\u0928\u093e\u091a\u0940 \u092a\u0930\u0935\u093e\u0928\u0917\u0940 \u0924\u092a\u093e\u0938\u0942\u0928 \u092a\u0941\u0928\u094d\u0939\u093e \u092a\u094d\u0930\u092f\u0924\u094d\u0928 \u0915\u0930\u093e.' },
@@ -67,6 +68,22 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 
   useEffect(() => () => requestRef.current?.abort(), []);
 
+  useEffect(() => {
+    if (!navigator.permissions?.query) return;
+    let permissionStatus: PermissionStatus | undefined;
+    let active = true;
+    void navigator.permissions.query({ name: 'geolocation' }).then((status) => {
+      if (!active) return;
+      permissionStatus = status;
+      setLocationPermission(status.state);
+      status.onchange = () => setLocationPermission(status.state);
+    }).catch(() => setLocationPermission('unknown'));
+    return () => {
+      active = false;
+      if (permissionStatus) permissionStatus.onchange = null;
+    };
+  }, []);
+
   const selectPlace = (place: PlaceSuggestion) => {
     onChange(place.label);
     onSelect?.(place);
@@ -79,9 +96,18 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setLocationError(true);
       return;
     }
+    if (!window.isSecureContext) {
+      setLocationError(true);
+      return;
+    }
+    if (locationPermission === 'denied') {
+      setLocationError(true);
+      return;
+    }
     setLocating(true);
     setLocationError(false);
     navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+      setLocationPermission('granted');
       const place = await reverseGeocodePlace({ lat: coords.latitude, lon: coords.longitude }, language);
       setLocating(false);
       if (!place) {
@@ -89,8 +115,9 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         return;
       }
       selectPlace(place);
-    }, () => {
+    }, (error) => {
       setLocating(false);
+      if (error.code === error.PERMISSION_DENIED) setLocationPermission('denied');
       setLocationError(true);
     }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
   };
