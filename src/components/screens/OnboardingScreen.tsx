@@ -14,18 +14,19 @@ import {
   Bot,
   ArrowRight,
   ArrowLeft,
+  Phone,
   User,
   Camera,
   KeyRound,
   Lock
 } from 'lucide-react';
 
-const PHONE_VERIFY_COPY: Record<Language, { send: string; sending: string; enterCode: string; verify: string; verifying: string; sent: string; verified: string; invalid: string; error: string; conflict: string }> = {
-  en: { send: 'Send SMS code', sending: 'Sending…', enterCode: 'SMS verification code', verify: 'Verify phone', verifying: 'Verifying…', sent: 'Code sent by SMS.', verified: 'Mobile number verified.', invalid: 'Enter a valid 10-digit mobile number.', error: 'Could not verify this number. Check the code and try again.', conflict: 'This number is already linked to another account.' },
-  hi: { send: 'SMS कोड भेजें', sending: 'भेज रहे हैं…', enterCode: 'SMS सत्यापन कोड', verify: 'फोन सत्यापित करें', verifying: 'सत्यापित हो रहा है…', sent: 'SMS से कोड भेजा गया।', verified: 'मोबाइल नंबर सत्यापित है।', invalid: '10 अंकों का सही मोबाइल नंबर डालें।', error: 'नंबर सत्यापित नहीं हुआ। कोड जाँचकर फिर कोशिश करें।', conflict: 'यह नंबर किसी दूसरे खाते से जुड़ा है।' },
-  bn: { send: 'SMS কোড পাঠান', sending: 'পাঠানো হচ্ছে…', enterCode: 'SMS যাচাইকরণ কোড', verify: 'ফোন যাচাই করুন', verifying: 'যাচাই হচ্ছে…', sent: 'SMS-এ কোড পাঠানো হয়েছে।', verified: 'মোবাইল নম্বর যাচাই হয়েছে।', invalid: 'সঠিক ১০ সংখ্যার মোবাইল নম্বর লিখুন।', error: 'নম্বর যাচাই করা যায়নি। কোড দেখে আবার চেষ্টা করুন।', conflict: 'এই নম্বরটি অন্য একটি অ্যাকাউন্টে যুক্ত আছে।' },
-  mr: { send: 'SMS कोड पाठवा', sending: 'पाठवत आहे…', enterCode: 'SMS पडताळणी कोड', verify: 'फोन पडताळा', verifying: 'पडताळत आहे…', sent: 'SMS ने कोड पाठवला.', verified: 'मोबाइल क्रमांक पडताळला आहे.', invalid: '१० अंकी योग्य मोबाइल क्रमांक टाका.', error: 'क्रमांक पडताळता आला नाही. कोड तपासून पुन्हा प्रयत्न करा.', conflict: 'हा क्रमांक दुसऱ्या खात्याशी जोडलेला आहे.' },
-  te: { send: 'SMS కోడ్ పంపండి', sending: 'పంపుతోంది…', enterCode: 'SMS ధృవీకరణ కోడ్', verify: 'ఫోన్ ధృవీకరించండి', verifying: 'ధృవీకరిస్తోంది…', sent: 'SMS ద్వారా కోడ్ పంపబడింది.', verified: 'మొబైల్ నంబర్ ధృవీకరించబడింది.', invalid: 'సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి.', error: 'నంబర్ ధృవీకరించలేకపోయాం. కోడ్ తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.', conflict: 'ఈ నంబర్ ఇప్పటికే మరొక ఖాతాకు లింక్ చేయబడింది.' },
+const PHONE_VERIFY_COPY: Record<Language, { title: string; continue: string; send: string; sending: string; enterCode: string; verify: string; verifying: string; sent: string; verified: string; invalid: string; error: string; conflict: string }> = {
+  en: { title: 'Verify mobile number', continue: 'Continue to phone verification', send: 'Send SMS code', sending: 'Sending…', enterCode: 'SMS verification code', verify: 'Verify phone', verifying: 'Verifying…', sent: 'Code sent by SMS.', verified: 'Mobile number verified.', invalid: 'Enter a valid 10-digit mobile number.', error: 'Could not verify this number. Check the code and try again.', conflict: 'This number is already linked to another account.' },
+  hi: { title: 'मोबाइल नंबर सत्यापित करें', continue: 'फोन सत्यापन पर जाएँ', send: 'SMS कोड भेजें', sending: 'भेज रहे हैं…', enterCode: 'SMS सत्यापन कोड', verify: 'फोन सत्यापित करें', verifying: 'सत्यापित हो रहा है…', sent: 'SMS से कोड भेजा गया।', verified: 'मोबाइल नंबर सत्यापित है।', invalid: '10 अंकों का सही मोबाइल नंबर डालें।', error: 'नंबर सत्यापित नहीं हुआ। कोड जाँचकर फिर कोशिश करें।', conflict: 'यह नंबर किसी दूसरे खाते से जुड़ा है।' },
+  bn: { title: 'মোবাইল নম্বর যাচাই করুন', continue: 'ফোন যাচাইকরণে এগিয়ে যান', send: 'SMS কোড পাঠান', sending: 'পাঠানো হচ্ছে…', enterCode: 'SMS যাচাইকরণ কোড', verify: 'ফোন যাচাই করুন', verifying: 'যাচাই হচ্ছে…', sent: 'SMS-এ কোড পাঠানো হয়েছে।', verified: 'মোবাইল নম্বর যাচাই হয়েছে।', invalid: 'সঠিক ১০ সংখ্যার মোবাইল নম্বর লিখুন।', error: 'নম্বর যাচাই করা যায়নি। কোড দেখে আবার চেষ্টা করুন।', conflict: 'এই নম্বরটি অন্য একটি অ্যাকাউন্টে যুক্ত আছে।' },
+  mr: { title: 'मोबाइल क्रमांक पडताळा', continue: 'फोन पडताळणीसाठी पुढे जा', send: 'SMS कोड पाठवा', sending: 'पाठवत आहे…', enterCode: 'SMS पडताळणी कोड', verify: 'फोन पडताळा', verifying: 'पडताळत आहे…', sent: 'SMS ने कोड पाठवला.', verified: 'मोबाइल क्रमांक पडताळला आहे.', invalid: '१० अंकी योग्य मोबाइल क्रमांक टाका.', error: 'क्रमांक पडताळता आला नाही. कोड तपासून पुन्हा प्रयत्न करा.', conflict: 'हा क्रमांक दुसऱ्या खात्याशी जोडलेला आहे.' },
+  te: { title: 'మొబైల్ నంబర్ ధృవీకరణ', continue: 'ఫోన్ ధృవీకరణకు కొనసాగండి', send: 'SMS కోడ్ పంపండి', sending: 'పంపుతోంది…', enterCode: 'SMS ధృవీకరణ కోడ్', verify: 'ఫోన్ ధృవీకరించండి', verifying: 'ధృవీకరిస్తోంది…', sent: 'SMS ద్వారా కోడ్ పంపబడింది.', verified: 'మొబైల్ నంబర్ ధృవీకరించబడింది.', invalid: 'సరైన 10 అంకెల మొబైల్ నంబర్ నమోదు చేయండి.', error: 'నంబర్ ధృవీకరించలేకపోయాం. కోడ్ తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.', conflict: 'ఈ నంబర్ ఇప్పటికే మరొక ఖాతాకు లింక్ చేయబడింది.' },
 };
 
 interface OnboardingScreenProps {
@@ -56,7 +57,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   onToggleAudio,
 }) => {
   const t = getTranslation(language);
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Form fields
   const [selectedTrades, setSelectedTrades] = useState<TradeCategory[]>(requirePhone ? [] : ['mason']);
@@ -80,6 +81,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [isAadhaarVerified, setIsAadhaarVerified] = useState<boolean>(false);
   const [hasFrontPhoto, setHasFrontPhoto] = useState<boolean>(false);
   const [hasBackPhoto, setHasBackPhoto] = useState<boolean>(false);
+
+  const totalSteps = requirePhone ? 6 : 5;
+  const experienceStep = requirePhone ? 4 : 3;
+  const aadhaarStep = requirePhone ? 5 : 4;
+  const reviewStep = requirePhone ? 6 : 5;
 
   useEffect(() => () => clearPhoneRecaptcha(), []);
 
@@ -168,6 +174,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       setPhoneVerificationId('');
       setPhoneOtp('');
       setPhoneVerifyMessage(PHONE_VERIFY_COPY[language].verified);
+      setCurrentStep(experienceStep);
     } catch (error) {
       const code = (error as { code?: string })?.code;
       const message = code === 'auth/credential-already-in-use'
@@ -202,7 +209,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     setAadhaarOtpError('');
     setShowOtpModal(false);
     setIsAadhaarVerified(true);
-    setCurrentStep(5);
+    setCurrentStep(reviewStep);
     if (language === 'hi' && audioActive) {
       speakText('आधार कार्ड सफलतापूर्वक सत्यापित हो गया है!', language);
     }
@@ -222,11 +229,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       return;
     }
     if (requirePhone && !phoneVerified) {
-      setCurrentStep(2);
+      setCurrentStep(3);
       return;
     }
     if (experienceYears === '') {
-      setCurrentStep(3);
+      setCurrentStep(experienceStep);
       return;
     }
     onComplete({
@@ -242,7 +249,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   const handleGoBack = () => {
     if (currentStep > 1) {
-      setCurrentStep((prev) => (prev - 1) as 1 | 2 | 3 | 4 | 5);
+      setCurrentStep((prev) => prev - 1);
     } else if (onBackToLogin) {
       onBackToLogin();
     }
@@ -277,14 +284,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         </div>
 
         <span className="text-xs font-black text-neutral-900 bg-white px-3 py-1 rounded-xl shadow-xs">
-          {currentStep} / 5
+          {currentStep} / {totalSteps}
         </span>
       </div>
 
       {/* Progress Bar (Pastel Blue & Slate) */}
       <div className="space-y-1 shrink-0">
-        <div className="grid grid-cols-5 gap-1.5 h-1.5">
-          {[1, 2, 3, 4, 5].map((step) => (
+        <div className={`grid ${requirePhone ? 'grid-cols-6' : 'grid-cols-5'} gap-1.5 h-1.5`}>
+          {Array.from({ length: totalSteps }, (_, index) => index + 1).map((step) => (
             <div
               key={step}
               className={`rounded-full transition-all duration-300 ${
@@ -396,23 +403,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                     }} placeholder="98765 43210" minLength={10} maxLength={10} required aria-label={uiText(language, 'mobileNumber')} className="w-full bg-transparent px-3 py-3 text-sm font-black font-mono tracking-wider text-neutral-900 outline-none disabled:opacity-70" />
                   </div>
                   <p className="mt-1 text-[10px] text-slate-500">{uiText(language, 'registeredPhone')} — {initialPhone}</p>
-                  <div id="onboarding-phone-recaptcha" />
-                  {!phoneVerified && <div className="mt-2 space-y-2">
-                    {!phoneVerificationId ? (
-                      <button type="button" disabled={phoneVerifyBusy || contactPhone.replace(/\D/g, '').length !== 10} onClick={() => void handleSendPhoneOtp()} className="min-h-10 w-full rounded-xl bg-blue-700 px-3 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">
-                        {phoneVerifyBusy ? PHONE_VERIFY_COPY[language].sending : PHONE_VERIFY_COPY[language].send}
-                      </button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <input type="text" inputMode="numeric" autoComplete="one-time-code" value={phoneOtp} onChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder={PHONE_VERIFY_COPY[language].enterCode} aria-label={PHONE_VERIFY_COPY[language].enterCode} className="h-11 min-w-0 flex-1 rounded-xl bg-slate-100 px-3 text-center text-sm font-bold tracking-widest text-neutral-900" />
-                        <button type="button" disabled={phoneVerifyBusy || phoneOtp.length < 4} onClick={() => void handleVerifyPhoneOtp()} className="min-h-11 shrink-0 rounded-xl bg-emerald-600 px-3 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">
-                          {phoneVerifyBusy ? PHONE_VERIFY_COPY[language].verifying : PHONE_VERIFY_COPY[language].verify}
-                        </button>
-                      </div>
-                    )}
-                  </div>}
-                  {phoneVerifyMessage && <p role="status" className={`mt-1 text-[11px] font-semibold ${phoneVerified ? 'text-emerald-700' : 'text-slate-600'}`}>{phoneVerifyMessage}</p>}
-                  {phoneVerified && <p role="status" className="mt-1 text-[11px] font-semibold text-emerald-700">{PHONE_VERIFY_COPY[language].verified}</p>}
                 </div>
               ) : (
                 <div className="pt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
@@ -424,8 +414,44 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           </div>
         )}
 
-        {/* ================= STEP 3: EXPERIENCE ================= */}
-        {currentStep === 3 && (
+        {/* ================= STEP 3: PHONE VERIFICATION ================= */}
+        {requirePhone && currentStep === 3 && (
+          <div className="space-y-3 animate-in fade-in">
+            <div>
+              <h2 className="text-base font-black text-neutral-900">{PHONE_VERIFY_COPY[language].title}</h2>
+              <p className="text-xs text-slate-500">{phoneVerificationId ? PHONE_VERIFY_COPY[language].sent : uiText(language, 'registeredPhone')}</p>
+            </div>
+            <div className="space-y-3 rounded-3xl bg-white p-5 shadow-sm">
+              <div className="flex min-h-12 items-center gap-3 rounded-xl bg-slate-100 px-4">
+                <Phone className="h-4 w-4 shrink-0 text-slate-500" />
+                <span className="font-mono text-sm font-bold text-slate-900">+91 {contactPhone}</span>
+              </div>
+              <div id="onboarding-phone-recaptcha" />
+              {!phoneVerified && !phoneVerificationId && (
+                <button type="button" disabled={phoneVerifyBusy} onClick={() => void handleSendPhoneOtp()} className="min-h-12 w-full rounded-xl bg-blue-700 px-4 text-sm font-bold text-white disabled:opacity-50">
+                  {phoneVerifyBusy ? PHONE_VERIFY_COPY[language].sending : PHONE_VERIFY_COPY[language].send}
+                </button>
+              )}
+              {!phoneVerified && phoneVerificationId && (
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-600">
+                    {PHONE_VERIFY_COPY[language].enterCode}
+                    <input type="text" inputMode="numeric" autoComplete="one-time-code" value={phoneOtp} onChange={(event) => setPhoneOtp(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="••••••" aria-label={PHONE_VERIFY_COPY[language].enterCode} className="mt-1.5 h-12 w-full rounded-xl bg-slate-100 px-3 text-center text-lg font-bold tracking-[0.35em] text-neutral-900 outline-none focus:ring-2 focus:ring-blue-500" />
+                  </label>
+                  <button type="button" disabled={phoneVerifyBusy || phoneOtp.length < 4} onClick={() => void handleVerifyPhoneOtp()} className="min-h-12 w-full rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white disabled:opacity-50">
+                    {phoneVerifyBusy ? PHONE_VERIFY_COPY[language].verifying : PHONE_VERIFY_COPY[language].verify}
+                  </button>
+                  <button type="button" disabled={phoneVerifyBusy} onClick={() => void handleSendPhoneOtp()} className="min-h-10 w-full text-xs font-bold text-blue-700 disabled:opacity-50">{PHONE_VERIFY_COPY[language].send}</button>
+                </div>
+              )}
+              {phoneVerifyMessage && <p role="status" className={`text-center text-xs font-semibold ${phoneVerified ? 'text-emerald-700' : 'text-slate-600'}`}>{phoneVerifyMessage}</p>}
+              {phoneVerified && <p role="status" className="text-center text-sm font-bold text-emerald-700">{PHONE_VERIFY_COPY[language].verified}</p>}
+            </div>
+          </div>
+        )}
+
+        {/* ================= EXPERIENCE ================= */}
+        {currentStep === experienceStep && (
           <div className="space-y-3.5 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
@@ -502,7 +528,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         )}
 
         {/* ================= STEP 4: AADHAAR VERIFICATION ================= */}
-        {currentStep === 4 && (
+        {currentStep === aadhaarStep && (
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
@@ -664,7 +690,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 type="button"
                 onClick={() => {
                   setIsAadhaarVerified(false);
-                  setCurrentStep(5);
+                  setCurrentStep(reviewStep);
                 }}
                 className="text-xs text-slate-500 hover:text-neutral-900 underline font-semibold"
               >
@@ -675,7 +701,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         )}
 
         {/* ================= STEP 5: FINAL SUMMARY & START ================= */}
-        {currentStep === 5 && (
+        {currentStep === reviewStep && (
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
@@ -741,23 +767,25 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       {/* 3. BOTTOM STEP NAVIGATION BUTTONS (Borderless) */}
       <div className="pt-2 flex items-center gap-2 shrink-0">
         {/* Next / Finish Button */}
-        {currentStep < 5 ? (
+        {currentStep < totalSteps ? (
           <button
             type="button"
             disabled={
               (currentStep === 1 && selectedTrades.length === 0)
-              || (currentStep === 2 && (!name.trim() || !location.trim() || (requirePhone && (contactPhone.replace(/\D/g, '').length !== 10 || !phoneVerified))))
-              || (currentStep === 3 && experienceYears === '')
-              || (currentStep === 4 && !isAadhaarVerified)
+              || (currentStep === 2 && (!name.trim() || !location.trim() || (requirePhone && contactPhone.replace(/\D/g, '').length !== 10)))
+              || (requirePhone && currentStep === 3 && !phoneVerified)
+              || (currentStep === experienceStep && experienceYears === '')
+              || (currentStep === aadhaarStep && !isAadhaarVerified)
             }
-            onClick={() => setCurrentStep((prev) => (prev + 1) as 1 | 2 | 3 | 4 | 5)}
+            onClick={() => setCurrentStep((prev) => prev + 1)}
             className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
           >
             <span>
               {currentStep === 1 && uiText(language, 'nextName')}
-              {currentStep === 2 && uiText(language, 'nextExperience')}
-              {currentStep === 3 && uiText(language, 'nextAadhaar')}
-              {currentStep === 4 && (isAadhaarVerified ? uiText(language, 'nextReview') : uiText(language, 'verifyToContinue'))}
+              {currentStep === 2 && (requirePhone ? PHONE_VERIFY_COPY[language].continue : uiText(language, 'nextExperience'))}
+              {requirePhone && currentStep === 3 && uiText(language, 'nextExperience')}
+              {currentStep === experienceStep && uiText(language, 'nextAadhaar')}
+              {currentStep === aadhaarStep && (isAadhaarVerified ? uiText(language, 'nextReview') : uiText(language, 'verifyToContinue'))}
             </span>
             <ArrowRight className="w-4 h-4" />
           </button>
