@@ -67,9 +67,9 @@ const distanceKm = (a: GeoPoint, b: GeoPoint) => {
 
 const routeArrowIcon = (bearing: number) => divIcon({
   className: 'kaamsetu-route-arrow-host',
-  html: `<span class="kaamsetu-route-arrow" style="transform:rotate(${bearing}deg)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 21l-8-4-8 4 8-18Z" fill="currentColor" stroke="white" stroke-width="2" stroke-linejoin="round"/></svg></span>`,
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
+  html: `<span class="kaamsetu-route-arrow" style="transform:rotate(${bearing}deg)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 20 21l-8-4-8 4 8-18Z" fill="currentColor" stroke="none"/></svg></span>`,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
 });
 
 const workerIcon = () => divIcon({
@@ -190,7 +190,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   // Recalculate after a meaningful GPS change so the route follows the worker.
   useEffect(() => {
     if (!navigationActive || !workerPosition || !navigationOrigin) return;
-    if (distanceKm(navigationOrigin, workerPosition) >= 0.12) setNavigationOrigin(workerPosition);
+    if (distanceKm(navigationOrigin, workerPosition) >= 0.04) setNavigationOrigin(workerPosition);
   }, [navigationActive, workerPosition, navigationOrigin]);
 
   useEffect(() => {
@@ -256,15 +256,26 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
     if (!map || !route) return;
     const casing = polyline(route.points, { color: '#ffffff', weight: 11, opacity: 0.95, lineCap: 'round', lineJoin: 'round' }).addTo(map);
     const routeLine = polyline(route.points, { color: '#2d59f0', weight: 6, opacity: 0.96, lineCap: 'round', lineJoin: 'round' }).addTo(map);
-    const arrows = [0.22, 0.48, 0.74].flatMap((fraction) => {
-      if (route.points.length < 3) return [];
-      const index = Math.min(route.points.length - 2, Math.max(0, Math.floor((route.points.length - 1) * fraction)));
+    let remainingDistance = route.points.slice(1).reduce((total, point, index) => total + distanceKm(
+      { lat: route.points[index][0], lon: route.points[index][1] },
+      { lat: point[0], lon: point[1] },
+    ), 0) * 0.55;
+    let routeDirection: any = null;
+    for (let index = 0; index < route.points.length - 1; index++) {
       const point = route.points[index];
       const next = route.points[index + 1];
-      const arrow = marker(point, { icon: routeArrowIcon(bearingDegrees({ lat: point[0], lon: point[1] }, { lat: next[0], lon: next[1] })), interactive: false, zIndexOffset: 600 }).addTo(map);
-      return [arrow];
-    });
-    routeLayers.current = [casing, routeLine, ...arrows];
+      const segmentDistance = distanceKm({ lat: point[0], lon: point[1] }, { lat: next[0], lon: next[1] });
+      if (remainingDistance <= segmentDistance || index === route.points.length - 2) {
+        routeDirection = marker(point, {
+          icon: routeArrowIcon(bearingDegrees({ lat: point[0], lon: point[1] }, { lat: next[0], lon: next[1] })),
+          interactive: false,
+          zIndexOffset: 600,
+        }).addTo(map);
+        break;
+      }
+      remainingDistance -= segmentDistance;
+    }
+    routeLayers.current = [casing, routeLine, ...(routeDirection ? [routeDirection] : [])];
     if (!hasFitRoute.current) {
       map.fitBounds(routeLine.getBounds(), { padding: [48, 48], maxZoom: 16, animate: true });
       hasFitRoute.current = true;
