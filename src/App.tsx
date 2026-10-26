@@ -180,6 +180,19 @@ export default function App() {
   const handleToggleOnline = () => {
     const nextState = !isOnline;
     if (nextState && !openNextRequiredVerification()) return;
+    if (nextState) {
+      // Rotate matching offers whenever duty starts, so the first radar preview
+      // and the top of the jobs list do not keep presenting the same title.
+      setJobs((currentJobs) => {
+        const matchesWorkerTrade = (job: Job) =>
+          job.trade === worker.primaryTrade || worker.secondaryTrades.includes(job.trade);
+        const matchingJobs = currentJobs.filter(matchesWorkerTrade);
+        if (matchingJobs.length < 2) return currentJobs;
+        const rotatedMatches = [...matchingJobs.slice(1), matchingJobs[0]];
+        const matchingIds = new Set(matchingJobs.map((job) => job.id));
+        return [...rotatedMatches, ...currentJobs.filter((job) => !matchingIds.has(job.id))];
+      });
+    }
     setIsOnline(nextState);
 
     if (audioActive) {
@@ -199,7 +212,11 @@ export default function App() {
 
   // Trigger simulated job dispatch manually
   const handleTriggerSimulatedJob = () => {
-    const matchedJob = jobs.find((j) => j.trade === worker.primaryTrade && j.id !== shift.job?.id) || jobs[0] || MOCK_JOBS[0];
+    const matchedJob = jobs.find((job) =>
+      (job.trade === worker.primaryTrade || worker.secondaryTrades.includes(job.trade))
+      && job.id !== shift.job?.id
+      && job.id !== shift.queuedJob?.id,
+    ) || jobs[0] || MOCK_JOBS[0];
     setIncomingJob(matchedJob);
 
     if (audioActive) {
