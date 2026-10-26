@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { Language } from '../types';
-import { PlaceSuggestion, reverseGeocodePlace, searchPlaces } from '../utils/places';
+import { distanceBetweenKm, geocodePlace, PlaceSuggestion, reverseGeocodePlace, searchPlaces } from '../utils/places';
 import { LocateFixed, MapPin, LoaderCircle } from 'lucide-react';
 
 interface LocationAutocompleteProps {
@@ -23,6 +23,8 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [failed, setFailed] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState(false);
+  const [deviceLocation, setDeviceLocation] = useState<PlaceSuggestion | null>(null);
+  const [manualLocationToConfirm, setManualLocationToConfirm] = useState<PlaceSuggestion | null>(null);
   const requestRef = useRef<AbortController | null>(null);
 
   const currentLocationCopy: Record<Language, { action: string; error: string }> = {
@@ -31,6 +33,13 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     bn: { action: '\u09ac\u09b0\u09cd\u09a4\u09ae\u09be\u09a8 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09ac\u09cd\u09af\u09ac\u09b9\u09be\u09b0 \u0995\u09b0\u09c1\u09a8', error: '\u0986\u09aa\u09a8\u09be\u09b0 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09aa\u09be\u0993\u09af\u09bc\u09be \u09af\u09be\u09af\u09bc\u09a8\u09bf\u0964 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8\u09c7\u09b0 \u0985\u09a8\u09c1\u09ae\u09a4\u09bf \u09af\u09be\u099a\u09be\u0987 \u0995\u09b0\u09c7 \u0986\u09ac\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09c1\u09a8\u0964' },
     mr: { action: '\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0938\u094d\u0925\u093e\u0928 \u0935\u093e\u092a\u0930\u093e', error: '\u0924\u0941\u092e\u091a\u0947 \u0938\u094d\u0925\u093e\u0928 \u092e\u093f\u0933\u0935\u0924\u093e \u0906\u0932\u0947 \u0928\u093e\u0939\u0940. \u0938\u094d\u0925\u093e\u0928\u093e\u091a\u0940 \u092a\u0930\u0935\u093e\u0928\u0917\u0940 \u0924\u092a\u093e\u0938\u0942\u0928 \u092a\u0941\u0928\u094d\u0939\u093e \u092a\u094d\u0930\u092f\u0924\u094d\u0928 \u0915\u0930\u093e.' },
     te: { action: '\u0c2a\u0c4d\u0c30\u0c38\u0c4d\u0c24\u0c41\u0c24 \u0c38\u0c4d\u0c25\u0c3e\u0c28\u0c3e\u0c28\u0c4d\u0c28\u0c3f \u0c09\u0c2a\u0c2f\u0c4b\u0c17\u0c3f\u0c02\u0c1a\u0c02\u0c21\u0c3f', error: '\u0c2e\u0c40 \u0c38\u0c4d\u0c25\u0c3e\u0c28\u0c3e\u0c28\u0c4d\u0c28\u0c3f \u0c2a\u0c4a\u0c02\u0c26\u0c32\u0c47\u0c15\u0c2a\u0c4b\u0c2f\u0c3e\u0c2e\u0c41. \u0c38\u0c4d\u0c25\u0c3e\u0c28 \u0c05\u0c28\u0c41\u0c2e\u0c24\u0c3f\u0c28\u0c3f \u0c24\u0c28\u0c3f\u0c16\u0c40 \u0c1a\u0c47\u0c38\u0c3f \u0c2e\u0c33\u0c4d\u0c33\u0c40 \u0c2a\u0c4d\u0c30\u0c2f\u0c24\u0c4d\u0c28\u0c3f\u0c02\u0c1a\u0c02\u0c21\u0c3f.' },
+  };
+  const mismatchCopy: Record<Language, { title: string; description: string; current: string; manual: string }> = {
+    en: { title: 'Your selected area differs from GPS', description: 'Choose your current device location or keep the area you entered.', current: 'Use current location', manual: 'Add manually' },
+    hi: { title: '\u091a\u0941\u0928\u093e \u0939\u0941\u0906 \u090f\u0930\u093f\u092f\u093e GPS \u0938\u0947 \u0905\u0932\u0917 \u0939\u0948', description: '\u092e\u094c\u091c\u0942\u0926\u093e \u0921\u093f\u0935\u093e\u0907\u0938 \u0932\u094b\u0915\u0947\u0936\u0928 \u091a\u0941\u0928\u0947\u0902 \u092f\u093e \u0926\u0930\u094d\u091c \u0915\u093f\u092f\u093e \u0939\u0941\u0906 \u090f\u0930\u093f\u092f\u093e \u0930\u0916\u0947\u0902\u0964', current: '\u092e\u094c\u091c\u0942\u0926\u093e \u0932\u094b\u0915\u0947\u0936\u0928 \u0909\u092a\u092f\u094b\u0917 \u0915\u0930\u0947\u0902', manual: '\u092e\u0948\u0928\u094d\u092f\u0941\u0905\u0932 \u0930\u0942\u092a \u0938\u0947 \u091c\u094b\u0921\u093c\u0947\u0902' },
+    bn: { title: '\u09a8\u09bf\u09b0\u09cd\u09ac\u09be\u099a\u09bf\u09a4 \u098f\u09b2\u09be\u0995\u09be GPS \u09a5\u09c7\u0995\u09c7 \u0985\u09b2\u09be\u09a6\u09be', description: '\u09ac\u09b0\u09cd\u09a4\u09ae\u09be\u09a8 \u09a1\u09bf\u09ad\u09be\u0987\u09b8 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09ac\u09be \u0986\u09aa\u09a8\u09bf \u09af\u09c7 \u098f\u09b2\u09be\u0995\u09be \u09a6\u09bf\u09af\u09bc\u09c7\u099b\u09c7\u09a8 \u09a4\u09be \u09ac\u09c7\u099b\u09c7 \u09a8\u09bf\u09a8\u0964', current: '\u09ac\u09b0\u09cd\u09a4\u09ae\u09be\u09a8 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u09ac\u09cd\u09af\u09ac\u09b9\u09be\u09b0', manual: '\u09a8\u09bf\u099c\u09c7 \u09b2\u09bf\u0996\u09c1\u09a8' },
+    mr: { title: '\u0928\u093f\u0935\u0921\u0932\u0947\u0932\u0947 \u0920\u093f\u0915\u093e\u0923 GPS \u092a\u093e\u0938\u0942\u0928 \u0935\u0947\u0917\u0933\u0947 \u0906\u0939\u0947', description: '\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0921\u093f\u0935\u094d\u0939\u093e\u0907\u0938 \u0938\u094d\u0925\u093e\u0928 \u0915\u093f\u0902\u0935\u093e \u0924\u0941\u092e\u0940 \u0926\u093f\u0932\u0947\u0932\u0947 \u0920\u093f\u0915\u093e\u0923 \u0928\u093f\u0935\u0921\u093e.', current: '\u0938\u0927\u094d\u092f\u093e\u091a\u0947 \u0938\u094d\u0925\u093e\u0928 \u0935\u093e\u092a\u0930\u093e', manual: '\u0938\u094d\u0935\u0924\u0903 \u0920\u093f\u0915\u093e\u0923 \u091c\u094b\u0921\u093e' },
+    te: { title: '\u0c2e\u0c40\u0c30\u0c41 \u0c0e\u0c02\u0c1a\u0c41\u0c15\u0c41\u0c28\u0c4d\u0c28 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c02 GPS \u0c38\u0c4d\u0c25\u0c3e\u0c28\u0c02\u0c24\u0c4b \u0c35\u0c47\u0c30\u0c41\u0c17\u0c3e \u0c09\u0c02\u0c26\u0c3f', description: '\u0c2e\u0c40 \u0c2a\u0c4d\u0c30\u0c38\u0c4d\u0c24\u0c41\u0c24 \u0c21\u0c3f\u0c35\u0c48\u0c38\u0c4d \u0c38\u0c4d\u0c25\u0c3e\u0c28\u0c3e\u0c28\u0c4d\u0c28\u0c3f \u0c0e\u0c02\u0c1a\u0c41\u0c15\u0c4b\u0c02\u0c21\u0c3f \u0c32\u0c47\u0c26\u0c3e \u0c2e\u0c40\u0c30\u0c41 \u0c28\u0c3e\u0c2e\u0c4b\u0c26\u0c41 \u0c1a\u0c47\u0c38\u0c3f\u0c28 \u0c2a\u0c4d\u0c30\u0c3e\u0c02\u0c24\u0c3e\u0c28\u0c4d\u0c28\u0c3f \u0c09\u0c02\u0c1a\u0c02\u0c21\u0c3f.', current: '\u0c2a\u0c4d\u0c30\u0c38\u0c4d\u0c24\u0c41\u0c24 \u0c38\u0c4d\u0c25\u0c3e\u0c28\u0c3e\u0c28\u0c4d\u0c28\u0c3f \u0c09\u0c2a\u0c2f\u0c4b\u0c17\u0c3f\u0c02\u0c1a\u0c02\u0c21\u0c3f', manual: '\u0c2e\u0c3e\u0c28\u0c41\u0c2f\u0c32\u0c4d\u0c17\u0c3e \u0c1c\u0c4b\u0c21\u0c3f\u0c02\u0c1a\u0c02\u0c21\u0c3f' },
   };
 
   useEffect(() => {
@@ -74,6 +83,47 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setOpen(false);
   };
 
+  const checkSelectedPlace = (place: PlaceSuggestion) => {
+    if (deviceLocation) {
+      if (distanceBetweenKm(deviceLocation, place) > 2) setManualLocationToConfirm(place);
+      return;
+    }
+    if (!navigator.geolocation || !window.isSecureContext) return;
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      const current = { lat: coords.latitude, lon: coords.longitude, label: '' };
+      setDeviceLocation(current);
+      if (distanceBetweenKm(current, place) > 2) setManualLocationToConfirm(place);
+    }, () => undefined, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  };
+
+  const checkManualInput = async () => {
+    if (!deviceLocation || value.trim().length < 3) return;
+    const place = await geocodePlace(value.trim());
+    if (place && distanceBetweenKm(deviceLocation, place) > 2) {
+      setManualLocationToConfirm({ ...place, label: value.trim() });
+    }
+  };
+
+  const chooseManualLocation = () => setManualLocationToConfirm(null);
+
+  const chooseCurrentLocation = () => {
+    const position = deviceLocation;
+    if (!position) {
+      setManualLocationToConfirm(null);
+      selectCurrentLocation();
+      return;
+    }
+    setLocating(true);
+    void reverseGeocodePlace(position, language).then((place) => {
+      if (place) {
+        setDeviceLocation(place);
+        selectPlace(place);
+      } else setLocationError(true);
+      setLocating(false);
+      setManualLocationToConfirm(null);
+    });
+  };
+
   const selectCurrentLocation = () => {
     if (!navigator.geolocation || locating) {
       setLocationError(true);
@@ -86,12 +136,10 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     setLocating(true);
     setLocationError(false);
     navigator.geolocation.getCurrentPosition(async ({ coords }) => {
-      const place = await reverseGeocodePlace({ lat: coords.latitude, lon: coords.longitude }, language);
+      const point = { lat: coords.latitude, lon: coords.longitude };
+      const place = await reverseGeocodePlace(point, language) || { ...point, label: `${coords.latitude.toFixed(5)}, ${coords.longitude.toFixed(5)}` };
       setLocating(false);
-      if (!place) {
-        setLocationError(true);
-        return;
-      }
+      setDeviceLocation(place);
       selectPlace(place);
     }, () => {
       setLocating(false);
@@ -107,6 +155,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           value={value}
           onChange={(event) => { onChange(event.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
+          onBlur={() => { void checkManualInput(); }}
           onKeyDown={(event) => { if (event.key === 'Escape') setOpen(false); }}
           placeholder={placeholder}
           required={required}
@@ -121,19 +170,30 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         <div role="listbox" className="absolute inset-x-0 top-full z-40 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
           <button type="button" role="option" aria-selected="false" disabled={locating} onMouseDown={(event) => event.preventDefault()} onClick={selectCurrentLocation} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-bold text-blue-700 hover:bg-blue-50 disabled:opacity-60">
             {locating ? <LoaderCircle aria-hidden="true" className="h-4 w-4 shrink-0 animate-spin" /> : <LocateFixed className="h-4 w-4 shrink-0" />}
-            <span>{locating ? currentLocationCopy[language].action + '…' : currentLocationCopy[language].action}</span>
+            <span>{locating ? currentLocationCopy[language].action + 'â€¦' : currentLocationCopy[language].action}</span>
           </button>
           {locationError && <p role="alert" className="px-3 py-2 text-xs text-rose-600">{currentLocationCopy[language].error}</p>}
           {suggestions.map((place, index) => (
-            <button key={`${place.lat}:${place.lon}:${index}`} type="button" role="option" aria-selected="false" onMouseDown={(event) => event.preventDefault()} onClick={() => selectPlace(place)} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-800 hover:bg-blue-50">
+            <button key={`${place.lat}:${place.lon}:${index}`} type="button" role="option" aria-selected="false" onMouseDown={(event) => event.preventDefault()} onClick={() => { selectPlace(place); checkSelectedPlace(place); }} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-800 hover:bg-blue-50">
               <MapPin className="h-4 w-4 shrink-0 text-blue-600" />
               <span className="min-w-0 truncate">{place.label}</span>
             </button>
           ))}
           {failed && <p className="px-3 py-2 text-xs text-slate-500">Location suggestions unavailable. You can still enter the location manually.</p>}
-          <p className="px-3 py-1.5 text-[10px] text-slate-400">Place results © OpenStreetMap contributors</p>
+          <p className="px-3 py-1.5 text-[10px] text-slate-400">Place results Â© OpenStreetMap contributors</p>
         </div>
       )}
+      {manualLocationToConfirm && <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/40 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) chooseManualLocation(); }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="location-mismatch-title" className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-2xl">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><LocateFixed className="h-6 w-6" /></div>
+          <h2 id="location-mismatch-title" className="text-base font-black text-slate-900">{mismatchCopy[language].title}</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{mismatchCopy[language].description}</p>
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <button type="button" onClick={chooseCurrentLocation} className="min-h-11 flex-1 rounded-xl bg-[#2d59f0] px-4 text-sm font-bold text-white">{mismatchCopy[language].current}</button>
+            <button type="button" onClick={chooseManualLocation} className="min-h-11 flex-1 rounded-xl bg-slate-100 px-4 text-sm font-bold text-slate-700">{mismatchCopy[language].manual}</button>
+          </div>
+        </section>
+      </div>}
     </div>
   );
 };
