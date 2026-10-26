@@ -54,6 +54,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const [enteredOtp, setEnteredOtp] = useState<string>('');
   const [otpError, setOtpError] = useState<string>('');
   const [slideProgress, setSlideProgress] = useState(0);
+  const [showOtpSlideScreen, setShowOtpSlideScreen] = useState(false);
 
   const job = shift.job;
   const queuedJob = shift.queuedJob;
@@ -63,6 +64,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
     setEnteredOtp('');
     setOtpError('');
     setSlideProgress(0);
+    setShowOtpSlideScreen(false);
   }, [job?.id]);
 
   const handleVerifySiteOtp = () => {
@@ -164,25 +166,31 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
             <span className="rounded-md bg-slate-100 px-2 py-1">{job.distanceKm} {uiText(language, 'kmUnit')}</span>
             <span className="rounded-md bg-slate-100 px-2 py-1">{job.startTime} - {job.endTime}</span>
           </div>
-          <div className="relative mt-3 h-[54px] overflow-hidden rounded-[15px] border border-dashed border-[#2d59f0] bg-white">
-            <span className="pointer-events-none absolute inset-0 flex items-center justify-center pl-10 text-[14px] font-semibold text-[#587cff]">{uiText(language, 'slideToEnterOtp')}</span>
-            <span style={{ left: `calc((100% - 52px) * ${slideProgress / 100})` }} className="pointer-events-none absolute top-0 z-10 flex h-[52px] w-[52px] items-center justify-center rounded-[14px] bg-[#2d59f0] text-white shadow-md transition-[left] duration-75">
-              <ChevronsRight className="h-7 w-7" />
-            </span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={slideProgress}
-              onChange={(event) => {
-                const progress = Number(event.target.value);
-                setSlideProgress(progress);
-                if (progress >= 86) onEnterOtp();
-              }}
-              aria-label={uiText(language, 'slideToEnterOtp')}
-              className="absolute inset-0 z-20 h-full w-full cursor-grab appearance-none bg-transparent opacity-[0.01] active:cursor-grabbing"
-            />
-          </div>
+          {showOtpSlideScreen ? (
+            <div className="relative mt-3 h-[54px] overflow-hidden rounded-[15px] border border-dashed border-[#2d59f0] bg-white">
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center pl-10 text-[14px] font-semibold text-[#587cff]">{uiText(language, 'slideToEnterOtp')}</span>
+              <span style={{ left: `calc((100% - 52px) * ${slideProgress / 100})` }} className="pointer-events-none absolute top-0 z-10 flex h-[52px] w-[52px] items-center justify-center rounded-[14px] bg-[#2d59f0] text-white shadow-md transition-[left] duration-75">
+                <ChevronsRight className="h-7 w-7" />
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={slideProgress}
+                onChange={(event) => {
+                  const progress = Number(event.target.value);
+                  setSlideProgress(progress);
+                  if (progress >= 86) onEnterOtp();
+                }}
+                aria-label={uiText(language, 'slideToEnterOtp')}
+                className="absolute inset-0 z-20 h-full w-full cursor-grab appearance-none bg-transparent opacity-[0.01] active:cursor-grabbing"
+              />
+            </div>
+          ) : (
+            <button type="button" onClick={() => setShowOtpSlideScreen(true)} className="mt-3 flex h-[54px] w-full items-center justify-center gap-2 rounded-[15px] bg-[#2d59f0] text-sm font-bold text-white shadow-md transition-colors hover:bg-blue-800">
+              {uiText(language, 'next')}<ChevronsRight className="h-5 w-5" />
+            </button>
+          )}
         </article>
       </div>
     );
