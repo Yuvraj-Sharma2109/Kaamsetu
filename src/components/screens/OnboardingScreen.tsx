@@ -7,6 +7,7 @@ import { speakText } from '../../utils/speech';
 import { localizeTradeName, uiText } from '../../utils/uiText';
 import { aiLabel } from '../../utils/aiLabels';
 import { clearPhoneRecaptcha } from '../../utils/firebaseAuth';
+import { readProfilePhoto } from '../../utils/profilePhoto';
 import { 
   Wrench, 
   Check, 
@@ -63,6 +64,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   // Form fields
   const [selectedTrades, setSelectedTrades] = useState<TradeCategory[]>(requirePhone ? [] : ['mason']);
   const [name, setName] = useState<string>(initialName || (requirePhone ? '' : 'Rameshwar Kumar'));
+  const [profilePhotoURL, setProfilePhotoURL] = useState(initialPhotoURL);
+  const [profilePhotoError, setProfilePhotoError] = useState('');
   const [location, setLocation] = useState<string>(requirePhone ? '' : 'Indiranagar, Bangalore');
   const verifiedPhoneDigits = verifiedPhone.replace(/\D/g, '').slice(-10);
   const [contactPhone, setContactPhone] = useState<string>(verifiedPhoneDigits || (requirePhone ? '' : initialPhone.replace(/\D/g, '').slice(-10)));
@@ -87,6 +90,16 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const experienceStep = requirePhone ? 4 : 3;
   const aadhaarStep = requirePhone ? 5 : 4;
   const reviewStep = requirePhone ? 6 : 5;
+
+  const handleProfilePhoto = async (file?: File) => {
+    if (!file) return;
+    try {
+      setProfilePhotoURL(await readProfilePhoto(file));
+      setProfilePhotoError('');
+    } catch (error) {
+      setProfilePhotoError(error instanceof Error ? error.message : 'Could not use that image.');
+    }
+  };
 
   useEffect(() => () => clearPhoneRecaptcha(), []);
 
@@ -232,6 +245,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       experienceYears: Number(experienceYears) || 0,
       currentLocation: location,
       isKycVerified: isAadhaarVerified,
+      authPhotoURL: profilePhotoURL || undefined,
     });
   };
 
@@ -361,6 +375,17 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                   className="w-full bg-slate-100 rounded-xl px-4 py-3 text-sm font-black text-neutral-900 focus:outline-none"
                   required
                 />
+              </div>
+
+              <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-3">
+                {profilePhotoURL ? <img src={profilePhotoURL} alt="Profile preview" className="h-14 w-14 rounded-full object-cover" /> : <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-200 text-lg font-black text-slate-600">{name.charAt(0) || '?'}</div>}
+                <div className="min-w-0 flex-1">
+                  <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-lg bg-white px-3 text-xs font-bold text-blue-800 shadow-sm">
+                    <Camera className="h-4 w-4" /> Add profile picture
+                    <input type="file" accept="image/*" className="sr-only" onChange={(event) => { void handleProfilePhoto(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+                  </label>
+                  {profilePhotoError && <p role="alert" className="mt-1 text-[11px] font-semibold text-rose-700">{profilePhotoError}</p>}
+                </div>
               </div>
 
               <div>
@@ -703,8 +728,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             {/* Ready Worker Card (Borderless) */}
             <div className="bg-white rounded-3xl p-5 space-y-3 shadow-sm">
               <div className="flex items-center gap-3">
-                {initialPhotoURL ? (
-                  <img src={initialPhotoURL} alt="Account profile" referrerPolicy="no-referrer" className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-xs" />
+                {profilePhotoURL ? (
+                  <img src={profilePhotoURL} alt="Account profile" referrerPolicy="no-referrer" className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-xs" />
                 ) : (
                   <div className="w-12 h-12 rounded-2xl bg-neutral-900 text-white font-black text-xl flex items-center justify-center shadow-xs">
                     {name.charAt(0) || 'R'}

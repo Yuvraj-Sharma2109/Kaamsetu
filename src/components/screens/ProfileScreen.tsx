@@ -3,8 +3,9 @@ import { WorkerProfile, Language, TradeCategory } from '../../types';
 import { TRADES } from '../../data/mockData';
 import { LanguageDropdown } from '../LanguageDropdown';
 import { localizeTradeName, uiText } from '../../utils/uiText';
+import { readProfilePhoto } from '../../utils/profilePhoto';
 import { getLinkedSocialProviders, hasLinkedPhoneProvider, isFirebaseConfigured, linkSocialProvider, linkVerifiedPhone, sendPhoneLinkOtp } from '../../utils/firebaseAuth';
-import { Star, LogOut, Languages, Phone, Mail, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot, ArrowLeft, Save, Pencil } from 'lucide-react';
+import { Star, LogOut, Languages, Phone, Mail, IdCard, CheckCircle2, History, Hammer, AlertCircle, Settings, Bot, ArrowLeft, Save, Pencil, Camera } from 'lucide-react';
 
 const PROFILE_EDIT_LABELS: Record<Language, { edit: string; title: string; save: string; cancel: string; phoneNote: string; chooseTrade: string }> = {
   en: { edit: 'Edit profile', title: 'Edit profile details', save: 'Save changes', cancel: 'Cancel', phoneNote: 'Phone number is read-only here.', chooseTrade: 'Select your work types' },
@@ -24,7 +25,7 @@ const PROFILE_COPY: Record<Language, { settings: string; appLanguage: string; as
 
 interface ProfileScreenProps {
   worker: WorkerProfile;
-  onUpdateProfile: (updates: Pick<WorkerProfile, 'name' | 'currentLocation' | 'experienceYears' | 'primaryTrade' | 'secondaryTrades'>) => void;
+  onUpdateProfile: (updates: Pick<WorkerProfile, 'name' | 'currentLocation' | 'experienceYears' | 'primaryTrade' | 'secondaryTrades' | 'authPhotoURL'>) => void;
   language: Language;
   onLanguageChange: (lang: Language) => void;
   onAddTrade: (trade: TradeCategory) => void;
@@ -65,13 +66,27 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [draftLocation, setDraftLocation] = useState(worker.currentLocation);
   const [draftExperience, setDraftExperience] = useState(String(worker.experienceYears));
   const [draftTrades, setDraftTrades] = useState<TradeCategory[]>(registeredTrades);
+  const [draftPhotoURL, setDraftPhotoURL] = useState(worker.authPhotoURL || '');
+  const [photoError, setPhotoError] = useState('');
 
   const startEditingProfile = () => {
     setDraftName(worker.name);
     setDraftLocation(worker.currentLocation);
     setDraftExperience(String(worker.experienceYears));
     setDraftTrades([worker.primaryTrade, ...worker.secondaryTrades]);
+    setDraftPhotoURL(worker.authPhotoURL || '');
+    setPhotoError('');
     setEditingProfile(true);
+  };
+
+  const handleProfilePhoto = async (file?: File) => {
+    if (!file) return;
+    try {
+      setDraftPhotoURL(await readProfilePhoto(file));
+      setPhotoError('');
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : 'Could not use that image.');
+    }
   };
 
   const saveProfile = (event: React.FormEvent) => {
@@ -83,6 +98,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       experienceYears: Number(draftExperience) || 0,
       primaryTrade: draftTrades[0],
       secondaryTrades: draftTrades.slice(1),
+      authPhotoURL: draftPhotoURL,
     });
     setEditingProfile(false);
   };
@@ -174,6 +190,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </header>
 
         <form onSubmit={saveProfile} className="space-y-3">
+          <section className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm">
+            {draftPhotoURL ? <img src={draftPhotoURL} alt="Profile preview" className="h-20 w-20 rounded-full object-cover" /> : <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-2xl font-black text-slate-500">{draftName.charAt(0) || '?'}</div>}
+            <div className="min-w-0">
+              <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl bg-blue-50 px-3 text-xs font-bold text-blue-800">
+                <Camera className="h-4 w-4" /> Change profile picture
+                <input type="file" accept="image/*" className="sr-only" onChange={(event) => { void handleProfilePhoto(event.target.files?.[0]); event.currentTarget.value = ''; }} />
+              </label>
+              <p className="mt-1 text-[10px] text-slate-500">Image files up to 8 MB</p>
+              {photoError && <p role="alert" className="mt-1 text-xs font-semibold text-rose-700">{photoError}</p>}
+            </div>
+          </section>
           <section className="space-y-3 rounded-2xl bg-white p-4 shadow-sm">
             <label className="block text-xs font-bold text-slate-600">
               {uiText(language, 'fullName')}
