@@ -120,7 +120,9 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
   const markerCopy = MAP_MARKER_COPY[language];
   const currentTargetJob = activeJob || incomingJob;
   const displayPreviewJob = suggestedJob || null;
-  const mapJob = currentTargetJob || (isOnline ? displayPreviewJob : null);
+  // A suggested job is only a preview. Show its worksite marker after the
+  // worker selects or accepts it as the active/incoming job.
+  const mapJob = currentTargetJob;
   const mapElement = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const workerMarker = useRef<any>(null);
