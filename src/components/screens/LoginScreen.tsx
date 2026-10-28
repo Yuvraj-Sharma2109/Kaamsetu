@@ -101,6 +101,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
   };
 
+  // Keep one Firebase listener for the lifetime of the login screen. The app
+  // callback is recreated by its parent, so the listener reads the newest one
+  // from this ref instead of restarting redirect handling on every render.
+  const handleOAuthUserRef = useRef(handleOAuthUser);
+  handleOAuthUserRef.current = handleOAuthUser;
+  const socialErrorTextRef = useRef(socialErrorText);
+  socialErrorTextRef.current = socialErrorText;
+
   useEffect(() => {
     if (!isFirebaseConfigured()) return;
     let disposed = false;
@@ -108,12 +116,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     watchFirebaseAuth((user) => {
       if (user) {
         const provider = user.providerData.find((item) => item.providerId === 'google.com' || item.providerId === 'facebook.com');
-        if (provider) handleOAuthUser(provider.providerId === 'google.com' ? 'google' : 'facebook', user);
+        if (provider) handleOAuthUserRef.current(provider.providerId === 'google.com' ? 'google' : 'facebook', user);
       }
       if (!disposed) setCheckingAuth(false);
     }, (error) => {
       if (!disposed) {
-        setAuthError(socialErrorText(error));
+        setAuthError(socialErrorTextRef.current(error));
         setCheckingAuth(false);
       }
     }).then((stopWatching) => {
@@ -128,15 +136,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     void getFirebaseRedirectUser().then((user) => {
       if (disposed || !user) return;
       const provider = user.providerData.find((item) => item.providerId === 'google.com' || item.providerId === 'facebook.com');
-      if (provider) handleOAuthUser(provider.providerId === 'google.com' ? 'google' : 'facebook', user);
+      if (provider) handleOAuthUserRef.current(provider.providerId === 'google.com' ? 'google' : 'facebook', user);
     }).catch((error) => {
       if (!disposed) {
-        setAuthError(socialErrorText(error));
+        setAuthError(socialErrorTextRef.current(error));
         setCheckingAuth(false);
       }
     });
     return () => { disposed = true; unsubscribe?.(); };
-  }, [language, onFirebaseAuthSuccess]);
+  }, []);
 
   const handleVoiceHelp = () => {
     window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));

@@ -156,13 +156,9 @@ export async function signInWithSocialProvider(method: 'google' | 'facebook', la
     provider = facebookProvider;
   }
 
-  // Redirect sign-in is more reliable than a popup in installed PWAs and mobile browsers.
-  const isMobile = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isMobile) {
-    await sdk.signInWithRedirect(auth, provider);
-    return null;
-  }
-
+  // Vercel-hosted apps use a different origin from Firebase's auth helper.
+  // Popup sign-in avoids the third-party storage restrictions that can break
+  // Firebase redirects on current mobile browsers and installed PWAs.
   try {
     const result = await sdk.signInWithPopup(auth, provider);
     return result.user;
@@ -213,7 +209,7 @@ export async function hasLinkedPhoneProvider(): Promise<boolean> {
   return Boolean(auth.currentUser?.providerData.some(({ providerId }) => providerId === 'phone'));
 }
 
-/** Linking requires a currently signed-in Firebase user; Firebase verifies the provider through its popup. */
+/** Linking requires a signed-in Firebase user; the provider popup verifies the identity. */
 export async function linkSocialProvider(method: 'google' | 'facebook', language: Language): Promise<FirebaseUserInfo | null> {
   const { auth, sdk } = await getFirebaseAuth();
   if (!auth.currentUser) throw new Error('kaamsetu/firebase-user-required');
@@ -229,11 +225,14 @@ export async function linkSocialProvider(method: 'google' | 'facebook', language
     facebookProvider.addScope('email');
     provider = facebookProvider;
   }
-  const isMobile = window.matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isMobile) {
-    await sdk.linkWithRedirect(auth.currentUser, provider);
-    return null;
+  try {
+    const result = await sdk.linkWithPopup(auth.currentUser, provider);
+    return result.user;
+  } catch (error) {
+    if ((error as { code?: string })?.code === 'auth/popup-blocked') {
+      await sdk.linkWithRedirect(auth.currentUser, provider);
+      return null;
+    }
+    throw error;
   }
-  const result = await sdk.linkWithPopup(auth.currentUser, provider);
-  return result.user;
 }
