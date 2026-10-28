@@ -163,11 +163,9 @@ export async function signInWithSocialProvider(method: 'google' | 'facebook', la
     const result = await sdk.signInWithPopup(auth, provider);
     return result.user;
   } catch (error) {
-    const code = (error as { code?: string })?.code;
-    if (code === 'auth/popup-blocked') {
-      await sdk.signInWithRedirect(auth, provider);
-      return null;
-    }
+    // Do not silently switch to redirect here: on Vercel, redirect auth needs
+    // a same-origin Firebase auth proxy on browsers that partition storage.
+    // Returning the popup error gives the user a recoverable, visible failure.
     throw error;
   }
 }
@@ -229,10 +227,6 @@ export async function linkSocialProvider(method: 'google' | 'facebook', language
     const result = await sdk.linkWithPopup(auth.currentUser, provider);
     return result.user;
   } catch (error) {
-    if ((error as { code?: string })?.code === 'auth/popup-blocked') {
-      await sdk.linkWithRedirect(auth.currentUser, provider);
-      return null;
-    }
     throw error;
   }
 }

@@ -72,6 +72,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     const messages = copy[language];
     if (code === 'kaamsetu/firebase-config-missing') return 'Authentication requires Firebase setup. Add the VITE_FIREBASE_* values and enable Phone, Google, and Facebook in Firebase Authentication.';
     if (code === 'kaamsetu/firebase-sdk-unavailable') return messages.network;
+    if (code === 'auth/popup-blocked') return language === 'hi'
+      ? 'ब्राउज़र ने Google लॉगिन विंडो रोकी। इस साइट के लिए पॉप-अप अनुमति दें या ऐप को Chrome/Safari में खोलकर फिर कोशिश करें।'
+      : language === 'bn'
+        ? 'ব্রাউজার Google লগইন উইন্ডোটি আটকে দিয়েছে। এই সাইটের জন্য পপ-আপ অনুমতি দিন অথবা Chrome/Safari-তে খুলে আবার চেষ্টা করুন।'
+        : language === 'mr'
+          ? 'ब्राउझरने Google लॉगिन विंडो रोखली. या साइटसाठी पॉप-अपला परवानगी द्या किंवा Chrome/Safari मध्ये उघडून पुन्हा प्रयत्न करा.'
+          : language === 'te'
+            ? 'బ్రౌజర్ Google లాగిన్ విండోను నిరోధించింది. ఈ సైట్‌కు పాప్-అప్‌లను అనుమతించండి లేదా Chrome/Safariలో తెరిచి మళ్లీ ప్రయత్నించండి.'
+            : 'Your browser blocked the Google sign-in window. Allow pop-ups for this site, or open the app in Chrome/Safari and try again.';
     if (code === 'auth/unauthorized-domain') return messages.domain;
     if (code === 'auth/operation-not-allowed' || code === 'auth/requests-to-this-api-identitytoolkit-method-google-oauth2-are-blocked') return messages.provider;
     if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return messages.closed;
