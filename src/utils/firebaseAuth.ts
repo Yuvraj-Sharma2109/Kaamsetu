@@ -19,6 +19,7 @@ export interface FirebaseUserInfo {
   photoURL: string | null;
   phoneNumber?: string | null;
   providerData: Array<{ providerId: string }>;
+  getIdToken?: (forceRefresh?: boolean) => Promise<string>;
 }
 
 export interface FirebasePhoneConfirmation {
@@ -205,6 +206,13 @@ export async function hasLinkedPhoneProvider(): Promise<boolean> {
   if (!isFirebaseConfigured()) return false;
   const { auth } = await getFirebaseAuth();
   return Boolean(auth.currentUser?.providerData.some(({ providerId }) => providerId === 'phone'));
+}
+
+/** Gets a short-lived Firebase ID token for authenticated server API requests. */
+export async function getFirebaseIdToken(): Promise<string> {
+  const { auth } = await getFirebaseAuth();
+  if (!auth.currentUser?.getIdToken) throw new Error('kaamsetu/firebase-user-required');
+  return auth.currentUser.getIdToken();
 }
 
 /** Linking requires a signed-in Firebase user; the provider popup verifies the identity. */

@@ -100,6 +100,29 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
   const [locationPermissionBusy, setLocationPermissionBusy] = useState(false);
   const [locationPermissionError, setLocationPermissionError] = useState('');
+  const [locationPermissionState, setLocationPermissionState] = useState<PermissionState | 'unsupported'>('prompt');
+
+  useEffect(() => {
+    if (!navigator.permissions?.query) {
+      setLocationPermissionState('unsupported');
+      return;
+    }
+    let active = true;
+    let status: PermissionStatus | undefined;
+    const update = () => {
+      if (active && status) setLocationPermissionState(status.state);
+    };
+    void navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
+      if (!active) return;
+      status = permission;
+      update();
+      permission.addEventListener('change', update);
+    }).catch(() => setLocationPermissionState('unsupported'));
+    return () => {
+      active = false;
+      status?.removeEventListener('change', update);
+    };
+  }, []);
 
   const handleProfilePhoto = async (file?: File) => {
     if (!file) return;
@@ -274,14 +297,16 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       () => {
         setLocationPermissionBusy(false);
         setLocationPermissionGranted(true);
+        setLocationPermissionState('granted');
         handleFinish(true);
       },
       (error) => {
         setLocationPermissionBusy(false);
         setLocationPermissionGranted(false);
+        if (error.code === error.PERMISSION_DENIED) setLocationPermissionState('denied');
         setLocationPermissionError(error.code === error.PERMISSION_DENIED
-          ? 'Location permission is required to use KaamDaar. Allow it in your browser or phone settings, then tap Try again.'
-          : 'Could not get your location. Check that location services are on, then try again.');
+          ? 'Location access is blocked. The phone/browser will not show its permission prompt again until you allow KaamDaar in settings.'
+          : 'Your location could not be read. Turn on Location/GPS on your phone and try again.');
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
@@ -831,7 +856,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               Your phone or browser will show its own location permission prompt when you continue. Your saved work area remains {location || 'the area you selected'}.
             </div>
             {locationPermissionGranted && <p role="status" className="text-sm font-bold text-emerald-700">Location access is enabled.</p>}
-            {locationPermissionError && <div role="alert" className="space-y-2 rounded-2xl bg-rose-50 p-4 text-left text-xs leading-5 text-rose-700"><p>{locationPermissionError}</p><p>On an installed app, open your phone Settings → Apps → KaamDaar → Permissions → Location. In a browser, open site settings from the address bar and set Location to Allow.</p></div>}
+            {locationPermissionError && <div role="alert" className="space-y-2 rounded-2xl bg-rose-50 p-4 text-left text-xs leading-5 text-rose-700">
+              <p className="font-bold">{locationPermissionError}</p>
+              {!window.isSecureContext && <p className="font-bold">This page is HTTP. Location permission only works on HTTPS; open the secure published app link on your phone.</p>}
+              {locationPermissionState === 'denied' && <>
+                <p><strong>Installed Android app:</strong> long-press the KaamDaar icon → App info → Permissions → Location → Allow while using the app.</p>
+                <p><strong>Opened in Chrome:</strong> tap the site controls beside the address bar → Permissions → Location → Allow. If needed: Chrome ⋮ → Settings → Site settings → All sites → this site → Location → Allow.</p>
+              </>}
+              <p className="text-[10px] font-semibold">Permission status: {locationPermissionState}</p>
+            </div>}
           </div>
         )}
       </motion.div>
@@ -866,7 +899,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         ) : currentStep === locationPermissionStep ? (
           <button type="button" disabled={locationPermissionBusy} onClick={requestOnboardingLocation} className="w-full min-h-[50px] rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-400 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md active:scale-98 transition-transform">
             <MapPin className="h-5 w-5" />
-            <span>{locationPermissionBusy ? 'Getting your location…' : locationPermissionError ? 'Try again' : 'Allow location & continue'}</span>
+            <span>{locationPermissionBusy ? 'Getting your location…' : locationPermissionState === 'denied' ? 'I enabled permission — retry' : locationPermissionError ? 'Try again' : 'Allow location & continue'}</span>
           </button>
         ) : (
           <button

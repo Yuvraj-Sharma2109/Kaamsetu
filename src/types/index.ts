@@ -102,6 +102,8 @@ export interface ShiftState {
   additionalWorkRequests?: AdditionalWorkRequest[];
 }
 
+export type PaymentCollectionMethod = 'cash' | 'upi' | 'wallet';
+
 export interface AdditionalWorkEvidence {
   name: string;
   mimeType: string;

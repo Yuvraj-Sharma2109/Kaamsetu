@@ -28,6 +28,7 @@ import {
   WorkerProfile, 
   Transaction,
   AdditionalWorkRequest,
+  PaymentCollectionMethod,
 } from './types';
 import { 
   INITIAL_WORKER, 
@@ -319,7 +320,7 @@ export default function App() {
   };
 
   // Punch out and settle payout
-  const handlePunchOut = () => {
+  const handlePunchOut = (paymentMethod: PaymentCollectionMethod, paymentReceived: boolean, paymentReference?: string) => {
     if (!shift.job) return;
     const confirmedAdditionalWork = (shift.additionalWorkRequests || []).filter((request) => request.status === 'approved' && request.confirmedAt);
     const additionalLabour = confirmedAdditionalWork.reduce((total, request) => total + request.proposedLabour, 0);
@@ -330,9 +331,10 @@ export default function App() {
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // Update wallet and today's earnings
+    // Record completed work separately from payment receipt. Cash and direct
+    // UPI are paid to the worker, so they do not increase the in-app wallet.
     if (payoutTotal > 0) {
-      setWalletBalance((prev) => prev + payoutTotal);
+      if (paymentReceived && paymentMethod === 'wallet') setWalletBalance((prev) => prev + payoutTotal);
       setTodayEarnings((prev) => prev + labourPayout);
       setMonthlyEarnings((prev) => prev + labourPayout);
       setDaysWorked((prev) => prev + 1);
@@ -345,12 +347,12 @@ export default function App() {
       date: 'Today',
       time: timeStr,
       type: 'credit',
-      amount: shift.job.agreedAmount,
+      amount: payoutTotal,
       title: `${shift.job.title} - Task payout`,
       titleHi: `${shift.job.titleHi} - दिहाड़ी भुगतान`,
-      referenceId: `REF-${Math.floor(1000 + Math.random() * 9000)}-ESCROW-SETTLED`,
-      status: 'settled',
-      paymentMode: 'Direct Escrow Transfer',
+      referenceId: paymentReference || `PENDING-${shift.job.id}-${Date.now()}`,
+      status: paymentReceived ? 'settled' : 'processing',
+      paymentMode: paymentMethod === 'cash' ? 'Cash paid directly' : paymentMethod === 'upi' ? 'UPI direct payment' : 'In-App Wallet',
     };
 
     const additionalTransactions: Transaction[] = confirmedAdditionalWork.flatMap((request) => {

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { JobListingCard } from '../JobListingCard';
-import { ShiftState, Language, Job, WorkerProfile, AdditionalWorkRequest } from '../../types';
+import { ShiftState, Language, Job, WorkerProfile, AdditionalWorkRequest, PaymentCollectionMethod } from '../../types';
 import { aiLabel } from '../../utils/aiLabels';
 import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
 import { AdditionalWorkRequestPanel } from '../AdditionalWorkRequestPanel';
+import { checkPaymentIntent, createPaymentIntent, isPaymentCollectionConfigured, PaymentIntent } from '../../utils/paymentCollection';
 import { 
   Navigation, 
   Phone, 
@@ -19,6 +20,9 @@ import {
   X,
   MapPin,
   ChevronsRight,
+  Banknote,
+  Smartphone,
+  QrCode,
 } from 'lucide-react';
 
 interface ActiveJobScreenProps {
@@ -27,7 +31,7 @@ interface ActiveJobScreenProps {
   language: Language;
   onEnterOtp: () => void;
   onPunchIn: () => void;
-  onPunchOut: () => void;
+  onPunchOut: (method: PaymentCollectionMethod, paymentReceived: boolean, paymentReference?: string) => void;
   onOpenSos: () => void;
   onBackToDuty: () => void;
   suggestedNextJob?: Job | null;
@@ -57,6 +61,11 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   onConfirmAdditionalWork,
 }) => {
   const [showCallModal, setShowCallModal] = useState<boolean>(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentCollectionMethod | null>(null);
+  const [paymentIntent, setPaymentIntent] = useState<PaymentIntent | null>(null);
+  const [paymentBusy, setPaymentBusy] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
   const [siteOtp, setSiteOtp] = useState<string>('');
   const [enteredOtp, setEnteredOtp] = useState<string>('');
   const [otpError, setOtpError] = useState<string>('');
@@ -89,7 +98,63 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const handleVoiceNav = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
 
   const handlePunchOutClick = () => {
-    onPunchOut();
+    setPaymentMethod(null);
+    setPaymentIntent(null);
+    setPaymentError('');
+    setShowPaymentModal(true);
+  };
+
+  const finalPayable = job ? job.agreedAmount + (shift.additionalWorkRequests || [])
+    .filter((request) => request.status === 'approved' && request.confirmedAt)
+    .reduce((sum, request) => sum + request.proposedLabour + request.materialEstimate, 0) : 0;
+
+  const startPayment = async (method: PaymentCollectionMethod) => {
+    setPaymentMethod(method);
+    setPaymentError('');
+    setPaymentIntent(null);
+    if (method === 'cash') return;
+    if (!isPaymentCollectionConfigured()) {
+      setPaymentError(method === 'wallet'
+        ? 'In-App Wallet QR collection is not set up yet. Configure a payment backend to create and verify a real QR code.'
+        : 'UPI collection is not set up yet. Configure a payment backend to create and verify a real UPI payment.');
+      return;
+    }
+    if (!job) return;
+    setPaymentBusy(true);
+    try {
+      const intent = await createPaymentIntent({ jobId: job.id, amount: finalPayable, method });
+      if (!intent.id || intent.status === 'failed' || intent.status === 'expired') throw new Error('Payment service did not create a valid payment request.');
+      if (method === 'wallet' && !intent.qrCodeDataUrl) throw new Error('Payment service did not return its real QR code. No QR was shown.');
+      if (method === 'upi' && !intent.upiUrl) throw new Error('Payment service did not return a UPI payment link.');
+      setPaymentIntent(intent);
+    } catch (error) {
+      setPaymentError(error instanceof Error ? error.message : 'Could not start payment.');
+    } finally {
+      setPaymentBusy(false);
+    }
+  };
+
+  const verifyPayment = async () => {
+    if (!paymentIntent) return;
+    setPaymentBusy(true);
+    setPaymentError('');
+    try {
+      const verified = await checkPaymentIntent(paymentIntent.id);
+      if (verified.id !== paymentIntent.id) throw new Error('Payment service returned a different payment reference.');
+      setPaymentIntent(verified);
+      if (verified.status === 'paid') {
+        onPunchOut(paymentMethod || 'upi', true, verified.reference || verified.id);
+        setShowPaymentModal(false);
+      } else if (verified.status === 'failed' || verified.status === 'expired') {
+        setPaymentError('Payment was not completed. You can retry or finish the job with payment pending.');
+      } else {
+        setPaymentError('Payment is still pending verification. Do not ask the customer to pay again yet.');
+      }
+    } catch (error) {
+      setPaymentError(error instanceof Error ? error.message : 'Could not verify payment.');
+    } finally {
+      setPaymentBusy(false);
+    }
   };
 
   if (!job) {
@@ -425,6 +490,56 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
         )}
         </JobListingCard>
       </div>
+
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/55 p-3 sm:items-center" role="presentation">
+          <section role="dialog" aria-modal="true" aria-labelledby="payment-title" className="max-h-[88dvh] w-full max-w-[390px] overflow-y-auto rounded-[26px] bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 id="payment-title" className="text-lg font-black text-slate-900">Collect job payment</h2>
+                <p className="mt-1 text-xs text-slate-500">{localizeJobTitle(job, language)}</p>
+              </div>
+              <button type="button" onClick={() => setShowPaymentModal(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="Close payment options"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="mt-4 flex items-center justify-between rounded-2xl bg-blue-50 px-4 py-3">
+              <span className="text-xs font-bold text-blue-900">Final payable amount</span>
+              <strong className="text-lg font-black text-blue-900">₹{finalPayable.toLocaleString('en-IN')}</strong>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {([
+                ['cash', 'Cash', Banknote],
+                ['upi', 'UPI', Smartphone],
+                ['wallet', 'In-App Wallet', QrCode],
+              ] as const).map(([method, title, Icon]) => (
+                <button key={method} type="button" onClick={() => void startPayment(method)} className={`flex min-h-[84px] flex-col items-center justify-center gap-2 rounded-2xl border px-2 py-3 text-center text-[11px] font-black ${paymentMethod === method ? 'border-blue-600 bg-blue-50 text-blue-800' : 'border-slate-200 bg-white text-slate-700'}`}>
+                  <Icon className="h-5 w-5" />{title}
+                </button>
+              ))}
+            </div>
+
+            {paymentMethod === 'cash' && <div className="mt-4 space-y-3 rounded-2xl bg-emerald-50 p-4">
+              <p className="text-sm font-bold text-emerald-950">The customer pays you directly in cash.</p>
+              <button type="button" onClick={() => { onPunchOut('cash', true); setShowPaymentModal(false); }} className="min-h-12 w-full rounded-xl bg-emerald-700 px-4 text-sm font-black text-white">Confirm cash received</button>
+              <button type="button" onClick={() => { onPunchOut('cash', false); setShowPaymentModal(false); }} className="min-h-10 w-full rounded-xl bg-white px-4 text-xs font-bold text-slate-700">Complete job — keep payment pending</button>
+              <p className="text-[10px] leading-4 text-emerald-900">Cash confirmation records your confirmation. It is not independently verified by the app.</p>
+            </div>}
+
+            {(paymentMethod === 'upi' || paymentMethod === 'wallet') && <div className="mt-4 space-y-3 rounded-2xl bg-slate-50 p-4">
+              {paymentBusy && <p role="status" className="text-sm font-semibold text-slate-700">Connecting to the secure payment service…</p>}
+              {paymentError && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-xs font-semibold leading-5 text-amber-900">{paymentError}</p>}
+              {paymentIntent && <>
+                {paymentMethod === 'wallet' && paymentIntent.qrCodeDataUrl && <div className="mx-auto w-fit rounded-2xl bg-white p-3 shadow-sm"><img src={paymentIntent.qrCodeDataUrl} alt={`Verified payment QR for ₹${finalPayable}`} className="h-48 w-48 object-contain" /></div>}
+                {paymentMethod === 'upi' && paymentIntent.upiUrl && <a href={paymentIntent.upiUrl} className="flex min-h-12 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-black text-white">Open UPI app to pay ₹{finalPayable.toLocaleString('en-IN')}</a>}
+                <p className="text-center text-xs font-bold text-amber-800">Payment Pending{paymentIntent.reference ? ` · ${paymentIntent.reference}` : ''}</p>
+                <button type="button" disabled={paymentBusy} onClick={() => void verifyPayment()} className="min-h-12 w-full rounded-xl bg-blue-600 px-4 text-sm font-black text-white disabled:bg-slate-400">{paymentBusy ? 'Verifying…' : 'Verify payment'}</button>
+              </>}
+              <button type="button" onClick={() => { onPunchOut(paymentMethod, false, paymentIntent?.id); setShowPaymentModal(false); }} className="min-h-10 w-full rounded-xl bg-white px-4 text-xs font-bold text-slate-700">Complete job — keep payment pending</button>
+              <p className="text-[10px] leading-4 text-slate-500">Payment is marked received only after the payment server confirms it. The QR is supplied by that server; the app never generates a pretend payment QR.</p>
+            </div>}
+          </section>
+        </div>
+      )}
 
       {/* Contractor Phone Modal */}
       {showCallModal && (

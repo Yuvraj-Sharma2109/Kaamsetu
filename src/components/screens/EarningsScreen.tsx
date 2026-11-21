@@ -3,6 +3,21 @@ import { Transaction, Language, WorkerProfile } from '../../types';
 import { getTranslation } from '../../utils/i18n';
 import { aiLabel } from '../../utils/aiLabels';
 import { localizeDate, localizeTransactionTitle, uiText } from '../../utils/uiText';
+
+const PAYMENT_RECEIVED_COPY: Record<Language, string> = {
+  en: 'Payment Received',
+  hi: 'भुगतान प्राप्त',
+  bn: 'পেমেন্ট পাওয়া গেছে',
+  mr: 'पेमेंट मिळाले',
+  te: 'చెల్లింపు అందింది',
+};
+const PAYMENT_PENDING_COPY: Record<Language, string> = {
+  en: 'Payment Pending',
+  hi: 'भुगतान लंबित',
+  bn: 'পেমেন্ট বাকি',
+  mr: 'पेमेंट बाकी',
+  te: 'చెల్లింపు పెండింగ్',
+};
 import { 
   Wallet, 
   ArrowUpRight, 
@@ -166,7 +181,7 @@ export const EarningsScreen: React.FC<EarningsScreenProps> = ({
                     {localizeTransactionTitle(tx.id, tx.title, tx.titleHi, language)}
                   </span>
                   <span className="text-[10px] text-slate-400 block">
-                    {localizeDate(tx.date, language)} · {tx.status === 'settled' ? uiText(language, 'completed') : uiText(language, 'pending')}
+                    {localizeDate(tx.date, language)} · {tx.status === 'settled' ? PAYMENT_RECEIVED_COPY[language] : PAYMENT_PENDING_COPY[language]}
                   </span>
                 </div>
               </div>
