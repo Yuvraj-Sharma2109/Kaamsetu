@@ -1,5 +1,5 @@
-const CACHE_NAME = 'kaamsetu-shell-v1';
-const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/icon.svg'];
+const CACHE_NAME = 'kaamdaar-shell-v2';
+const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/kaamdaar-icon.png'];
 const PUBLIC_IMAGES = [
   '/figma/account_raw_1.jpeg',
   '/figma/account_raw_2.jpeg',

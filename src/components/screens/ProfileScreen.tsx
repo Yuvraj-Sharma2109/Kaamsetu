@@ -170,7 +170,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     } catch (error) {
       const code = (error as { code?: string })?.code;
       setLinkError(code === 'auth/credential-already-in-use'
-        ? 'That social account is already linked to another KaamSetu sign-in. Sign in to that account first.'
+        ? 'That social account is already linked to another KaamDaar sign-in. Sign in to that account first.'
         : code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request'
           ? 'Account linking was cancelled.'
           : code === 'kaamsetu/firebase-user-required'

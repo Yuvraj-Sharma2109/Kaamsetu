@@ -2,7 +2,7 @@ import { Language } from '../types';
 
 export const I18N = {
   en: {
-    appName: 'KaamSetu',
+    appName: 'KaamDaar',
     tagline: 'Direct Work · Agreed Task Pay',
     statusOnline: 'ONLINE FOR WORK',
     statusOffline: 'OFFLINE',
@@ -50,7 +50,7 @@ export const I18N = {
     contractorRating: 'Rating',
   },
   hi: {
-    appName: 'कामसेतु',
+    appName: 'KaamDaar',
     tagline: 'सीधा दैनिक काम · बिना बिचौलिए के पक्का भुगतान',
     statusOnline: 'ड्यूटी पर हैं (ऑनलाइन)',
     statusOffline: 'ऑफलाइन (आराम)',
@@ -98,7 +98,7 @@ export const I18N = {
     contractorRating: 'रेटिंग',
   },
   bn: {
-    appName: 'কামসেতু',
+    appName: 'KaamDaar',
     tagline: 'সরাসরি কাজ · নিশ্চিত দৈনিক মজুরি',
     statusOnline: 'কাজের জন্য অনলাইন',
     statusOffline: 'অফলাইন',
@@ -146,7 +146,7 @@ export const I18N = {
     contractorRating: 'রেটিং',
   },
   mr: {
-    appName: 'कामसेतू',
+    appName: 'KaamDaar',
     tagline: 'थेट रोजंदारी काम · हमीचे वेतन',
     statusOnline: 'कामासाठी ऑनलाईन',
     statusOffline: 'ऑफलाईन',
@@ -194,7 +194,7 @@ export const I18N = {
     contractorRating: 'रेटिंग',
   },
   te: {
-    appName: 'కామ్‌సేతు',
+    appName: 'KaamDaar',
     tagline: 'ప్రత్యక్ష రోజువారీ పని · గ్యారెంటీ వేతనం',
     statusOnline: 'ఆన్‌లైన్ లో ఉన్నారు',
     statusOffline: 'ఆఫ్‌లైన్',

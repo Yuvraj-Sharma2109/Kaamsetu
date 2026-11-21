@@ -208,9 +208,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       {/* 2. HERO BRANDING */}
       <div className="text-center space-y-1.5 py-2">
-        <div className="w-14 h-14 rounded-2xl bg-neutral-900 text-white font-black text-2xl flex items-center justify-center mx-auto shadow-md">
-          KS
-        </div>
+        <img src="/icons/kaamdaar-icon.png" alt="KaamDaar" className="mx-auto h-14 w-14 rounded-2xl object-cover shadow-md" />
 
         <div>
           <h1 className="text-xl font-black tracking-tight text-neutral-900">

@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "KaamSetu — Worker First Duty & Job App",
-  "short_name": "KaamSetu",
+  "name": "KaamDaar — Worker First Duty & Job App",
+  "short_name": "KaamDaar",
   "description": "Find nearby work, manage your duty, and track your earnings.",
   "lang": "en-IN",
   "start_url": "/",
@@ -12,10 +12,10 @@
   "theme_color": "#f1f1f1",
   "icons": [
     {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/icons/kaamdaar-icon.png",
+      "sizes": "508x508",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

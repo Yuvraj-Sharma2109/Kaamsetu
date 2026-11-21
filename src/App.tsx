@@ -451,7 +451,7 @@ export default function App() {
       setCurrentTab('radar');
       if (audioActive) {
         speakText(
-          language === 'hi' ? 'लॉगिन सफल। कामसेतु में आपका स्वागत है।' : 'Login successful. Welcome back to KaamSetu.',
+          language === 'hi' ? 'लॉगिन सफल। KaamDaar में आपका स्वागत है।' : 'Login successful. Welcome back to KaamDaar.',
           language
         );
       }
@@ -500,7 +500,7 @@ export default function App() {
       ? accounts.find((account) => account.contact.trim().toLowerCase() === user.email!.trim().toLowerCase())
       : undefined;
     if (!existingAccount && legacyEmailAccount) {
-      if (!user.emailVerified || !window.confirm('A saved KaamSetu profile uses this verified email. Link that profile to the Firebase account you just verified?')) return false;
+      if (!user.emailVerified || !window.confirm('A saved KaamDaar profile uses this verified email. Link that profile to the Firebase account you just verified?')) return false;
       existingAccount = { ...legacyEmailAccount, contact: `firebase:${user.uid}` };
       try {
         localStorage.setItem(DEMO_ACCOUNTS_KEY, JSON.stringify([...accounts.filter((account) => account !== legacyEmailAccount), existingAccount]));
@@ -521,8 +521,8 @@ export default function App() {
     return (
       <MobileFrame>
         <div className="flex flex-1 flex-col items-center justify-center gap-5 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white">
-          <div className="flex h-20 w-20 items-center justify-center rounded-[26px] bg-blue-500 text-3xl font-black shadow-2xl shadow-blue-500/30">KS</div>
-          <div className="text-center"><h1 className="text-2xl font-black tracking-tight">KaamSetu</h1><p className="mt-1 text-sm text-blue-100">Work made simple. Wages made secure.</p></div>
+          <img src="/icons/kaamdaar-icon.png" alt="KaamDaar" className="h-20 w-20 rounded-[24px] object-cover shadow-2xl shadow-blue-500/30" />
+          <div className="text-center"><h1 className="text-2xl font-black tracking-tight">KaamDaar</h1><p className="mt-1 text-sm text-blue-100">Work made simple. Wages made secure.</p></div>
           <div className="mt-4 h-1 w-24 overflow-hidden rounded-full bg-white/20"><div className="h-full w-1/2 animate-pulse rounded-full bg-blue-400" /></div>
         </div>
       </MobileFrame>
