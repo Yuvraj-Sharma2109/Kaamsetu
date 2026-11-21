@@ -9,7 +9,19 @@ export interface PaymentIntent {
   reference?: string;
 }
 
-const paymentApiBase = (import.meta.env.VITE_PAYMENT_API_URL as string | undefined)?.replace(/\/$/, '');
+const configuredPaymentApiUrl = (import.meta.env.VITE_PAYMENT_API_URL as string | undefined)?.trim();
+const paymentApiBase = (() => {
+  if (!configuredPaymentApiUrl) return '';
+  try {
+    const url = new URL(configuredPaymentApiUrl);
+    const localDevelopment = ['localhost', '127.0.0.1'].includes(url.hostname);
+    if ((url.protocol !== 'https:' && !(localDevelopment && url.protocol === 'http:'))
+      || url.hostname === 'example.com' || url.hostname.endsWith('.example.com')) return '';
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return '';
+  }
+})();
 
 async function paymentApiRequest(path: string, init: RequestInit = {}) {
   if (!paymentApiBase) throw new Error('Payment collection is not configured. Add VITE_PAYMENT_API_URL and configure the payment backend.');
