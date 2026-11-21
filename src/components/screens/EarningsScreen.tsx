@@ -16,8 +16,9 @@ const PAYMENT_PENDING_COPY: Record<Language, string> = {
   hi: 'भुगतान लंबित',
   bn: 'পেমেন্ট বাকি',
   mr: 'पेमेंट बाकी',
-  te: 'చెల్లింపు పెండింగ్',
+  te: 'చెల్లింపు పెండিং',
 };
+
 import { 
   Wallet, 
   ArrowUpRight, 

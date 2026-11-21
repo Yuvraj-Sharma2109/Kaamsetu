@@ -110,6 +110,37 @@ export interface AdditionalWorkEvidence {
   dataUrl: string;
 }
 
+export interface AdditionalWorkEstimateSource {
+  title: string;
+  url: string;
+}
+
+export interface AdditionalWorkEstimate {
+  status: 'estimated' | 'further_inspection_required';
+  detectedWork: string;
+  complexity: 'basic' | 'moderate' | 'complex' | 'unknown';
+  process: string[];
+  estimatedTimeMinMinutes: number | null;
+  estimatedTimeMaxMinutes: number | null;
+  requiredSkills: string[];
+  requiredTools: string[];
+  requiredMaterials: string[];
+  marketLabourMin: number | null;
+  marketLabourMax: number | null;
+  marketRateBasis: string;
+  suggestedLabourMin: number | null;
+  suggestedLabourMax: number | null;
+  materialCostMin: number | null;
+  materialCostMax: number | null;
+  estimatedTotalMin: number | null;
+  estimatedTotalMax: number | null;
+  priceReasoning: string;
+  inspectionReason: string;
+  hiddenDamageNote: string;
+  researchDate: string;
+  sources: AdditionalWorkEstimateSource[];
+}
+
 export interface AdditionalWorkRequest {
   id: string;
   description: string;
@@ -121,6 +152,7 @@ export interface AdditionalWorkRequest {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   confirmedAt?: string;
+  estimate?: AdditionalWorkEstimate;
 }
 
 export interface Transaction {
