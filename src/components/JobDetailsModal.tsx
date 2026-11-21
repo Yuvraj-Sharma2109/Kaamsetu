@@ -51,7 +51,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
   const handlePlayVoice = () => window.dispatchEvent(new Event('kaamsetu:open-ai-assistant'));
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto bg-black/75 backdrop-blur-xs p-3 font-sans select-none">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/75 backdrop-blur-xs p-3 font-sans select-none">
       <motion.div initial={{ y: 32, scale: 0.98 }} animate={{ y: 0, scale: 1 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="my-auto w-full max-w-md rounded-3xl bg-white shadow-2xl flex flex-col max-h-[calc(100dvh-1.5rem)] overflow-hidden">
         {/* Header */}
         <div className="bg-slate-50 p-4 flex items-center justify-between">
@@ -188,7 +188,7 @@ export const JobDetailsModal: React.FC<JobDetailsModalProps> = ({
                   onClose();
                 }
               }}
-              className="flex-1 min-h-[48px] rounded-xl font-black text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform"
+              className="flex-1 min-h-[48px] rounded-xl font-black text-xs bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-transform"
             >
               <ListPlus className="w-4 h-4" />
               <span>{uiText(language, 'queueNext')}</span>

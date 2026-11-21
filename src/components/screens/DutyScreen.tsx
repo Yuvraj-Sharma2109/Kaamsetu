@@ -315,7 +315,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }}
           style={{ height: panelHeight }}
-          className="absolute z-20 bottom-[calc(77px+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-[#f1f1f1] px-3.5 sm:px-[15px] pt-[15px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] scrollbar-none lg:bottom-6 lg:left-auto lg:right-6 lg:max-h-[calc(100%-3rem)] lg:w-[min(420px,40vw)] lg:max-w-none lg:translate-x-0"
+          className="absolute z-20 bottom-[calc(77px+env(safe-area-inset-bottom))] left-1/2 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 overflow-y-auto overscroll-contain rounded-[20px] bg-[#f1f1f1] px-3.5 pt-[15px] shadow-[0px_2px_20px_rgba(0,0,0,0.11)] scrollbar-none"
         >
           {(onlineStage === 'preview' || onlineStage === 'expanded') && <button
             type="button"
@@ -349,7 +349,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           )}
           {(onlineStage === 'preview' || onlineStage === 'expanded') && (
           <motion.div key="available-work-list" aria-label={uiText(language, 'availableWork')} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.3, ease: [0.42, 0, 0.58, 1] }} className="pb-[82px]">
-          <div className="mx-auto flex w-full max-w-[390px] md:max-w-xl flex-col gap-[10px]">
+          <div className="mx-auto flex w-full max-w-[390px] flex-col gap-[10px]">
             <div className="flex items-center justify-between rounded-xl bg-white px-3 py-2 shadow-sm">
               <span className="text-xs font-black text-slate-900">{nearbyCopy.title}</span>
               <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-800">{nearbyCopy.radius} &middot; {availableJobs.length}</span>
@@ -369,7 +369,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                   </span>
                   {job.isDemo && <span className="ml-1 rounded-md bg-amber-50 px-2 py-1 text-[9px] font-bold text-amber-800">{DEMO_JOB_LABEL[language]}</span>}
                   {job.id === nearbyRecommendation?.id && <span className="ml-1 rounded-md bg-blue-50 px-2 py-1 text-[9px] font-bold text-blue-800">{nearbyCopy.recommended}</span>}
-                  <span className="ml-2 inline-flex max-w-[115px] shrink-0 rounded-[15px] bg-[rgba(45,89,240,0.16)] px-2 py-2.5 align-top text-[11px] font-bold leading-none text-[#2d59f0] sm:px-[9px] sm:text-[12px]">
+                  <span className="ml-2 inline-flex max-w-[115px] shrink-0 rounded-[15px] bg-[rgba(45,89,240,0.16)] px-2 py-2.5 align-top text-[11px] font-bold leading-none text-[#2d59f0]">
                     &#8377;{job.agreedAmount}{rateUnit}
                   </span>
                   <h3 className="mt-[10px] min-h-[38px] w-full pr-1 text-[16px] font-bold leading-[19px] text-black line-clamp-2">{title}</h3>
@@ -377,7 +377,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
                     <MapPin className="h-[13px] w-[13px] shrink-0 fill-[#b5b5b5] text-[#b5b5b5]" />
                     <span className="truncate">{localizePlaceText(job.siteName, language)}</span>
                   </div>
-                  <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5] sm:gap-[10px]">
+                  <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5]">
                     <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[#f1f1f1] px-1.5">
                       <MapPin className="h-3 w-3 fill-[#b5b5b5]" />{job.distanceKm} {uiText(language, 'kmUnit')}
                     </span>
@@ -456,7 +456,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
       {onlineStage === 'offline' && <motion.button
           type="button"
           onClick={handleGoClick}
-          className="absolute z-20 bottom-[calc(76px+env(safe-area-inset-bottom))] left-1/2 flex h-[60px] w-[110px] -translate-x-1/2 items-center justify-center rounded-[22px] bg-[#2d59f0]/40 shadow-[0_2px_10px_rgba(45,89,240,0.18)] transition-transform active:scale-95 lg:bottom-6"
+          className="absolute z-20 bottom-[calc(76px+env(safe-area-inset-bottom))] left-1/2 flex h-[60px] w-[110px] -translate-x-1/2 items-center justify-center rounded-[22px] bg-[#2d59f0]/40 shadow-[0_2px_10px_rgba(45,89,240,0.18)] transition-transform active:scale-95"
           aria-label={t.swipeToOnline}
         >
           <span className="flex h-[50px] w-[100px] flex-col items-center justify-center rounded-[20px] bg-[#2d59f0] text-[#f1f1f1]">
@@ -468,7 +468,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
       {(onlineStage === 'searching' || onlineStage === 'preview' || onlineStage === 'expanded') && <motion.button
           type="button"
           onClick={handleGoClick}
-          className="absolute z-30 bottom-[calc(145px+env(safe-area-inset-bottom))] left-1/2 flex h-[50px] w-[100px] -translate-x-1/2 flex-col items-center justify-center rounded-[20px] bg-white text-black shadow-[0px_2px_10px_rgba(0,0,0,0.11)] transition-transform active:scale-95 lg:bottom-28"
+          className="absolute z-30 bottom-[calc(145px+env(safe-area-inset-bottom))] left-1/2 flex h-[50px] w-[100px] -translate-x-1/2 flex-col items-center justify-center rounded-[20px] bg-white text-black shadow-[0px_2px_10px_rgba(0,0,0,0.11)] transition-transform active:scale-95"
           aria-label={t.swipeToOffline}
         >
           <span className="text-[24px] leading-[24px] font-semibold">GO</span>

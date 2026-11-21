@@ -87,10 +87,15 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const [hasFrontPhoto, setHasFrontPhoto] = useState<boolean>(false);
   const [hasBackPhoto, setHasBackPhoto] = useState<boolean>(false);
 
-  const totalSteps = requirePhone ? 6 : 5;
-  const experienceStep = requirePhone ? 4 : 3;
-  const aadhaarStep = requirePhone ? 5 : 4;
-  const reviewStep = requirePhone ? 6 : 5;
+  // Keep the setup order aligned with the supplied Screens PDF.
+  const nameStep = 1;
+  const phoneStep = requirePhone ? 2 : 0;
+  const aadhaarStep = requirePhone ? 3 : 2;
+  const tradeStep = requirePhone ? 4 : 3;
+  const experienceStep = requirePhone ? 5 : 4;
+  const photoStep = requirePhone ? 6 : 5;
+  const reviewStep = requirePhone ? 7 : 6;
+  const totalSteps = reviewStep;
 
   const handleProfilePhoto = async (file?: File) => {
     if (!file) return;
@@ -185,7 +190,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       setPhoneVerificationId('');
       setPhoneOtp('');
       setPhoneVerifyMessage(PHONE_VERIFY_COPY[language].verified);
-      setCurrentStep(experienceStep);
+      setCurrentStep(aadhaarStep);
     } finally {
       setPhoneVerifyBusy(false);
     }
@@ -211,7 +216,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     setAadhaarOtpError('');
     setShowOtpModal(false);
     setIsAadhaarVerified(true);
-    setCurrentStep(reviewStep);
+    setCurrentStep(tradeStep);
     if (language === 'hi' && audioActive) {
       speakText('आधार कार्ड सफलतापूर्वक सत्यापित हो गया है!', language);
     }
@@ -219,19 +224,19 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
   const handleFinish = () => {
     if (!selectedTrades.length) {
-      setCurrentStep(1);
+      setCurrentStep(tradeStep);
       return;
     }
     if (!name.trim() || !location.trim()) {
-      setCurrentStep(2);
+      setCurrentStep(nameStep);
       return;
     }
     if (requirePhone && contactPhone.replace(/\D/g, '').length !== 10) {
-      setCurrentStep(2);
+      setCurrentStep(nameStep);
       return;
     }
     if (requirePhone && !phoneVerified) {
-      setCurrentStep(3);
+      setCurrentStep(phoneStep);
       return;
     }
     if (experienceYears === '') {
@@ -259,7 +264,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between p-4 bg-slate-50 text-neutral-900 select-none overflow-y-auto space-y-3 font-sans relative">
+    <div className="relative flex flex-1 flex-col justify-between gap-3 overflow-y-auto bg-[#315bf2] p-4 font-sans text-neutral-900 select-none">
       {/* 1. TOP HEADER (Borderless) */}
       <div className="flex items-center justify-between pb-2 shrink-0">
         <div className="flex items-center gap-2">
@@ -293,7 +298,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
       {/* Progress Bar (Pastel Blue & Slate) */}
       <div className="space-y-1 shrink-0">
-        <div className={`grid ${requirePhone ? 'grid-cols-6' : 'grid-cols-5'} gap-1.5 h-1.5`}>
+        <div className="grid h-1.5 gap-1.5" style={{ gridTemplateColumns: `repeat(${totalSteps}, minmax(0, 1fr))` }}>
           {Array.from({ length: totalSteps }, (_, index) => index + 1).map((step) => (
             <div
               key={step}
@@ -306,9 +311,9 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       </div>
 
       {/* 2. STEP CONTENT CARDS (Borderless) */}
-      <motion.div key={currentStep} initial={{ opacity: 0, x: 22 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="flex-1 flex flex-col justify-center py-1">
+      <motion.div key={currentStep} initial={{ opacity: 0, x: 22 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="flex-1 flex flex-col justify-center rounded-t-[30px] bg-white px-4 py-5 shadow-lg">
         {/* ================= STEP 1: SELECT WORK TYPE ================= */}
-        {currentStep === 1 && (
+        {currentStep === tradeStep && (
           <div className="space-y-2.5 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
@@ -352,7 +357,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         )}
 
         {/* ================= STEP 2: NAME & WORK CITY ================= */}
-        {currentStep === 2 && (
+        {currentStep === nameStep && (
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
@@ -422,7 +427,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         )}
 
         {/* ================= STEP 3: PHONE VERIFICATION ================= */}
-        {requirePhone && currentStep === 3 && (
+        {requirePhone && currentStep === phoneStep && (
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">{PHONE_VERIFY_COPY[language].title}</h2>
@@ -697,7 +702,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
                 type="button"
                 onClick={() => {
                   setIsAadhaarVerified(false);
-                  setCurrentStep(reviewStep);
+                  setCurrentStep(tradeStep);
                 }}
                 className="text-xs text-slate-500 hover:text-neutral-900 underline font-semibold"
               >
@@ -708,11 +713,22 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
         )}
 
         {/* ================= STEP 5: FINAL SUMMARY & START ================= */}
+        {currentStep === photoStep && (
+          <div className="space-y-4 text-center">
+            <div><h2 className="text-xl font-black text-neutral-900">Add Profile Picture</h2><p className="mt-1 text-sm text-slate-500">A clear photo helps people recognize you at work.</p></div>
+            <div className="flex min-h-[280px] flex-col items-center justify-center gap-5 rounded-3xl bg-slate-100 p-6">
+              {profilePhotoURL ? <img src={profilePhotoURL} alt="Profile preview" className="h-40 w-40 rounded-full border-4 border-white object-cover shadow-lg" /> : <div className="flex h-40 w-40 items-center justify-center rounded-full bg-white text-slate-300 shadow-inner"><User className="h-24 w-24" /></div>}
+              <label className="inline-flex min-h-12 cursor-pointer items-center gap-2 rounded-2xl bg-white px-5 text-sm font-bold text-blue-700 shadow-sm"><Camera className="h-5 w-5" /> {profilePhotoURL ? 'Change picture' : 'Add profile picture'}<input type="file" accept="image/*" className="sr-only" onChange={(event) => { void handleProfilePhoto(event.target.files?.[0]); event.currentTarget.value = ''; }} /></label>
+              {profilePhotoError && <p role="alert" className="text-xs font-semibold text-rose-700">{profilePhotoError}</p>}
+            </div>
+          </div>
+        )}
+
         {currentStep === reviewStep && (
           <div className="space-y-3 animate-in fade-in">
             <div>
               <h2 className="text-base font-black text-neutral-900">
-                {uiText(language, 'profileReady')}
+                Profile Preview
               </h2>
               <p className="text-xs text-slate-500">
                 {uiText(language, 'startReceiving')}
@@ -772,27 +788,28 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       </motion.div>
 
       {/* 3. BOTTOM STEP NAVIGATION BUTTONS (Borderless) */}
-      <div className="pt-2 flex items-center gap-2 shrink-0">
+      <div className="flex shrink-0 items-center gap-2 rounded-b-[24px] bg-white px-4 pb-4 pt-1">
         {/* Next / Finish Button */}
         {currentStep < totalSteps ? (
           <button
             type="button"
             disabled={
-              (currentStep === 1 && selectedTrades.length === 0)
-              || (currentStep === 2 && (!name.trim() || !location.trim() || (requirePhone && contactPhone.replace(/\D/g, '').length !== 10)))
-              || (requirePhone && currentStep === 3 && !phoneVerified)
+              (currentStep === tradeStep && selectedTrades.length === 0)
+              || (currentStep === nameStep && (!name.trim() || !location.trim()))
+              || (requirePhone && currentStep === phoneStep && (!phoneVerified || contactPhone.replace(/\D/g, '').length !== 10))
               || (currentStep === experienceStep && experienceYears === '')
               || (currentStep === aadhaarStep && !isAadhaarVerified)
             }
             onClick={() => setCurrentStep((prev) => prev + 1)}
-            className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
+            className="w-full min-h-[48px] rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-slate-400 text-white font-black text-xs flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-transform"
           >
             <span>
-              {currentStep === 1 && uiText(language, 'nextName')}
-              {currentStep === 2 && (requirePhone ? PHONE_VERIFY_COPY[language].continue : uiText(language, 'nextExperience'))}
-              {requirePhone && currentStep === 3 && uiText(language, 'nextExperience')}
-              {currentStep === experienceStep && uiText(language, 'nextAadhaar')}
-              {currentStep === aadhaarStep && (isAadhaarVerified ? uiText(language, 'nextReview') : uiText(language, 'verifyToContinue'))}
+              {currentStep === nameStep && (requirePhone ? PHONE_VERIFY_COPY[language].continue : uiText(language, 'nextAadhaar'))}
+              {requirePhone && currentStep === phoneStep && uiText(language, 'nextAadhaar')}
+              {currentStep === aadhaarStep && uiText(language, 'nextExperience')}
+              {currentStep === tradeStep && uiText(language, 'nextExperience')}
+              {currentStep === experienceStep && uiText(language, 'nextReview')}
+              {currentStep === photoStep && uiText(language, 'nextReview')}
             </span>
             <ArrowRight className="w-4 h-4" />
           </button>
@@ -810,8 +827,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
 
       {/* UIDAI OTP BOTTOM SHEET MODAL (Borderless) */}
       {showOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/70 backdrop-blur-xs p-3 sm:items-center">
-          <div className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-3xl bg-white p-5 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#315bf2] p-4">
+          <div className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-[30px] bg-white p-6 space-y-5 shadow-2xl">
             <div className="text-center space-y-1">
               <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center mx-auto shadow-xs">
                 <Lock className="w-6 h-6" />
@@ -825,13 +842,19 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             </div>
 
             <div>
-              <input
+              <div className="relative">
+                <input
                 type="text"
                 value={enteredOtp}
                 onChange={(e) => { setEnteredOtp(e.target.value.slice(0, 4)); setAadhaarOtpError(''); }}
-                className="w-full bg-slate-100 rounded-2xl px-4 py-3 text-center text-3xl font-black font-mono tracking-widest text-neutral-900 focus:outline-none"
+                aria-label={uiText(language, 'enterAadhaarOtp')}
+                className="absolute inset-0 z-10 h-full w-full opacity-0"
                 maxLength={4}
               />
+                <div aria-hidden="true" className="pointer-events-none grid grid-cols-4 gap-2">
+                  {Array.from({ length: 4 }, (_, index) => <span key={index} className="flex h-14 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-2xl font-black text-neutral-900">{enteredOtp[index] || ''}</span>)}
+                </div>
+              </div>
               <span className="text-[11px] text-slate-400 block text-center mt-1">
                 Demo Code: <strong className="text-neutral-700">6184</strong>
               </span>

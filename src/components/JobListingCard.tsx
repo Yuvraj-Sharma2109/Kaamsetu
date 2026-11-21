@@ -23,7 +23,7 @@ export const JobListingCard: React.FC<JobListingCardProps> = ({ job, language, c
         <CircleCheck className="h-[12px] w-[12px] fill-[#03c03c] text-white" />
         {tradeName || job.categoryName}
       </span>
-      <span className="ml-2 inline-flex max-w-[115px] shrink-0 rounded-[15px] bg-[rgba(45,89,240,0.16)] px-2 py-2.5 align-top text-[11px] font-bold leading-none text-[#2d59f0] sm:px-[9px] sm:text-[12px]">
+      <span className="ml-2 inline-flex max-w-[115px] shrink-0 rounded-[15px] bg-[rgba(45,89,240,0.16)] px-2 py-2.5 align-top text-[11px] font-bold leading-none text-[#2d59f0]">
         ₹{job.agreedAmount}{rateUnit}
       </span>
       <h3 className="mt-[10px] min-h-[38px] w-full pr-1 text-[16px] font-bold leading-[19px] text-black line-clamp-2">{title}</h3>
@@ -31,7 +31,7 @@ export const JobListingCard: React.FC<JobListingCardProps> = ({ job, language, c
         <MapPin className="h-[13px] w-[13px] shrink-0 fill-[#b5b5b5] text-[#b5b5b5]" />
         <span className="truncate">{localizePlaceText(job.siteName, language)}</span>
       </div>
-      <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5] sm:gap-[10px]">
+      <div className="mt-[10px] flex flex-wrap items-center gap-[6px] text-[10px] font-semibold leading-[18px] text-[#b5b5b5]">
         <span className="inline-flex h-[18px] items-center gap-1 rounded-[5px] bg-[#f1f1f1] px-1.5">
           <MapPin className="h-3 w-3 fill-[#b5b5b5]" />{job.distanceKm} {uiText(language, 'kmUnit')}
         </span>

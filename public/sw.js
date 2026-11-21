@@ -1,5 +1,12 @@
 const CACHE_NAME = 'kaamdaar-shell-v2';
-const APP_SHELL = ['/', '/manifest.webmanifest', '/icons/kaamdaar-icon.png'];
+const APP_SHELL = [
+  '/',
+  '/manifest.webmanifest',
+  '/icons/kaamdaar-icon.png',
+  '/icons/kaamdaar-icon-192.png',
+  '/icons/kaamdaar-icon-512.png',
+  '/icons/kaamdaar-wordmark.png',
+];
 const PUBLIC_IMAGES = [
   '/figma/account_raw_1.jpeg',
   '/figma/account_raw_2.jpeg',

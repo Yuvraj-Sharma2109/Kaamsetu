@@ -111,7 +111,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
 
   if (shift.status !== 'punched_in' && !shift.otpEntryStarted) {
     return (
-      <div className="relative mx-auto h-full min-h-[560px] w-full max-w-[393px] flex-1 overflow-hidden bg-[#f1f1f1] font-sans select-none md:max-w-2xl lg:max-w-none">
+      <div className="relative mx-auto h-full min-h-[560px] w-full max-w-[393px] flex-1 overflow-hidden bg-[#f1f1f1] font-sans select-none">
         <div className="absolute inset-0">
           <UberMapView
             language={language}
@@ -217,11 +217,11 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const isArrivedAtSite = shift.status === 'arrived' || shift.status === 'punched_in';
 
   return (
-    <div className="relative mx-auto flex min-h-max w-full max-w-[393px] flex-none flex-col overflow-x-hidden bg-[#f1f1f1] select-none font-sans md:max-w-2xl lg:grid lg:max-w-7xl lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-start lg:gap-5 lg:p-5">
+    <div className="relative mx-auto flex min-h-max w-full max-w-[393px] flex-none flex-col overflow-x-hidden bg-[#f1f1f1] select-none font-sans">
       {/* 1. TURN-BY-TURN GUIDANCE BANNER */}
       <div className={`z-20 text-white px-4 py-3 shadow-md flex items-center justify-between shrink-0 transition-colors duration-500 ${
         isArrivedAtSite ? 'bg-emerald-600' : 'bg-blue-600'
-      } lg:col-span-2`}>
+      }`}>
         <div className="flex min-w-0 items-center gap-2.5">
           <button type="button" onClick={onBackToDuty} aria-label={uiText(language, 'back')} title={uiText(language, 'back')} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 transition-colors hover:bg-white/25">
             <ArrowLeft className="h-4 w-4" />
@@ -259,7 +259,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
       </div>
 
       {/* 2. JOB-SPECIFIC SCHEMATIC ROUTE MAP */}
-      <div className="relative h-[45vh] min-h-[300px] w-full shrink-0 lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)] lg:min-h-[420px]">
+      <div className="relative h-[45vh] min-h-[300px] w-full shrink-0">
         <UberMapView
           language={language}
           isOnline={true}
@@ -296,7 +296,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
       </div>
 
       {/* 3. UBER WHITE BOTTOM CARD CONTROLS */}
-      <div className="relative z-20 -mt-8 shrink-0 px-4 pt-2 pb-[112px] lg:mt-0 lg:min-w-0 lg:px-0 lg:pt-0">
+      <div className="relative z-20 -mt-8 shrink-0 px-4 pt-2 pb-[112px]">
         <JobListingCard job={job} language={language}>
         {shift.status !== 'punched_in' ? (
           /* OTP CHECK-IN STAGE */

@@ -11,8 +11,8 @@ interface MobileFrameProps {
 }
 
 export const MobileFrame: React.FC<MobileFrameProps> = ({ children, bottomOverlay, language, screenContext }) => (
-  <div className="min-h-[100dvh] w-full bg-[#f1f1f1] text-neutral-900 font-sans select-none lg:px-6 lg:py-6">
-    <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-[#f1f1f1] lg:h-[calc(100dvh-3rem)] lg:rounded-3xl lg:shadow-xl">
+  <div className="flex min-h-[100dvh] w-full justify-center bg-[#e7e7e7] text-neutral-900 font-sans select-none">
+    <div className="relative flex h-[100dvh] w-full max-w-[412px] flex-col overflow-hidden bg-[#f1f1f1] shadow-xl">
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         {children}
         {language && <AiAssistant language={language} screenContext={screenContext} />}

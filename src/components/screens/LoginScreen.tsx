@@ -36,6 +36,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onToggleAudio,
 }) => {
   const t = getTranslation(language);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [phoneNumber, setPhoneNumber] = useState('9876543210');
   const [step, setStep] = useState<'phone_input' | 'otp_verify'>('phone_input');
@@ -178,8 +179,35 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
   };
 
+  if (showWelcome) {
+    return (
+      <div className="relative flex flex-1 flex-col overflow-hidden bg-[#315bf2] px-5 pb-5 pt-4 text-white">
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={onToggleAudio} aria-label={aiLabel(language).title} className="grid h-10 w-10 place-items-center rounded-full bg-white/15"><Bot className="h-5 w-5" /></button>
+          <LanguageDropdown currentLanguage={language} onLanguageChange={handleLanguageSelect} variant="compact" />
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-end pb-4">
+          <img src="/figma/welcome-workers.png" alt="Workers building together" className="mb-4 max-h-[46vh] w-full max-w-[350px] object-contain" />
+        </div>
+        <section className="shrink-0 rounded-[30px] bg-white px-6 pb-5 pt-6 text-center text-neutral-900 shadow-xl">
+          <img src="/icons/kaamdaar-wordmark.png" alt={t.appName} className="mx-auto mb-3 h-auto w-[min(210px,70vw)]" />
+          <p className="mb-5 text-xs font-medium text-slate-500">{t.tagline}</p>
+          {authError && <p role="alert" className="mb-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700">{authError}</p>}
+          <button type="button" onClick={() => { setAuthMode('signup'); setStep('phone_input'); setShowWelcome(false); }} className="min-h-12 w-full rounded-xl border-2 border-[#315bf2] text-sm font-black text-[#315bf2]">{t.register}</button>
+          <button type="button" onClick={() => { setAuthMode('signin'); setStep('phone_input'); setShowWelcome(false); }} className="mt-3 min-h-12 w-full rounded-xl bg-[#315bf2] text-sm font-black text-white shadow-md">{t.login}</button>
+          <div className="my-4 flex items-center gap-3"><span className="h-px flex-1 bg-slate-200"/><span className="text-[10px] font-bold uppercase text-slate-400">{uiText(language, 'orViaMobile')}</span><span className="h-px flex-1 bg-slate-200"/></div>
+          <div className="flex justify-center gap-4">
+            <button type="button" disabled={socialLoading !== null || checkingAuth} onClick={() => void handleSocialLogin('google')} aria-label="Continue with Google" className="grid h-12 w-12 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-[#4285F4] shadow-sm disabled:opacity-50">{socialLoading === 'google' ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <span>G</span>}</button>
+            <button type="button" disabled={socialLoading !== null || checkingAuth} onClick={() => void handleSocialLogin('facebook')} aria-label="Continue with Facebook" className="grid h-12 w-12 place-items-center rounded-full bg-[#1877F2] text-2xl font-black text-white shadow-sm disabled:opacity-50">{socialLoading === 'facebook' ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <span>f</span>}</button>
+          </div>
+          {checkingAuth && <p className="mt-2 text-[10px] text-slate-400">Checking sign-in session…</p>}
+        </section>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 flex flex-col justify-between p-5 bg-slate-50 text-neutral-900 select-none overflow-y-auto space-y-3 font-sans">
+    <div className="flex-1 flex flex-col justify-between p-5 bg-[#315bf2] text-neutral-900 select-none overflow-y-auto space-y-3 font-sans">
       {/* 1. TOP BAR */}
       <div className="flex items-center justify-between pt-1">
         <div className="flex items-center gap-2">
@@ -189,6 +217,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <ArrowLeft className="w-4 h-4 text-slate-700" /><span>{uiText(language, 'back')}</span>
             </button>
           )}
+          <button type="button" onClick={() => setShowWelcome(true)} aria-label="Back to welcome" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-neutral-800 shadow-xs"><ArrowLeft className="h-4 w-4" /></button>
           <button
             type="button"
             onClick={handleVoiceHelp}
@@ -208,21 +237,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       {/* 2. HERO BRANDING */}
       <div className="text-center space-y-1.5 py-2">
-        <img src="/icons/kaamdaar-icon.png" alt="KaamDaar" className="mx-auto h-14 w-14 rounded-2xl object-cover shadow-md" />
-
-        <div>
-          <h1 className="text-xl font-black tracking-tight text-neutral-900">
-            {t.appName}
-          </h1>
-          <p className="text-xs text-slate-500 font-medium">
-            {t.tagline}
-          </p>
-        </div>
+        <img src={authMode === 'signup' ? '/figma/signup-worker.png' : '/figma/login-worker.png'} alt="KaamDaar workers" className="mx-auto h-[150px] w-full max-w-[260px] object-contain" />
+        <h1 className="text-xl font-black text-white">{authMode === 'signin' ? t.login : t.register}</h1>
       </div>
 
       {/* 3. SIGN IN vs REGISTER TOGGLE TABS (Clean borderless) */}
       <div className="w-full max-w-sm mx-auto">
-        <div className="grid grid-cols-2 p-1 bg-slate-200/70 rounded-2xl shadow-xs">
+        <div className="grid grid-cols-2 p-1 bg-white/20 rounded-2xl shadow-xs">
           <button
             type="button"
             onClick={() => {
@@ -231,8 +252,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             }}
             className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               authMode === 'signin'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-slate-600 hover:text-neutral-900'
+                ? 'bg-white text-[#315bf2] shadow-sm'
+                : 'text-white hover:text-white/80'
             }`}
           >
             <LogIn className="w-3.5 h-3.5" />
@@ -247,8 +268,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             }}
             className={`py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
               authMode === 'signup'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-slate-600 hover:text-neutral-900'
+                ? 'bg-white text-[#315bf2] shadow-sm'
+                : 'text-white hover:text-white/80'
             }`}
           >
             <UserPlus className="w-3.5 h-3.5" />

@@ -192,7 +192,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700"><LocateFixed className="h-6 w-6" /></div>
           <h2 id="location-mismatch-title" className="text-base font-black text-slate-900">{mismatchCopy[language].title}</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">{mismatchCopy[language].description}</p>
-          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <div className="mt-5 flex flex-col gap-2">
             <button type="button" onClick={chooseCurrentLocation} className="min-h-11 flex-1 rounded-xl bg-[#2d59f0] px-4 text-sm font-bold text-white">{mismatchCopy[language].current}</button>
             <button type="button" onClick={chooseManualLocation} className="min-h-11 flex-1 rounded-xl bg-slate-100 px-4 text-sm font-bold text-slate-700">{mismatchCopy[language].manual}</button>
           </div>

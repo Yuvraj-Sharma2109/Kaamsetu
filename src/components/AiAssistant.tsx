@@ -237,10 +237,10 @@ export const AiAssistant: React.FC<{ language: Language; screenContext?: Assista
 
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); setOpenSequence((sequence) => sequence + 1); }} aria-label={copy.open} title={copy.open} className="absolute bottom-[calc(82px+env(safe-area-inset-bottom))] right-4 z-[65] flex h-14 w-14 items-center justify-center rounded-full bg-blue-700 text-white shadow-lg shadow-blue-900/25 transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 lg:bottom-5">
+      <button type="button" onClick={() => { setOpen(true); setOpenSequence((sequence) => sequence + 1); }} aria-label={copy.open} title={copy.open} className="absolute bottom-[calc(82px+env(safe-area-inset-bottom))] right-4 z-[65] flex h-14 w-14 items-center justify-center rounded-full bg-blue-700 text-white shadow-lg shadow-blue-900/25 transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
         <Bot className="h-6 w-6" />
       </button>
-      {open && <div className="absolute inset-0 z-[80] flex items-end justify-center bg-slate-950/35 p-3 pb-[calc(78px+env(safe-area-inset-bottom))] sm:items-center sm:p-5">
+      {open && <div className="absolute inset-0 z-[80] flex items-end justify-center bg-slate-950/35 p-3 pb-[calc(78px+env(safe-area-inset-bottom))]">
         <section role="dialog" aria-modal="true" aria-labelledby="ai-assistant-title" className="flex max-h-[min(640px,82dvh)] w-full max-w-[430px] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
           <header className="flex items-center gap-3 bg-blue-700 px-4 py-3.5 text-white">
             <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/15"><Sparkles className="h-5 w-5" /></span>

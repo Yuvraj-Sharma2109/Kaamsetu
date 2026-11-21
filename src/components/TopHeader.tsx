@@ -35,14 +35,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   todayEarnings = 950,
 }) => {
   return (
-    <header className="sticky top-0 z-30 mx-auto mt-3 h-[65px] w-[calc(100%-32px)] max-w-[420px] lg:max-w-5xl rounded-[20px] bg-white px-3.5 sm:px-[15px] flex items-center justify-between select-none shrink-0 shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
+    <header className="sticky top-0 z-30 mx-auto mt-3 h-[65px] w-[calc(100%-32px)] max-w-[420px] rounded-[20px] bg-white px-3.5 flex items-center justify-between select-none shrink-0 shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
       <button
         type="button"
         onClick={onToggleDesktopMenu}
         aria-label={uiText(language, desktopMenuOpen ? 'menuClose' : 'menuOpen')}
         aria-expanded={desktopMenuOpen}
         aria-haspopup="menu"
-        className="mr-2 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-neutral-900 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 lg:flex"
+        className="mr-2 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-neutral-900 transition-colors hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
       >
         {desktopMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>

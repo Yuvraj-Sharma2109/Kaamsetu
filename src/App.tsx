@@ -73,10 +73,12 @@ const readAppLanguage = (): Language => {
 export default function App() {
   const [savedSession] = useState<DemoSession | null>(readDemoSession);
   const [showSplash, setShowSplash] = useState(true);
+  const [splashWordmark, setSplashWordmark] = useState(false);
   const firebaseSessionSeenRef = useRef(false);
   useEffect(() => {
-    const timer = window.setTimeout(() => setShowSplash(false), 1100);
-    return () => window.clearTimeout(timer);
+    const logoTimer = window.setTimeout(() => setSplashWordmark(true), 650);
+    const finishTimer = window.setTimeout(() => setShowSplash(false), 1300);
+    return () => { window.clearTimeout(logoTimer); window.clearTimeout(finishTimer); };
   }, []);
   useEffect(() => {
     if (!isFirebaseConfigured()) return;
@@ -520,10 +522,9 @@ export default function App() {
   if (showSplash) {
     return (
       <MobileFrame>
-        <div className="flex flex-1 flex-col items-center justify-center gap-5 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-white">
-          <img src="/icons/kaamdaar-icon.png" alt="KaamDaar" className="h-20 w-20 rounded-[24px] object-cover shadow-2xl shadow-blue-500/30" />
-          <div className="text-center"><h1 className="text-2xl font-black tracking-tight">KaamDaar</h1><p className="mt-1 text-sm text-blue-100">Work made simple. Wages made secure.</p></div>
-          <div className="mt-4 h-1 w-24 overflow-hidden rounded-full bg-white/20"><div className="h-full w-1/2 animate-pulse rounded-full bg-blue-400" /></div>
+        <div className="flex flex-1 flex-col items-center justify-center gap-5 bg-[#315bf2] text-white">
+          <img src={splashWordmark ? '/icons/kaamdaar-wordmark.png' : '/icons/kaamdaar-icon.png'} alt="KaamDaar" className={splashWordmark ? 'h-auto w-[min(280px,78vw)]' : 'h-44 w-44 rounded-[42px] shadow-2xl shadow-blue-950/20'} />
+          {splashWordmark && <div className="h-1 w-24 overflow-hidden rounded-full bg-white/30"><div className="h-full w-1/2 animate-pulse rounded-full bg-white" /></div>}
         </div>
       </MobileFrame>
     );
@@ -662,7 +663,7 @@ export default function App() {
     >
       {/* Top Application Bar */}
       {currentTab === 'profile' ? (
-        <div className="absolute inset-x-0 top-3 z-30 mx-auto flex w-[calc(100%-32px)] max-w-[360px] md:max-w-2xl items-center justify-between">
+        <div className="absolute inset-x-0 top-3 z-30 mx-auto flex w-[calc(100%-32px)] max-w-[360px] items-center justify-between">
           <button type="button" onClick={() => isProfileSettingsOpen ? setIsProfileSettingsOpen(false) : setCurrentTab(profileReturnTab)} aria-label={isProfileSettingsOpen ? 'Back to profile' : 'Back'} className="flex h-[55px] w-[55px] items-center justify-center rounded-[20px] bg-white text-black">
             <ArrowLeft className="h-6 w-6" />
           </button>

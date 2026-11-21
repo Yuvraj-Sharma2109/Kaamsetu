@@ -184,7 +184,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   if (editingProfile) {
     const editLabels = PROFILE_EDIT_LABELS[language];
     return (
-      <div className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-3 overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] pt-2 font-sans md:max-w-2xl lg:max-w-5xl">
+      <div className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-3 overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] pt-2 font-sans">
         <header className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
           <button type="button" onClick={() => setEditingProfile(false)} aria-label={editLabels.cancel} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-800"><ArrowLeft className="h-5 w-5" /></button>
           <h2 className="min-w-0 flex-1 text-base font-black text-slate-900">{editLabels.title}</h2>
@@ -245,7 +245,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   if (showSettings) {
     return (
-      <div id="profile-scroll" className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] pt-[76px] font-sans scrollbar-none md:max-w-2xl lg:max-w-5xl">
+      <div id="profile-scroll" className="mx-auto flex min-h-0 w-full max-w-[393px] flex-1 flex-col gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] pt-[76px] font-sans scrollbar-none">
         <section className="w-full rounded-[20px] bg-white p-4">
           <div className="mb-4 flex items-center gap-2"><Settings className="h-5 w-5 text-blue-600" /><h2 className="text-base font-black text-slate-900">{copy.settings}</h2></div>
           <div className="space-y-2 rounded-xl bg-[#f1f1f1] p-3">
@@ -286,12 +286,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   }
 
   return (
-    <div id="profile-scroll" className="mx-auto grid min-h-0 w-full max-w-[393px] flex-1 grid-cols-1 content-start gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] font-sans scrollbar-none md:max-w-2xl md:grid-cols-2 lg:max-w-5xl">
-      <section className="flex w-full shrink-0 flex-col items-center gap-3 rounded-[20px] bg-white p-4 md:col-span-2 md:flex-row md:items-center md:gap-6 md:px-8 md:py-6">
+    <div id="profile-scroll" className="mx-auto grid min-h-0 w-full max-w-[393px] flex-1 grid-cols-1 content-start gap-[15px] overflow-y-auto bg-[#f1f1f1] px-4 pb-[112px] font-sans scrollbar-none">
+      <section className="flex w-full shrink-0 flex-col items-center gap-3 rounded-[20px] bg-white p-4">
         <img src={worker.authPhotoURL || '/figma/account_raw_1.jpeg'} onError={(event) => { event.currentTarget.src = '/figma/account_raw_1.jpeg'; }} alt="Worker profile" className="h-[92px] w-[92px] shrink-0 rounded-full object-cover shadow-md" />
-        <h2 className="w-full break-words text-center text-lg font-bold text-black md:min-w-0 md:flex-1 md:text-left">{worker.name}</h2>
-        <button type="button" onClick={startEditingProfile} className="flex min-h-10 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-50 px-3 text-xs font-bold text-blue-800 md:w-auto"><Pencil className="h-4 w-4" />{PROFILE_EDIT_LABELS[language].edit}</button>
-        <div className="w-full min-w-0 rounded-[20px] bg-[#f1f1f1] px-[5px] md:max-w-md">
+        <h2 className="w-full break-words text-center text-lg font-bold text-black">{worker.name}</h2>
+        <button type="button" onClick={startEditingProfile} className="flex min-h-10 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-50 px-3 text-xs font-bold text-blue-800"><Pencil className="h-4 w-4" />{PROFILE_EDIT_LABELS[language].edit}</button>
+        <div className="w-full min-w-0 rounded-[20px] bg-[#f1f1f1] px-[5px]">
           <div className="flex min-h-[57px] items-center gap-3 border-b border-[#b5b5b5] px-1.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white"><Phone className="h-5 w-5 text-black" /></span>
             <span className="min-w-0 break-all text-sm font-medium text-black">{worker.phone}</span>
@@ -304,10 +304,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       </section>
 
-      <section className="grid w-full shrink-0 grid-cols-3 gap-2 rounded-[20px] bg-white p-3 text-center sm:gap-[15px] sm:p-[15px] md:col-span-2">
-        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><History className="mb-1 h-6 w-6 shrink-0 text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a] sm:text-[12px]">{copy.experience}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.experienceYears}+</span></div>
-        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><Hammer className="mb-1 h-6 w-6 shrink-0 text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a] sm:text-[12px]">{copy.jobs}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.totalJobsCompleted}</span></div>
-        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><Star className="mb-1 h-6 w-6 shrink-0 fill-black text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a] sm:text-[12px]">{copy.rating}</span><span className="mt-1 flex items-center gap-1 text-sm font-bold text-[#2d59f0]">{worker.rating}</span></div>
+      <section className="grid w-full shrink-0 grid-cols-3 gap-2 rounded-[20px] bg-white p-3 text-center">
+        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><History className="mb-1 h-6 w-6 shrink-0 text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a]">{copy.experience}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.experienceYears}+</span></div>
+        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><Hammer className="mb-1 h-6 w-6 shrink-0 text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a]">{copy.jobs}</span><span className="mt-1 text-sm font-bold text-[#2d59f0]">{worker.totalJobsCompleted}</span></div>
+        <div className="flex min-h-[89px] min-w-0 flex-col items-center justify-center rounded-lg bg-[#f1f1f1] px-1 py-2"><Star className="mb-1 h-6 w-6 shrink-0 fill-black text-black" /><span className="text-[11px] font-semibold leading-tight text-[#8a8a8a] text-[12px]">{copy.rating}</span><span className="mt-1 flex items-center gap-1 text-sm font-bold text-[#2d59f0]">{worker.rating}</span></div>
       </section>
 
       <section aria-label="Registered work trades" className="min-h-[197px] w-full shrink-0 rounded-[20px] bg-white p-[15px]">

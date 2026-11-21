@@ -12,8 +12,14 @@
   "theme_color": "#f1f1f1",
   "icons": [
     {
-      "src": "/icons/kaamdaar-icon.png",
-      "sizes": "508x508",
+      "src": "/icons/kaamdaar-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/kaamdaar-icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }
