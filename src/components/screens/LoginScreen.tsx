@@ -193,8 +193,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <img src="/icons/kaamdaar-wordmark.png" alt={t.appName} className="mx-auto mb-3 h-auto w-[min(210px,70vw)]" />
           <p className="mb-5 text-xs font-medium text-slate-500">{t.tagline}</p>
           {authError && <p role="alert" className="mb-3 rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700">{authError}</p>}
-          <button type="button" onClick={() => { setAuthMode('signup'); setStep('phone_input'); setShowWelcome(false); }} className="min-h-12 w-full rounded-xl border-2 border-[#315bf2] text-sm font-black text-[#315bf2]">{t.register}</button>
-          <button type="button" onClick={() => { setAuthMode('signin'); setStep('phone_input'); setShowWelcome(false); }} className="mt-3 min-h-12 w-full rounded-xl bg-[#315bf2] text-sm font-black text-white shadow-md">{t.login}</button>
+          <button type="button" onClick={() => { setAuthMode('signup'); setStep('phone_input'); setShowWelcome(false); }} className="min-h-12 w-full rounded-xl border-2 border-[#315bf2] text-sm font-black text-[#315bf2]">{uiText(language, 'register')}</button>
+          <button type="button" onClick={() => { setAuthMode('signin'); setStep('phone_input'); setShowWelcome(false); }} className="mt-3 min-h-12 w-full rounded-xl bg-[#315bf2] text-sm font-black text-white shadow-md">{uiText(language, 'login')}</button>
           <div className="my-4 flex items-center gap-3"><span className="h-px flex-1 bg-slate-200"/><span className="text-[10px] font-bold uppercase text-slate-400">{uiText(language, 'orViaMobile')}</span><span className="h-px flex-1 bg-slate-200"/></div>
           <div className="flex justify-center gap-4">
             <button type="button" disabled={socialLoading !== null || checkingAuth} onClick={() => void handleSocialLogin('google')} aria-label="Continue with Google" className="grid h-12 w-12 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-[#4285F4] shadow-sm disabled:opacity-50">{socialLoading === 'google' ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <span>G</span>}</button>
@@ -238,7 +238,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       {/* 2. HERO BRANDING */}
       <div className="text-center space-y-1.5 py-2">
         <img src={authMode === 'signup' ? '/figma/signup-worker.png' : '/figma/login-worker.png'} alt="KaamDaar workers" className="mx-auto h-[150px] w-full max-w-[260px] object-contain" />
-        <h1 className="text-xl font-black text-white">{authMode === 'signin' ? t.login : t.register}</h1>
+        <h1 className="text-xl font-black text-white">{authMode === 'signin' ? uiText(language, 'login') : uiText(language, 'register')}</h1>
       </div>
 
       {/* 3. SIGN IN vs REGISTER TOGGLE TABS (Clean borderless) */}

@@ -99,6 +99,26 @@ export interface ShiftState {
   punchInPhotoUrl: string | null;
   punchOutTime: string | null;
   queuedJob?: Job | null;
+  additionalWorkRequests?: AdditionalWorkRequest[];
+}
+
+export interface AdditionalWorkEvidence {
+  name: string;
+  mimeType: string;
+  dataUrl: string;
+}
+
+export interface AdditionalWorkRequest {
+  id: string;
+  description: string;
+  evidence: AdditionalWorkEvidence[];
+  suggestedLabourMin: number;
+  suggestedLabourMax: number;
+  proposedLabour: number;
+  materialEstimate: number;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  confirmedAt?: string;
 }
 
 export interface Transaction {

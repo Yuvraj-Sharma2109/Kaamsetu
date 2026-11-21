@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { JobListingCard } from '../JobListingCard';
-import { ShiftState, Language, Job, WorkerProfile } from '../../types';
+import { ShiftState, Language, Job, WorkerProfile, AdditionalWorkRequest } from '../../types';
 import { aiLabel } from '../../utils/aiLabels';
 import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
+import { AdditionalWorkRequestPanel } from '../AdditionalWorkRequestPanel';
 import { 
   Navigation, 
   Phone, 
@@ -33,6 +34,10 @@ interface ActiveJobScreenProps {
   suggestedNextJob?: Job | null;
   onQueueJob?: (job: Job) => void;
   onCancelQueuedJob?: () => void;
+  pricingJobs: Job[];
+  additionalWorkRequests: AdditionalWorkRequest[];
+  onSubmitAdditionalWork: (request: Omit<AdditionalWorkRequest, 'id' | 'status' | 'createdAt' | 'confirmedAt'>) => void;
+  onConfirmAdditionalWork: (requestId: string) => void;
 }
 
 export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
@@ -48,6 +53,10 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   suggestedNextJob,
   onQueueJob,
   onCancelQueuedJob,
+  pricingJobs,
+  additionalWorkRequests,
+  onSubmitAdditionalWork,
+  onConfirmAdditionalWork,
 }) => {
   const [showCallModal, setShowCallModal] = useState<boolean>(false);
   const [siteOtp, setSiteOtp] = useState<string>('');
@@ -326,6 +335,14 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
         ) : (
           /* WORK IN PROGRESS STAGE WITH BACK-TO-BACK QUEUE */
           <div className="space-y-3.5">
+            <AdditionalWorkRequestPanel
+              job={job}
+              pricingJobs={pricingJobs}
+              language={language}
+              requests={additionalWorkRequests}
+              onSubmit={onSubmitAdditionalWork}
+              onConfirm={onConfirmAdditionalWork}
+            />
             {/* On-site work status */}
             <div className="flex items-center justify-between bg-slate-100/70 rounded-2xl p-4 shadow-xs">
               <div>

@@ -27,7 +27,8 @@ import {
   ShiftState, 
   TradeCategory, 
   WorkerProfile, 
-  Transaction 
+  Transaction,
+  AdditionalWorkRequest,
 } from './types';
 import { 
   INITIAL_WORKER, 
@@ -321,16 +322,20 @@ export default function App() {
   // Punch out and settle payout
   const handlePunchOut = () => {
     if (!shift.job) return;
-    const finalEarned = shift.job.agreedAmount;
+    const confirmedAdditionalWork = (shift.additionalWorkRequests || []).filter((request) => request.status === 'approved' && request.confirmedAt);
+    const additionalLabour = confirmedAdditionalWork.reduce((total, request) => total + request.proposedLabour, 0);
+    const materialsReimbursement = confirmedAdditionalWork.reduce((total, request) => total + request.materialEstimate, 0);
+    const labourPayout = shift.job.agreedAmount + additionalLabour;
+    const payoutTotal = labourPayout + materialsReimbursement;
     const nextJob = shift.queuedJob;
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     // Update wallet and today's earnings
-    if (finalEarned > 0) {
-      setWalletBalance((prev) => prev + finalEarned);
-      setTodayEarnings((prev) => prev + finalEarned);
-      setMonthlyEarnings((prev) => prev + finalEarned);
+    if (payoutTotal > 0) {
+      setWalletBalance((prev) => prev + payoutTotal);
+      setTodayEarnings((prev) => prev + labourPayout);
+      setMonthlyEarnings((prev) => prev + labourPayout);
       setDaysWorked((prev) => prev + 1);
     }
     setWorker((prev) => ({ ...prev, totalJobsCompleted: prev.totalJobsCompleted + 1 }));
@@ -341,7 +346,7 @@ export default function App() {
       date: 'Today',
       time: timeStr,
       type: 'credit',
-      amount: finalEarned,
+      amount: shift.job.agreedAmount,
       title: `${shift.job.title} - Task payout`,
       titleHi: `${shift.job.titleHi} - दिहाड़ी भुगतान`,
       referenceId: `REF-${Math.floor(1000 + Math.random() * 9000)}-ESCROW-SETTLED`,
@@ -349,7 +354,21 @@ export default function App() {
       paymentMode: 'Direct Escrow Transfer',
     };
 
-    if (finalEarned > 0) setTransactions((prev) => [newTx, ...prev]);
+    const additionalTransactions: Transaction[] = confirmedAdditionalWork.flatMap((request) => {
+      const rows: Transaction[] = [];
+      if (request.proposedLabour > 0) rows.push({
+        ...newTx, id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`, amount: request.proposedLabour,
+        title: `Approved additional labour - ${request.description}`, titleHi: `Approved additional labour - ${request.description}`,
+        referenceId: `REF-${Math.floor(1000 + Math.random() * 9000)}-ADDITIONAL-LABOUR`,
+      });
+      if (request.materialEstimate > 0) rows.push({
+        ...newTx, id: `TXN-${Math.floor(1000 + Math.random() * 9000)}`, amount: request.materialEstimate,
+        title: `Approved materials reimbursement - ${request.description}`, titleHi: `Approved materials reimbursement - ${request.description}`,
+        referenceId: `REF-${Math.floor(1000 + Math.random() * 9000)}-MATERIALS`,
+      });
+      return rows;
+    });
+    if (payoutTotal > 0) setTransactions((prev) => [...additionalTransactions, newTx, ...prev]);
 
     // Promote queued work immediately after settling the completed shift.
     setShift(() => ({
@@ -367,7 +386,7 @@ export default function App() {
     setCurrentTab(nextJob ? 'active' : 'passbook');
 
     if (audioActive) {
-      const msg = `Task completed. Agreed payout is ${String.fromCharCode(8377)}${finalEarned}.`;
+      const msg = `Task completed. Agreed payout is ${String.fromCharCode(8377)}${payoutTotal}.`;
       speakText(msg, language);
     }
     if (nextJob && audioActive) {
@@ -376,6 +395,27 @@ export default function App() {
         : `Your next job is ready. Head towards ${nextJob.siteName}.`;
       speakText(nextMsg, language);
     }
+  };
+
+  const handleSubmitAdditionalWork = (draft: Omit<AdditionalWorkRequest, 'id' | 'status' | 'createdAt' | 'confirmedAt'>) => {
+    const request: AdditionalWorkRequest = {
+      ...draft,
+      id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `AW-${Date.now()}`,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+    setShift((current) => ({ ...current, additionalWorkRequests: [...(current.additionalWorkRequests || []), request] }));
+  };
+
+  const handleConfirmAdditionalWork = (requestId: string) => {
+    setShift((current) => ({
+      ...current,
+      additionalWorkRequests: (current.additionalWorkRequests || []).map((request) =>
+        request.id === requestId && request.status === 'approved'
+          ? { ...request, confirmedAt: new Date().toISOString() }
+          : request,
+      ),
+    }));
   };
 
   // Handle Instant Wallet Withdrawal
@@ -761,6 +801,10 @@ export default function App() {
             suggestedNextJob={suggestedTradeJob}
             onQueueJob={handleQueueJob}
             onCancelQueuedJob={handleCancelQueuedJob}
+            pricingJobs={jobs}
+            additionalWorkRequests={shift.additionalWorkRequests || []}
+            onSubmitAdditionalWork={handleSubmitAdditionalWork}
+            onConfirmAdditionalWork={handleConfirmAdditionalWork}
           />
           </motion.div>
         )}
