@@ -95,7 +95,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
   const experienceStep = requirePhone ? 5 : 4;
   const photoStep = requirePhone ? 6 : 5;
   const reviewStep = requirePhone ? 7 : 6;
-  const totalSteps = reviewStep;
+  const locationPermissionStep = reviewStep + 1;
+  const totalSteps = locationPermissionStep;
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
+  const [locationPermissionBusy, setLocationPermissionBusy] = useState(false);
+  const [locationPermissionError, setLocationPermissionError] = useState('');
 
   const handleProfilePhoto = async (file?: File) => {
     if (!file) return;
@@ -222,7 +226,11 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = (permissionGranted = locationPermissionGranted) => {
+    if (!permissionGranted) {
+      setCurrentStep(locationPermissionStep);
+      return;
+    }
     if (!selectedTrades.length) {
       setCurrentStep(tradeStep);
       return;
@@ -253,6 +261,30 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
       isKycVerified: isAadhaarVerified,
       authPhotoURL: profilePhotoURL || undefined,
     });
+  };
+
+  const requestOnboardingLocation = () => {
+    setLocationPermissionError('');
+    if (!window.isSecureContext || !navigator.geolocation) {
+      setLocationPermissionError('Location needs a secure connection (HTTPS) and a device/browser that supports location.');
+      return;
+    }
+    setLocationPermissionBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        setLocationPermissionBusy(false);
+        setLocationPermissionGranted(true);
+        handleFinish(true);
+      },
+      (error) => {
+        setLocationPermissionBusy(false);
+        setLocationPermissionGranted(false);
+        setLocationPermissionError(error.code === error.PERMISSION_DENIED
+          ? 'Location permission is required to use KaamDaar. Allow it in your browser or phone settings, then tap Try again.'
+          : 'Could not get your location. Check that location services are on, then try again.');
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    );
   };
 
   const handleGoBack = () => {
@@ -785,6 +817,23 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
             </div>
           </div>
         )}
+
+        {currentStep === locationPermissionStep && (
+          <div className="mx-auto w-full max-w-sm space-y-5 text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+              <MapPin className="h-10 w-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-black text-neutral-900">Allow location access</h2>
+              <p className="text-sm leading-6 text-slate-600">KaamDaar uses your device location to show nearby work and help you navigate to a job. Allow location to finish setting up your profile.</p>
+            </div>
+            <div className="rounded-2xl bg-blue-50 p-4 text-left text-xs leading-5 text-blue-900">
+              Your phone or browser will show its own location permission prompt when you continue. Your saved work area remains {location || 'the area you selected'}.
+            </div>
+            {locationPermissionGranted && <p role="status" className="text-sm font-bold text-emerald-700">Location access is enabled.</p>}
+            {locationPermissionError && <div role="alert" className="space-y-2 rounded-2xl bg-rose-50 p-4 text-left text-xs leading-5 text-rose-700"><p>{locationPermissionError}</p><p>On an installed app, open your phone Settings → Apps → KaamDaar → Permissions → Location. In a browser, open site settings from the address bar and set Location to Allow.</p></div>}
+          </div>
+        )}
       </motion.div>
 
       {/* 3. BOTTOM STEP NAVIGATION BUTTONS (Borderless) */}
@@ -810,13 +859,19 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
               {currentStep === tradeStep && uiText(language, 'nextExperience')}
               {currentStep === experienceStep && uiText(language, 'nextReview')}
               {currentStep === photoStep && uiText(language, 'nextReview')}
+              {currentStep === reviewStep && 'Continue to location access'}
             </span>
             <ArrowRight className="w-4 h-4" />
+          </button>
+        ) : currentStep === locationPermissionStep ? (
+          <button type="button" disabled={locationPermissionBusy} onClick={requestOnboardingLocation} className="w-full min-h-[50px] rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-400 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md active:scale-98 transition-transform">
+            <MapPin className="h-5 w-5" />
+            <span>{locationPermissionBusy ? 'Getting your location…' : locationPermissionError ? 'Try again' : 'Allow location & continue'}</span>
           </button>
         ) : (
           <button
             type="button"
-            onClick={handleFinish}
+            onClick={() => handleFinish()}
             className="w-full min-h-[50px] rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md active:scale-98 transition-transform"
           >
             <Check className="w-5 h-5 stroke-[3]" />

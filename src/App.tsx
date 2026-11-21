@@ -10,7 +10,6 @@ import { MobileFrame } from './components/MobileFrame';
 import { TopHeader } from './components/TopHeader';
 import { BottomNav, TabType } from './components/BottomNav';
 import { DutyScreen } from './components/screens/DutyScreen';
-import { JobsFeedScreen } from './components/screens/JobsFeedScreen';
 import { ActiveJobScreen } from './components/screens/ActiveJobScreen';
 import { EarningsScreen } from './components/screens/EarningsScreen';
 import { ProfileScreen } from './components/screens/ProfileScreen';
@@ -117,7 +116,7 @@ export default function App() {
   useEffect(() => {
     try { localStorage.setItem(APP_LANGUAGE_KEY, language); } catch { /* storage may be unavailable */ }
   }, [language]);
-  const [currentTab, setCurrentTab] = useState<TabType>(savedSession?.currentTab || 'radar');
+  const [currentTab, setCurrentTab] = useState<TabType>(String(savedSession?.currentTab) === 'feed' ? 'radar' : savedSession?.currentTab || 'radar');
   const [profileReturnTab, setProfileReturnTab] = useState<TabType>('radar');
   const [isWorkListExpanded, setIsWorkListExpanded] = useState(false);
   const workListProgress = useMotionValue(0);
@@ -652,8 +651,7 @@ export default function App() {
           : inspectingJob ? 'jobDetails'
             : currentTab === 'profile' && isProfileSettingsOpen ? 'settings'
               : currentTab === 'radar' ? 'duty'
-                : currentTab === 'feed' ? 'jobs'
-                  : currentTab === 'active' ? 'active'
+              : currentTab === 'active' ? 'active'
                     : currentTab === 'passbook' ? 'earnings'
                       : 'profile',
     isOnline,
@@ -697,7 +695,6 @@ export default function App() {
           language={language}
           isOnline={isOnline}
           hasActiveJob={shift.isActive}
-          availableJobsCount={jobs.filter((j) => j.trade === worker.primaryTrade).length}
         />
       )}
     >
@@ -769,23 +766,6 @@ export default function App() {
           </motion.div>
         )}
 
-        {currentTab === 'feed' && (
-          <motion.div key="feed" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
-          <JobsFeedScreen
-            jobs={jobs}
-            language={language}
-            worker={worker}
-            isOnline={isOnline}
-            activeJob={shift.isActive ? shift.job : null}
-            queuedJob={shift.queuedJob || null}
-            onSelectJob={(job) => setInspectingJob(job)}
-            onAcceptJob={handleAcceptJob}
-            onQueueJob={handleQueueJob}
-            onOpenAadhaarModal={() => setShowAadhaarModal(true)}
-          />
-          </motion.div>
-        )}
-
         {currentTab === 'active' && (
           <motion.div key="active" className="flex min-h-0 flex-1 flex-col" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -18 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }}>
           <ActiveJobScreen
@@ -796,7 +776,6 @@ export default function App() {
             onPunchIn={handlePunchIn}
             onPunchOut={handlePunchOut}
             onOpenSos={() => setShowSosModal(true)}
-            onBrowseJobs={() => setCurrentTab('feed')}
             onBackToDuty={() => setCurrentTab('radar')}
             suggestedNextJob={suggestedTradeJob}
             onQueueJob={handleQueueJob}

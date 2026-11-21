@@ -29,7 +29,6 @@ interface ActiveJobScreenProps {
   onPunchIn: () => void;
   onPunchOut: () => void;
   onOpenSos: () => void;
-  onBrowseJobs: () => void;
   onBackToDuty: () => void;
   suggestedNextJob?: Job | null;
   onQueueJob?: (job: Job) => void;
@@ -48,7 +47,6 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   onPunchIn,
   onPunchOut,
   onOpenSos,
-  onBrowseJobs,
   onBackToDuty,
   suggestedNextJob,
   onQueueJob,
@@ -109,10 +107,10 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
           </p>
         </div>
         <button
-          onClick={onBrowseJobs}
+          onClick={onBackToDuty}
           className="min-h-[48px] px-6 rounded-2xl bg-neutral-900 hover:bg-neutral-800 text-white font-black text-xs active:scale-95 transition-transform shadow-xs"
         >
-          {uiText(language, 'browseJobs')}
+          {uiText(language, 'navDuty')}
         </button>
       </div>
     );

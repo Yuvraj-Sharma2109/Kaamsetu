@@ -4,12 +4,11 @@ import { Language } from '../types';
 import { uiText } from '../utils/uiText';
 import { 
   Radio, 
-  Search, 
   Briefcase, 
   Wallet, 
 } from 'lucide-react';
 
-export type TabType = 'radar' | 'feed' | 'active' | 'passbook' | 'profile';
+export type TabType = 'radar' | 'active' | 'passbook' | 'profile';
 
 interface BottomNavProps {
   currentTab: TabType;
@@ -17,7 +16,6 @@ interface BottomNavProps {
   language: Language;
   isOnline: boolean;
   hasActiveJob: boolean;
-  availableJobsCount: number;
   menuOpen: boolean;
   onCloseMenu: () => void;
 }
@@ -28,7 +26,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   language,
   isOnline,
   hasActiveJob,
-  availableJobsCount,
   menuOpen,
   onCloseMenu,
 }) => {
@@ -41,7 +38,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [menuOpen, onCloseMenu]);
 
-  const navItems: { id: TabType; label: string; icon: React.ReactNode; badge?: React.ReactNode }[] = [
+  const navItems: { id: TabType; label: string; icon: React.ReactNode }[] = [
     {
       id: 'radar',
       label: uiText(language, 'navDuty'),
@@ -53,16 +50,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           )}
         </div>
       ),
-    },
-    {
-      id: 'feed',
-      label: uiText(language, 'navJobs'),
-      icon: <Search className="w-5 h-5" />,
-      badge: availableJobsCount > 0 ? (
-        <span className="text-[10px] font-black px-1.5 py-0.2 bg-neutral-900 text-white rounded-full">
-          {availableJobsCount}
-        </span>
-      ) : null,
     },
     {
       id: 'active',
@@ -86,7 +73,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   return (
     <>
       <nav aria-label={uiText(language, 'mainNavigation')} className="h-[65px] w-[calc(100%-32px)] max-w-[361px] shrink-0 rounded-[20px] bg-white px-1.5 select-none shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
-        <div className="grid grid-cols-4 items-center h-full">
+        <div className="grid grid-cols-3 items-center h-full">
           {navItems.filter((item) => item.id !== 'profile').map((item) => {
           const isActive = currentTab === item.id;
           return (
@@ -107,11 +94,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               {/* Icon Container */}
               <motion.div animate={{ scale: isActive ? 1 : 0.96 }} transition={{ duration: 0.3, ease: [0.42, 0, 0.58, 1] }} className="relative flex items-center justify-center">
                 {item.icon}
-                {item.badge && (
-                  <span className="absolute -top-1.5 -right-3">
-                    {item.badge}
-                  </span>
-                )}
               </motion.div>
 
             </motion.button>
@@ -151,9 +133,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                   >
                     <span className="relative flex h-5 w-5 items-center justify-center">{item.icon}</span>
                     <span className="flex-1">{item.label}</span>
-                    {item.id === 'feed' && availableJobsCount > 0 && (
-                      <span className="rounded-full bg-neutral-900 px-2 py-0.5 text-[10px] font-black text-white">{availableJobsCount}</span>
-                    )}
                   </button>
                 );
               })}

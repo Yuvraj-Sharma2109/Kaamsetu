@@ -5,7 +5,7 @@ import { getTranslation } from '../../utils/i18n';
 import { localizeJobTitle, localizePlaceText, localizeTradeName, uiText } from '../../utils/uiText';
 import { UberMapView } from '../UberMapView';
 import { distanceBetweenKm, geocodePlace, reverseGeocodePlace } from '../../utils/places';
-import { MapPin, Clock3, CircleCheck, ListPlus, Check } from 'lucide-react';
+import { MapPin, Clock3, CircleCheck, ListPlus, Check, LocateFixed, X } from 'lucide-react';
 
 interface DutyScreenProps {
   isOnline: boolean;
@@ -28,7 +28,7 @@ interface DutyScreenProps {
 type OnlineStage = 'offline' | 'transitioning' | 'searching' | 'preview' | 'expanded' | 'offlineTransition';
 
 const NEARBY_COPY: Record<Language, { title: string; radius: string; findingLocation: string; findingJobs: string; permission: string; locationDenied: string; empty: string; recommended: string }> = {
-  en: { title: 'Nearby jobs', radius: 'Within 5 km', findingLocation: 'Finding your location\u2026', findingJobs: 'Finding jobs within 5 km\u2026', permission: 'Allow location access for nearby job recommendations.', locationDenied: 'Location is off. Tap the map pin button to retry.', empty: 'No matching jobs found within 5 km.', recommended: 'Recommended' },
+  en: { title: 'Nearby jobs', radius: 'Within 5 km', findingLocation: 'Finding your location\u2026', findingJobs: 'Finding jobs within 5 km\u2026', permission: 'Allow location access for nearby job recommendations.', locationDenied: 'Location access is blocked. Allow it to see nearby jobs.', empty: 'No matching jobs found within 5 km.', recommended: 'Recommended' },
   hi: { title: '\u0906\u0938-\u092a\u093e\u0938 \u0915\u0947 \u0915\u093e\u092e', radius: '5 \u0915\u093f\u092e\u0940 \u0915\u0947 \u0905\u0902\u0926\u0930', findingLocation: '\u0906\u092a\u0915\u0940 \u0932\u094b\u0915\u0947\u0936\u0928 \u0916\u094b\u091c \u0930\u0939\u0947 \u0939\u0948\u0902\u2026', findingJobs: '5 \u0915\u093f\u092e\u0940 \u0915\u0947 \u0905\u0902\u0926\u0930 \u0915\u093e\u092e \u0916\u094b\u091c \u0930\u0939\u0947 \u0939\u0948\u0902\u2026', permission: '\u092a\u093e\u0938 \u0915\u0947 \u0915\u093e\u092e \u0926\u0947\u0916\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u0940 \u0905\u0928\u0941\u092e\u0924\u093f \u0926\u0947\u0902\u0964', locationDenied: '\u0932\u094b\u0915\u0947\u0936\u0928 \u092c\u0902\u0926 \u0939\u0948\u0964 \u092b\u093f\u0930 \u0938\u0947 \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0928\u0947 \u0915\u0947 \u0932\u093f\u090f \u092e\u0948\u092a \u092a\u093f\u0928 \u0926\u092c\u093e\u090f\u0901\u0964', empty: '5 \u0915\u093f\u092e\u0940 \u0915\u0947 \u0905\u0902\u0926\u0930 \u0906\u092a\u0915\u0947 \u0915\u093e\u092e \u0915\u093e \u0915\u094b\u0908 \u091c\u0949\u092c \u0928\u0939\u0940\u0902 \u092e\u093f\u0932\u093e\u0964', recommended: '\u0906\u092a\u0915\u0947 \u0932\u093f\u090f \u0938\u0941\u091d\u093e\u092f\u093e' },
   bn: { title: '\u0995\u09be\u099b\u09be\u0995\u09be\u099b\u09bf \u0995\u09be\u099c', radius: '5 \u0995\u09bf\u09ae\u09bf\u09b0 \u09ae\u09a7\u09cd\u09af\u09c7', findingLocation: '\u0986\u09aa\u09a8\u09be\u09b0 \u0985\u09ac\u09b8\u09cd\u09a5\u09be\u09a8 \u0996\u09cb\u0981\u099c\u09be \u09b9\u099a\u09cd\u099b\u09c7\u2026', findingJobs: '5 \u0995\u09bf\u09ae\u09bf\u09b0 \u09ae\u09a7\u09cd\u09af\u09c7 \u0995\u09be\u099c \u0996\u09cb\u0981\u099c\u09be \u09b9\u099a\u09cd\u099b\u09c7\u2026', permission: '\u0995\u09be\u099b\u09c7\u09b0 \u0995\u09be\u099c \u09a6\u09c7\u0996\u09a4\u09c7 \u09b2\u09cb\u0995\u09c7\u09b6\u09a8 \u0985\u09a8\u09c1\u09ae\u09a4\u09bf \u09a6\u09bf\u09a8\u0964', locationDenied: '\u09b2\u09cb\u0995\u09c7\u09b6\u09a8 \u09ac\u09a8\u09cd\u09a7 \u0986\u099b\u09c7\u0964 \u0986\u09ac\u09be\u09b0 \u099a\u09c7\u09b7\u09cd\u099f\u09be \u0995\u09b0\u09a4\u09c7 \u09ae\u09cd\u09af\u09be\u09aa \u09aa\u09bf\u09a8\u09c7 \u099f\u09cd\u09af\u09be\u09aa \u0995\u09b0\u09c1\u09a8\u0964', empty: '5 \u0995\u09bf\u09ae\u09bf\u09b0 \u09ae\u09a7\u09cd\u09af\u09c7 \u0986\u09aa\u09a8\u09be\u09b0 \u0995\u09be\u099c\u09c7\u09b0 \u0995\u09cb\u09a8\u09cb \u099a\u09be\u0995\u09b0\u09bf \u09a8\u09c7\u0987\u0964', recommended: '\u0986\u09aa\u09a8\u09be\u09b0 \u099c\u09a8\u09cd\u09af \u09b8\u09c1\u09aa\u09be\u09b0\u09bf\u09b6' },
   mr: { title: '\u091c\u0935\u0933\u091a\u0940 \u0915\u093e\u092e\u0947', radius: '5 \u0915\u093f\u092e\u0940\u091a\u094d\u092f\u093e \u0906\u0924', findingLocation: '\u0924\u0941\u092e\u091a\u0947 \u0938\u094d\u0925\u093e\u0928 \u0936\u094b\u0927\u0924 \u0906\u0939\u0947\u2026', findingJobs: '5 \u0915\u093f\u092e\u0940\u091a\u094d\u092f\u093e \u0906\u0924 \u0915\u093e\u092e\u0947 \u0936\u094b\u0927\u0924 \u0906\u0939\u0947\u2026', permission: '\u091c\u0935\u0933\u091a\u0940 \u0915\u093e\u092e\u0947 \u092a\u093e\u0939\u0923\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u0938\u094d\u0925\u093e\u0928\u093e\u091a\u0940 \u092a\u0930\u0935\u093e\u0928\u0917\u0940 \u0926\u094d\u092f\u093e.', locationDenied: '\u0938\u094d\u0925\u093e\u0928 \u092c\u0902\u0926 \u0906\u0939\u0947. \u092a\u0941\u0928\u094d\u0939\u093e \u092a\u094d\u0930\u092f\u0924\u094d\u0928 \u0915\u0930\u0923\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u0928\u0915\u093e\u0936\u093e\u0935\u0930\u0940\u0932 \u092a\u093f\u0928 \u0926\u093e\u092c\u093e.', empty: '5 \u0915\u093f\u092e\u0940\u091a\u094d\u092f\u093e \u0906\u0924 \u091c\u0941\u0933\u0923\u093e\u0930\u0940 \u0915\u093e\u092e\u0947 \u0938\u093e\u092a\u0921\u0932\u0940 \u0928\u093e\u0939\u0940\u0924.', recommended: '\u0924\u0941\u092e\u091a\u094d\u092f\u093e\u0938\u093e\u0920\u0940 \u0936\u093f\u092b\u093e\u0930\u0938' },
@@ -94,6 +94,10 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
   const workTypeJobKey = workTypeJobs.map((job) => job.id).sort().join('|');
   const [devicePosition, setDevicePosition] = useState<GeoPoint | null>(null);
   const [locationDenied, setLocationDenied] = useState(false);
+  const [showLocationPermissionHelp, setShowLocationPermissionHelp] = useState(false);
+  const [locationRequestBusy, setLocationRequestBusy] = useState(false);
+  const [locationRequestError, setLocationRequestError] = useState('');
+  const [locationPermissionState, setLocationPermissionState] = useState<PermissionState | 'unsupported'>('prompt');
   const [jobPositions, setJobPositions] = useState<Record<string, GeoPoint>>({});
   const [demoJobs, setDemoJobs] = useState<Job[]>([]);
   const [placesLoading, setPlacesLoading] = useState(true);
@@ -104,7 +108,39 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
     setLocationDenied(false);
     setDevicePosition((previous) => previous && distanceBetweenKm(previous, position) < 0.02 ? previous : position);
   }, []);
-  const handleWorkerPositionError = useCallback(() => setLocationDenied(true), []);
+  const handleWorkerPositionError = useCallback((error?: GeolocationPositionError) => {
+    setLocationDenied(true);
+    if (error?.code === 1) {
+      setLocationRequestError('You haven’t allowed KaamDaar to access your location. Location permission is required to go online.');
+      setShowLocationPermissionHelp(true);
+      if (isOnline) {
+        onToggleOnline();
+        setOnlineStage('offline');
+      }
+    }
+  }, [isOnline, onToggleOnline]);
+
+  useEffect(() => {
+    if (!navigator.permissions?.query) {
+      setLocationPermissionState('unsupported');
+      return;
+    }
+    let active = true;
+    let status: PermissionStatus | undefined;
+    const update = () => {
+      if (active && status) setLocationPermissionState(status.state);
+    };
+    void navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
+      if (!active) return;
+      status = permission;
+      update();
+      permission.addEventListener('change', update);
+    }).catch(() => setLocationPermissionState('unsupported'));
+    return () => {
+      active = false;
+      status?.removeEventListener('change', update);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOnline) {
@@ -227,29 +263,9 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
     return () => animation.stop();
   }, [onlineStage, panelHeight, searchHeight, previewHeight, expandedHeight]);
 
-  const handleGoClick = () => {
-    if (!isOnline && !worker.isKycVerified) {
-      onOpenAadhaarModal?.();
-      return;
-    }
-
+  const beginOnlineTransition = () => {
     flowTimers.current.forEach((timer) => window.clearTimeout(timer));
     flowTimers.current = [];
-
-    if (isOnline) {
-      onExpandedChange?.(false);
-      onExpansionProgress?.(0, true);
-      // Figma first animates to its short offline transition frame, waits
-      // 250ms, then returns to the offline map with a 300ms Smart Animate.
-      setOnlineStage('offlineTransition');
-      flowTimers.current.push(window.setTimeout(() => {
-        onToggleOnline();
-        setOnlineStage('offline');
-        panelHeight.set(searchHeight);
-      }, 550));
-      return;
-    }
-
     // First Smart Animate the GO control. Figma delays its online state
     // until that transition finishes, then holds the search card for 2s.
     onExpandedChange?.(false);
@@ -260,6 +276,66 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
       setOnlineStage('searching');
       flowTimers.current.push(window.setTimeout(() => setOnlineStage('preview'), 2000));
     }, 550));
+  };
+
+  const requestLocationAndGoOnline = () => {
+    setLocationRequestError('');
+    if (!window.isSecureContext || !navigator.geolocation) {
+      setLocationRequestError('Location needs HTTPS and a browser or device that supports location.');
+      setLocationDenied(true);
+      setShowLocationPermissionHelp(true);
+      return;
+    }
+    setLocationRequestBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const position = { lat: coords.latitude, lon: coords.longitude };
+        setDevicePosition(position);
+        setLocationDenied(false);
+        setLocationPermissionState('granted');
+        setLocationRequestBusy(false);
+        setShowLocationPermissionHelp(false);
+        if (!isOnline) beginOnlineTransition();
+      },
+      (error) => {
+        setLocationRequestBusy(false);
+        setLocationDenied(true);
+        setLocationRequestError(error.code === error.PERMISSION_DENIED
+          ? 'You haven’t allowed KaamDaar to access your location. Location permission is required to go online.'
+          : 'KaamDaar couldn’t get your location. Turn on your device location services and try again.');
+        if (error.code === error.PERMISSION_DENIED) setLocationPermissionState('denied');
+        setShowLocationPermissionHelp(true);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    );
+  };
+
+  const handleGoClick = () => {
+    if (!isOnline && !worker.isKycVerified) {
+      onOpenAadhaarModal?.();
+      return;
+    }
+
+    if (isOnline) {
+      flowTimers.current.forEach((timer) => window.clearTimeout(timer));
+      flowTimers.current = [];
+      onExpandedChange?.(false);
+      onExpansionProgress?.(0, true);
+      setOnlineStage('offlineTransition');
+      flowTimers.current.push(window.setTimeout(() => {
+        onToggleOnline();
+        setOnlineStage('offline');
+        panelHeight.set(searchHeight);
+      }, 550));
+      return;
+    }
+
+    if (!devicePosition) {
+      setShowLocationPermissionHelp(true);
+      requestLocationAndGoOnline();
+      return;
+    }
+    beginOnlineTransition();
   };
 
   const startPanelDrag = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -409,6 +485,7 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
               <div className="rounded-[22px] bg-white px-5 py-7 text-center shadow-[0px_2px_20px_rgba(0,0,0,0.11)]">
                 <h2 className="text-[16px] font-bold text-black">{!workerPosition ? locationDenied ? nearbyCopy.locationDenied : nearbyCopy.findingLocation : nearbyCopy.findingJobs}</h2>
                 <p className="mt-1 text-[12px] text-[#777]">{nearbyCopy.permission}</p>
+                {!workerPosition && locationDenied && <button type="button" disabled={locationRequestBusy} onClick={() => { setShowLocationPermissionHelp(true); requestLocationAndGoOnline(); }} className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#2d59f0] px-4 text-xs font-black text-white disabled:bg-slate-400"><LocateFixed className="h-4 w-4" />{locationRequestBusy ? 'Checking location…' : 'Allow / retry location'}</button>}
               </div>
             ) : (
               <>
@@ -474,6 +551,30 @@ export const DutyScreen: React.FC<DutyScreenProps> = ({
           <span className="text-[24px] leading-[24px] font-semibold">GO</span>
           <span className="text-[12px] leading-[12px] font-medium text-[#b5b5b5]">{uiText(language, 'offline')}</span>
       </motion.button>}
+
+      {showLocationPermissionHelp && <div className="absolute inset-0 z-[80] flex items-center justify-center bg-black/35 p-5" role="presentation">
+        <section role="dialog" aria-modal="true" aria-labelledby="location-permission-title" className="w-full max-w-[380px] rounded-[24px] bg-white p-5 shadow-2xl">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#2d59f0]"><LocateFixed className="h-5 w-5" /></span>
+              <div><h2 id="location-permission-title" className="text-base font-black text-slate-900">Location permission required</h2><p className="mt-1 text-xs text-slate-500">Allow location to go online and find nearby work.</p></div>
+            </div>
+            <button type="button" aria-label="Close" onClick={() => setShowLocationPermissionHelp(false)} className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100"><X className="h-4 w-4" /></button>
+          </div>
+          {locationRequestError && <p role="alert" className="mt-4 rounded-xl bg-rose-50 p-3 text-xs font-semibold leading-5 text-rose-700">{locationRequestError}</p>}
+          {!window.isSecureContext && <p role="alert" className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold leading-5 text-amber-900">This page is not using HTTPS, so your browser will not show a location prompt. Open the secure KaamDaar website to enable location.</p>}
+          <div className="mt-4 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-700">
+            <p className="font-bold text-slate-900">{locationPermissionState === 'denied' ? 'Location is blocked in settings:' : 'Allow location in your device:'}</p>
+            <p className="mt-1">Installed app: open phone Settings → Apps → KaamDaar → Permissions → Location → Allow.</p>
+            <p className="mt-1">Browser: tap the site controls beside the address bar → Permissions → Location → Allow. Return here after changing it.</p>
+            <p className="mt-2 text-[10px] font-semibold text-slate-500">Permission status: {locationPermissionState}</p>
+          </div>
+          <button type="button" disabled={locationRequestBusy} onClick={requestLocationAndGoOnline} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#2d59f0] px-4 text-sm font-black text-white disabled:bg-slate-400">
+            <LocateFixed className="h-4 w-4" />{locationRequestBusy ? 'Checking location…' : locationPermissionState === 'denied' ? 'I enabled it — try again' : 'Allow / retry location'}
+          </button>
+          <button type="button" onClick={() => setShowLocationPermissionHelp(false)} className="mt-2 min-h-10 w-full rounded-xl text-xs font-bold text-slate-500">I’ll do this later</button>
+        </section>
+      </div>}
     </div>
   );
 };

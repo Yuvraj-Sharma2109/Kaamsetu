@@ -15,7 +15,7 @@ interface UberMapViewProps {
   onSelectSite?: (job: Job) => void;
   workerLocation?: string;
   onWorkerPositionChange?: (position: GeoPoint) => void;
-  onWorkerPositionError?: () => void;
+  onWorkerPositionError?: (error?: GeolocationPositionError) => void;
   onWorkerAtDestination?: () => void;
   hasArrived?: boolean;
   customLocationText?: string;
@@ -201,7 +201,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
         setWorkerPosition(point);
         onWorkerPositionChangeRef.current?.(point);
       },
-      () => onWorkerPositionErrorRef.current?.(),
+      (error) => onWorkerPositionErrorRef.current?.(error),
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 12000 },
     );
     return () => navigator.geolocation.clearWatch(watchId);
@@ -480,7 +480,7 @@ export const UberMapView: React.FC<UberMapViewProps> = ({
         setWorkerPosition(point);
         onWorkerPositionChangeRef.current?.(point);
         mapInstance.current?.setView([point.lat, point.lon], 15, { animate: true });
-      }, () => { setRouteError(copy.locating); onWorkerPositionErrorRef.current?.(); }, { enableHighAccuracy: true, timeout: 12000 })} className="absolute bottom-[78px] right-3 z-[500] flex h-11 w-11 items-center justify-center rounded-xl border border-slate-100 bg-white text-[#2d59f0] shadow-lg" aria-label={copy.yourLocation} title={copy.yourLocation}>
+      }, (error) => { setRouteError(copy.locating); onWorkerPositionErrorRef.current?.(error); }, { enableHighAccuracy: true, timeout: 12000 })} className="absolute bottom-[78px] right-3 z-[500] flex h-11 w-11 items-center justify-center rounded-xl border border-slate-100 bg-white text-[#2d59f0] shadow-lg" aria-label={copy.yourLocation} title={copy.yourLocation}>
         <LocateFixed className="h-5 w-5" />
       </button>}
 

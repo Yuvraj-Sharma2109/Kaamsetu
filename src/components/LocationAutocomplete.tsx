@@ -26,6 +26,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [deviceLocation, setDeviceLocation] = useState<PlaceSuggestion | null>(null);
   const [manualLocationToConfirm, setManualLocationToConfirm] = useState<PlaceSuggestion | null>(null);
   const requestRef = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const currentLocationCopy: Record<Language, { action: string; error: string }> = {
     en: { action: 'Use current location', error: 'Location access is blocked. Enable it in your device or browser settings, then try again.' },
@@ -155,6 +156,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     <div className="relative">
       <div className="relative">
         <input
+          ref={inputRef}
           type="text"
           value={value}
           onChange={(event) => { onChange(event.target.value); setOpen(true); }}
@@ -176,7 +178,11 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
             {locating ? <LoaderCircle aria-hidden="true" className="h-4 w-4 shrink-0 animate-spin" /> : <LocateFixed className="h-4 w-4 shrink-0" />}
             <span>{locating ? currentLocationCopy[language].action + 'â€¦' : currentLocationCopy[language].action}</span>
           </button>
-          {locationError && <p role="alert" className="px-3 py-2 text-xs text-rose-600">{currentLocationCopy[language].error}</p>}
+          {locationError && <div className="rounded-lg bg-rose-50 p-2">
+            <p role="alert" className="text-xs text-rose-700">{currentLocationCopy[language].error}</p>
+            <p className="mt-1 text-[10px] text-slate-600">{mismatchCopy[language].description}</p>
+            <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => { setLocationError(false); inputRef.current?.focus(); }} className="mt-2 min-h-9 rounded-lg bg-white px-3 text-xs font-bold text-blue-700 shadow-sm">{mismatchCopy[language].manual}</button>
+          </div>}
           {suggestions.map((place, index) => (
             <button key={`${place.lat}:${place.lon}:${index}`} type="button" role="option" aria-selected="false" onMouseDown={(event) => event.preventDefault()} onClick={() => { selectPlace(place); checkSelectedPlace(place); }} className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-800 hover:bg-blue-50">
               <MapPin className="h-4 w-4 shrink-0 text-blue-600" />
