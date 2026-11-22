@@ -25,6 +25,27 @@ import {
   QrCode,
 } from 'lucide-react';
 
+const DemoPaymentQr = () => {
+  const size = 29;
+  const cells: Array<[number, number]> = [];
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const finder = [[0, 0], [size - 7, 0], [0, size - 7]].some(([left, top]) => {
+        const dx = x - left;
+        const dy = y - top;
+        if (dx < 0 || dy < 0 || dx > 6 || dy > 6) return false;
+        return dx === 0 || dx === 6 || dy === 0 || dy === 6 || (dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4);
+      });
+      const inFinderArea = [[0, 0], [size - 7, 0], [0, size - 7]].some(([left, top]) => x >= left - 1 && x <= left + 7 && y >= top - 1 && y <= top + 7);
+      if (finder || (!inFinderArea && ((x * 17 + y * 31 + x * y * 7) % 11 < 5 || (x + y * 3) % 13 === 0))) cells.push([x, y]);
+    }
+  }
+  return <svg viewBox={`-1 -1 ${size + 2} ${size + 2}`} className="h-48 w-48" role="img" aria-label="Decorative demo QR code; not scannable or payable" shapeRendering="crispEdges">
+    <rect x="-1" y="-1" width={size + 2} height={size + 2} fill="white" />
+    {cells.map(([x, y]) => <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#111827" />)}
+  </svg>;
+};
+
 interface ActiveJobScreenProps {
   shift: ShiftState;
   worker: WorkerProfile;
@@ -64,6 +85,8 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentCollectionMethod | null>(null);
   const [paymentIntent, setPaymentIntent] = useState<PaymentIntent | null>(null);
+  const [demoPayment, setDemoPayment] = useState(false);
+  const [selectedUpiApp, setSelectedUpiApp] = useState<string | null>(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paymentError, setPaymentError] = useState('');
   const [siteOtp, setSiteOtp] = useState<string>('');
@@ -100,6 +123,8 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
   const handlePunchOutClick = () => {
     setPaymentMethod(null);
     setPaymentIntent(null);
+    setDemoPayment(false);
+    setSelectedUpiApp(null);
     setPaymentError('');
     setShowPaymentModal(true);
   };
@@ -112,13 +137,13 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
     setPaymentMethod(method);
     setPaymentError('');
     setPaymentIntent(null);
+    setSelectedUpiApp(null);
     if (method === 'cash') return;
     if (!isPaymentCollectionConfigured()) {
-      setPaymentError(method === 'wallet'
-        ? 'In-App Wallet QR collection is not set up yet. Configure a payment backend to create and verify a real QR code.'
-        : 'UPI collection is not set up yet. Configure a payment backend to create and verify a real UPI payment.');
+      setDemoPayment(true);
       return;
     }
+    setDemoPayment(false);
     if (!job) return;
     setPaymentBusy(true);
     try {
@@ -527,7 +552,26 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
 
             {(paymentMethod === 'upi' || paymentMethod === 'wallet') && <div className="mt-4 space-y-3 rounded-2xl bg-slate-50 p-4">
               {paymentBusy && <p role="status" className="text-sm font-semibold text-slate-700">Connecting to the secure payment service…</p>}
+              {demoPayment && <p role="status" className="rounded-xl bg-amber-50 p-3 text-xs font-semibold leading-5 text-amber-900">Demo payment screen. No real payment is initiated or verified. Add a payment provider backend for live collection.</p>}
               {paymentError && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-xs font-semibold leading-5 text-amber-900">{paymentError}</p>}
+              {demoPayment && paymentMethod === 'wallet' && <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 text-center">
+                <p className="text-sm font-black text-slate-900">Scan to pay with KaamDaar Wallet</p>
+                <p className="text-xs text-slate-500">₹{finalPayable.toLocaleString('en-IN')} · Job {job.id}</p>
+                <div className="mx-auto w-fit rounded-xl border border-slate-200 bg-white p-3"><DemoPaymentQr /></div>
+                <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-amber-900">Demo QR · Not payable</span>
+                <p className="text-[10px] leading-4 text-slate-500">This sample QR is for screen demonstration only. It cannot accept or verify a payment.</p>
+              </div>}
+              {demoPayment && paymentMethod === 'upi' && <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-center text-sm font-black text-slate-900">Choose a UPI app</p>
+                <div className="grid grid-cols-2 gap-2">{[
+                  { id: 'gpay', name: 'Google Pay', short: 'G', color: 'bg-white text-[#4285f4] border-slate-200' },
+                  { id: 'phonepe', name: 'PhonePe', short: 'पे', color: 'bg-[#5f259f] text-white border-[#5f259f]' },
+                  { id: 'paytm', name: 'Paytm', short: 'Paytm', color: 'bg-[#00baf2] text-white border-[#00baf2]' },
+                  { id: 'other', name: 'Other UPI app', short: 'UPI', color: 'bg-[#2d59f0] text-white border-[#2d59f0]' },
+                ].map((app) => <button type="button" key={app.id} onClick={() => setSelectedUpiApp(app.id)} className={`flex min-h-14 items-center gap-2 rounded-xl border p-2 text-left text-[11px] font-bold ${selectedUpiApp === app.id ? 'ring-2 ring-blue-500' : ''}`}><span className={`flex h-8 min-w-8 items-center justify-center rounded-lg border px-1 text-[10px] font-black ${app.color}`}>{app.short}</span>{app.name}</button>)}</div>
+                {selectedUpiApp && <p role="status" className="rounded-lg bg-blue-50 p-2 text-center text-[10px] font-semibold leading-4 text-blue-900">{['gpay', 'phonepe', 'paytm', 'other'].find((id) => id === selectedUpiApp) === selectedUpiApp ? 'Demo selection only. Live app handoff needs a verified worker UPI ID and payment service.' : ''}</p>}
+                <p className="text-center text-[10px] text-slate-500">₹{finalPayable.toLocaleString('en-IN')} · Job {job.id} · Not a live payment</p>
+              </div>}
               {paymentIntent && <>
                 {paymentMethod === 'wallet' && paymentIntent.qrCodeDataUrl && <div className="mx-auto w-fit rounded-2xl bg-white p-3 shadow-sm"><img src={paymentIntent.qrCodeDataUrl} alt={`Verified payment QR for ₹${finalPayable}`} className="h-48 w-48 object-contain" /></div>}
                 {paymentMethod === 'upi' && paymentIntent.upiUrl && <a href={paymentIntent.upiUrl} className="flex min-h-12 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-black text-white">Open UPI app to pay ₹{finalPayable.toLocaleString('en-IN')}</a>}
@@ -535,7 +579,7 @@ export const ActiveJobScreen: React.FC<ActiveJobScreenProps> = ({
                 <button type="button" disabled={paymentBusy} onClick={() => void verifyPayment()} className="min-h-12 w-full rounded-xl bg-blue-600 px-4 text-sm font-black text-white disabled:bg-slate-400">{paymentBusy ? 'Verifying…' : 'Verify payment'}</button>
               </>}
               <button type="button" onClick={() => { onPunchOut(paymentMethod, false, paymentIntent?.id); setShowPaymentModal(false); }} className="min-h-10 w-full rounded-xl bg-white px-4 text-xs font-bold text-slate-700">Complete job — keep payment pending</button>
-              <p className="text-[10px] leading-4 text-slate-500">Payment is marked received only after the payment server confirms it. The QR is supplied by that server; the app never generates a pretend payment QR.</p>
+              <p className="text-[10px] leading-4 text-slate-500">{demoPayment ? 'Demo mode only: the sample QR and UPI app choices do not collect or verify money. Payment remains pending.' : 'Payment is marked received only after the payment server confirms it. The QR is supplied by that server; the app never marks an unverified payment as received.'}</p>
             </div>}
           </section>
         </div>
